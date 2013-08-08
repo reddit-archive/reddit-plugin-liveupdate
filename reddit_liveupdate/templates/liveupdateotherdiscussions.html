@@ -1,0 +1,19 @@
+<%! from r2.lib.filters import safemarkdown %>
+
+% if thing.links:
+% for link in thing.links:
+<div>
+  <p><a href="${link.make_permalink(link.subreddit)}">${link.title}</a></p>
+  <ul>
+    <li>${link.comments_label}</li>
+    <li><a href="/r/${link.subreddit.name}">/r/${link.subreddit.name}</a></li>
+  </ul>
+</div>
+% endfor
+
+% if thing.more_links:
+<p class="morelinks"><a href="/live/${c.liveupdate_event._id}/discussions">${_("see more")}</a></p>
+% endif
+% else:
+${unsafe(safemarkdown(_("no discussions yet. [start one]({url})").format(url=thing.submit_url), wrap=False))}
+% endif

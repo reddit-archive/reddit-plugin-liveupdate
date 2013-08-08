@@ -1,0 +1,53 @@
+<%!
+  from r2.lib.pages import UserText
+%>
+
+<%namespace name="utils" file="utils.html" />
+
+<header>
+<div>
+<h1>${thing.event.title}</h1>
+</div>
+
+<div class="tagline">
+  % if thing.event.state == "live":
+    <p class="state live">${_("live")}</p>
+  % endif
+
+  <p>${_("reported by:")}</p>
+
+  <ul>
+    % for editor in thing.editors:
+    <li>${editor}</li>
+    % endfor
+  </ul>
+</div>
+</header>
+
+% if c.liveupdate_can_edit:
+<div id="new-update-form" class="prettyform">
+  ${UserText(None, text="", editable=True, creating=True, name="body", have_form=False)}
+
+  <div class="save-button">
+    <button class="btn" type="button" onclick="return post_pseudo_form('#new-update-form', 'live/${c.liveupdate_event._id}/update')">
+      ${_("make update")}
+    </button>
+    &#32;
+    <span class="status error"></span>
+  </div>
+</div>
+% endif
+
+<div class="main-content">
+<aside class="sidebar">
+  <section class="md">
+    ${utils.md(thing.event.description)}
+  </section>
+  <section id="discussions">
+    <h1>${_("discussions")}</h1>
+    ${thing.discussions}
+  </section>
+</aside>
+
+${thing.listing}
+</div>

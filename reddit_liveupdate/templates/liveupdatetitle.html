@@ -1,0 +1,5 @@
+<%namespace file="utils.html" import="plain_link"/>
+
+<span class="hover pagename redditname">
+  ${_("live updates:")}&#32;${plain_link(c.liveupdate_event.title, "/live/" + c.liveupdate_event._id, _sr_path=False)}
+</span>

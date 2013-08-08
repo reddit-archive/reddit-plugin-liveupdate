@@ -1,0 +1,19 @@
+<%!
+
+  from r2.lib.template_helpers import html_datetime
+
+%>
+
+<%namespace file="utils.html" name="utils" />
+<%namespace file="printablebuttons.html" import="ynbutton" />
+
+<tr data-fullname="${thing._fullname}" class="thing id-${thing._fullname} ${"stricken" if thing.stricken else ""}">
+  <th scope="row">
+    <time datetime="${html_datetime(thing._date)}">${thing.date_str}</time>
+  </th>
+
+  <td class="md">
+    ${utils.md(thing.body)}
+    ${thing.author}
+  </td>
+</tr>

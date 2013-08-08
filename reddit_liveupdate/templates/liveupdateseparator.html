@@ -1,0 +1,11 @@
+<%!
+
+  from r2.lib.template_helpers import html_datetime
+
+%>
+
+<tr class="separator">
+  <td colspan="2">
+    <time datetime="${html_datetime(thing.date)}">${thing.date_str}</time>
+  </td>
+</tr>

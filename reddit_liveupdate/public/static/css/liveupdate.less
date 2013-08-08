@@ -1,0 +1,299 @@
+.content > header {
+    overflow: auto;
+
+    h1 {
+        float: left;
+        font-size: 28px;
+        padding: 10px;
+        margin-top: 0;
+    }
+
+    .tagline {
+        clear: both;
+        font-size: x-small;
+        margin-left: 0;
+
+        .state.live {
+            color: #4f4f4f;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: medium;
+            margin: 0 .8em 0 .5em;
+        }
+
+        .state.live:before {
+            content: "";
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 6px;
+            background: #ff4500;
+            margin-right: 6px;
+        }
+
+        p {
+            display: inline-block;
+        }
+
+        ul {
+            display: inline-block;
+            margin-left: .5em;
+        }
+
+        li {
+            display: inline-block;
+            margin-right: 1em;
+        }
+    }
+}
+
+.liveupdate-listing table {
+    margin-top: 2em;
+    max-width: 600px;
+    min-width: 300px;
+    @transition-time: .3s;
+
+    tr.initial + tr {
+        th {
+            font-size: medium;
+        }
+
+        td {
+            font-size: large;
+            padding-left: 1.2em;
+
+            a.author {
+                font-size: small;
+            }
+        }
+    }
+
+    tr.stricken td.md {
+        text-decoration: line-through;
+    }
+
+    th, td {
+        vertical-align: top;
+        padding-bottom: .5em;
+    }
+
+    th {
+        font-size: small;
+
+        time {
+            font-size: smaller;
+            display: inline-block;
+            white-space: nowrap;
+            color: #888;
+            transition: color @transition-time;
+        }
+    }
+
+    td {
+        padding-left: 2em;
+
+        &.md {
+            overflow: visible;
+        }
+
+        form, p {
+            display: inline;
+        }
+
+        p:first-child {
+            margin-top: 0;
+        }
+
+        a.author {
+            color: #b6c6d6;
+            transition: color @transition-time;
+        }
+
+        ul.buttonrow {
+            display: none;
+            font-size: small;
+            margin: .2em 0 0 0;
+
+            li {
+                display: inline-block;
+                margin: 0 1em 0 0;
+            }
+
+            button {
+                border: none;
+                background: inherit;
+                padding: 0;
+                font-size: small;
+                color: #369;
+            }
+        }
+    }
+
+    tr:hover {
+        th time {
+            color: black;
+            transition: color @transition-time;
+        }
+
+        a.author {
+            color: #369;
+            transition: color @transition-time;
+        }
+
+        ul.buttonrow {
+            display: block;
+        }
+    }
+
+    tr.separator {
+        font-size: small;
+
+        td {
+            font-size: smaller;
+            padding: .7em 0;
+            background: transparent url(../liveupdate-border.png) center left repeat-x;
+
+            time {
+                background: white;
+                padding-right: 10px;
+            }
+        }
+    }
+
+    tr.initial {
+        color: #888;
+        border-bottom: 1px solid #888;
+
+        td {
+            padding: 0 0 .3em 0;
+        }
+    }
+
+    tr.final {
+        font-size: small;
+        color: #888;
+        border-top: 1px solid #888;
+
+        td {
+            font-size: smaller;
+            padding: 0 0 0 2.5em;
+        }
+    }
+}
+
+.main-content {
+    max-width: 1000px;
+    overflow: auto;
+}
+
+.nextprev {
+    margin-bottom: 1em;
+}
+
+aside.sidebar {
+    color: #333;
+    width: 300px;
+    float: right;
+    margin-left: 30px;
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #333;
+        font-size: small;
+    }
+
+    h1 {
+        font-size: large;
+    }
+
+    h2 {
+        font-size: medium;
+        font-weight: normal;
+    }
+
+    h3, h4, h5, h6 {
+        font-weight: bold;
+    }
+
+    #discussions {
+        margin-top: .7em;
+        border-top: 1px dotted #999;
+
+        p {
+            font-size: small;
+            margin: .3em 0;
+        }
+
+        li {
+            color: #888;
+            background: white;
+            font-size: grey;
+            display: inline-block;
+            border-right: 1px solid #888;
+            padding: 0 .7em;
+
+            a {
+                color: #888;
+            }
+        }
+
+        li:first-child {
+            padding-left: 0;
+        }
+
+        li:last-child {
+            border-right: none;
+        }
+    }
+}
+
+.showmore {
+    width: 350px;
+    padding: 2em;
+    text-align: center;
+    color: #444;
+    background: #eef;
+    border: 1px solid #99c;
+    border-radius: 5px;
+    margin-top: 2em;
+    cursor: pointer;
+    font-size: medium;
+}
+
+@media all and (max-width: 700px) {
+    #new-update-form {
+        margin-bottom: 1em;
+    }
+
+    aside.sidebar {
+        float: none;
+        margin: 0 0 2em 0;
+        max-width: 700px;
+        width: auto;
+
+        section {
+            border: 1px solid #369;
+            background-color: #fafafa;
+            padding: 10px;
+            border-radius: 9px;
+        }
+
+        #discussions {
+            border-top: 1px solid #369;
+
+            h1 {
+                margin-top: 0;
+            }
+
+            li {
+                color: black;
+                background: #fafafa;
+            }
+        }
+    }
+
+    // always display the buttons in tiny-screen mode since it's likely a touch
+    // device and hover doesn't work so well there.
+    ul.buttonrow {
+        display: block !important; // make up for super-specificity of the other rule
+    }
+}

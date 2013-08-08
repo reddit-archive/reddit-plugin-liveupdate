@@ -1,0 +1,41 @@
+<%!
+
+  from r2.lib.template_helpers import html_datetime
+
+%>
+
+%if thing.things:
+<div class="liveupdate-listing">
+<table>
+  <tbody>
+    % if not thing.prev:
+    <tr class="initial">
+      <td colspan="2">
+        ${_("last refreshed:")}&#32;
+        <time class="live" datetime="${html_datetime(thing.current_time)}">${thing.current_time_str}</time>
+      </td>
+    </tr>
+    % endif
+
+    % for item in thing.things_with_separators():
+    ${item}
+    % endfor
+
+    % if not thing.next:
+    <tr class="final">
+      <th>
+        <time datetime="${html_datetime(thing.things[-1]._date)}">${thing.things[-1].date_str}</time>
+      </th>
+      <td>${_("started live updates")}</td>
+    </tr>
+    % endif
+  </tbody>
+</table>
+
+%if thing.next:
+  <div class="showmore">${_("show more")}</div>
+%endif
+</div>
+% else:
+<p id="noresults" class="error">${_("there doesn't seem to be anything here")}</p>
+% endif
