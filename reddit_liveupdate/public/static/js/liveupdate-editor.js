@@ -49,8 +49,8 @@ r.liveupdate.editor = {
             'url': '/api/live/' + r.config.liveupdate_event + '/strike_update',
             'data': {
                 'id': update.thing_id(),
-                'uh': r.config.modhash,
-            },
+                'uh': r.config.modhash
+            }
         }).done(function () {
             update.addClass('stricken')
             button.text(r._('stricken'))
@@ -69,8 +69,8 @@ r.liveupdate.editor = {
             'url': '/api/live/' + r.config.liveupdate_event + '/delete_update',
             'data': {
                 'id': update.thing_id(),
-                'uh': r.config.modhash,
-            },
+                'uh': r.config.modhash
+            }
         }).done(function () {
             button.text(r._('deleted'))
             update.fadeOut(function () {
