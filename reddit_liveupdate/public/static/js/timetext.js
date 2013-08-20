@@ -44,7 +44,7 @@ r.timetext = {
 
         $.each(r.timetext._chunks, function (ix, chunk) {
             var count = Math.floor(age / chunk[0])
-            if (count != 0) {
+            if (count > 0) {
                 var keys = chunk[1]
                 text = r.P_(keys[0], keys[1], count).format({num: count})
                 return false
