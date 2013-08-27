@@ -38,7 +38,6 @@ r.liveupdate = {
             }, this),
             'error': function () {
                 // TODO
-                console.log('sad panda')
             }
         })
     }

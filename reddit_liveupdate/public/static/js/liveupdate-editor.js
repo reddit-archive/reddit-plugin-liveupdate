@@ -15,12 +15,10 @@ r.liveupdate.editor = {
     },
 
     onMoreUpdates: function (ev, updates) {
-        console.log(updates)
         this._addButtons(updates.filter('tr.thing').find('td'))
     },
 
     _addButtons: function (updates) {
-        console.log(updates)
         updates.each($.proxy(function (index, el) {
             var $buttonRow = this.$buttonRow.clone()
             var $el = $(el)
