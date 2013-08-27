@@ -22,17 +22,17 @@ r.liveupdate = {
             'url': url,
             'dataType': 'html',
             'success': $.proxy(function (response) {
-                var fragment = $(response),
-                    newRows = fragment.find('.liveupdate-listing tbody').children()
+                var $fragment = $(response),
+                    $newRows = $fragment.find('.liveupdate-listing tbody').children()
 
-                if (newRows.filter('.final').length == 0) {
+                if ($newRows.filter('.final').length == 0) {
                     this.$loading.replaceWith(this.$showmore)
                 } else {
                     this.$loading.remove()
                 }
 
-                this.$listing.trigger('more-updates', [newRows])
-                this.$table.append(newRows)
+                this.$listing.trigger('more-updates', [$newRows])
+                this.$table.append($newRows)
 
                 r.timetext.refresh()
             }, this),
