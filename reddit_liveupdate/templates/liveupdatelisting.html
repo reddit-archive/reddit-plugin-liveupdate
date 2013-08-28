@@ -4,6 +4,10 @@
 
 %>
 
+<%def name="live_timestamp(thing)">
+  <time class="live" datetime="${html_datetime(thing.current_time)}">${thing.current_time_str}</time>
+</%def>
+
 %if thing.things:
 <div class="liveupdate-listing">
 <table>
@@ -11,8 +15,7 @@
     % if not thing.prev:
     <tr class="initial">
       <td colspan="2">
-        ${_("last refreshed:")}&#32;
-        <time class="live" datetime="${html_datetime(thing.current_time)}">${thing.current_time_str}</time>
+        ${unsafe(_("as of&#32;%(when)s" % dict(when=capture(live_timestamp, thing))))}
       </td>
     </tr>
     % endif
