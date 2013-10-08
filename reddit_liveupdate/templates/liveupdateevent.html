@@ -40,9 +40,11 @@
 
 <div class="main-content">
 <aside class="sidebar">
+  % if thing.event.description:
   <section class="md">
     ${utils.md(thing.event.description)}
   </section>
+  % endif
   <section id="discussions">
     <h1>${_("discussions")}</h1>
     ${thing.discussions}
