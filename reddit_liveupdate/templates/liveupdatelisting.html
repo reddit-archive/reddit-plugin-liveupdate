@@ -15,7 +15,11 @@
     % if not thing.prev:
     <tr class="initial">
       <td colspan="2">
+        % if c.liveupdate_event.state == "complete":
+        ${unsafe(_("no further updates &mdash; event is over"))}
+        % else:
         ${unsafe(_("as of&#32;%(when)s" % dict(when=capture(live_timestamp, thing))))}
+        % endif
       </td>
     </tr>
     % endif
