@@ -2,44 +2,63 @@ r.liveupdate = {
     init: function () {
         this.$listing = $('.liveupdate-listing')
         this.$table = this.$listing.find('table tbody')
-        this.$showmore = $('.showmore')
-        this.$loading = $('<div class="showmore">' + r._('loading&hellip;') + '</div>')
 
-        $('body').on('click', '.showmore', $.proxy(this, 'onShowMore'))
+        this.$listing.find('nav.nextprev').remove()
+        $(window)
+            .scroll($.proxy(this, '_loadMoreIfNearBottom'))
+            .scroll()  // in case of a short page / tall window
     },
 
-    onShowMore: function () {
-        var lastId = this.$table.find('tr:last-child').data('fullname'),
-            params = $.param({
+    _loadMoreIfNearBottom: function () {
+        var isLoading = this.$listing.hasClass('loading')
+        var canLoadMore = (this.$table.find('.final').length == 0)
+
+        if (isLoading || !canLoadMore)
+            return
+
+        // technically, window.innerHeight includes the horizontal
+        // scrollbar if present. oh well.
+        var bottomOfTable = this.$table.offset().top + this.$table.height()
+        var topOfLastScreenful = bottomOfTable - window.innerHeight
+        var nearBottom = ($(window).scrollTop() + 250 >= topOfLastScreenful)
+
+        if (nearBottom)
+            this._loadMore()
+    },
+
+    _loadMore: function () {
+        var lastId = this.$table.find('tr:last-child').data('fullname')
+
+        // in case we get stuck in a loop somehow, bail out.
+        if (lastId == this.lastFetchedId)
+            return
+
+        var params = $.param({
+                'bare': 'y',
                 'after': lastId,
                 'count': this.$table.find('tr.thing').length
-            }),
-            url = '/live/' + r.config.liveupdate_event + '/?' + params
+            })
+        var url = '/live/' + r.config.liveupdate_event + '/?' + params
 
-        this.$showmore.replaceWith(this.$loading)
+        this.$listing.addClass('loading')
 
         $.ajax({
             'url': url,
-            'dataType': 'html',
-            'success': $.proxy(function (response) {
+            'dataType': 'html'
+        })
+            .done($.proxy(function (response) {
                 var $fragment = $(response),
                     $newRows = $fragment.find('.liveupdate-listing tbody').children()
 
-                if ($newRows.filter('.final').length == 0) {
-                    this.$loading.replaceWith(this.$showmore)
-                } else {
-                    this.$loading.remove()
-                }
-
                 this.$listing.trigger('more-updates', [$newRows])
                 this.$table.append($newRows)
+                this.lastFetchedId = lastId
 
                 r.timetext.refresh()
-            }, this),
-            'error': function () {
-                // TODO
-            }
-        })
+            }, this))
+            .always($.proxy(function () {
+                this.$listing.removeClass('loading')
+            }, this))
     }
 }
 

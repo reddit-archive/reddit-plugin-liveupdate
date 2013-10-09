@@ -35,9 +35,21 @@
   </tbody>
 </table>
 
-%if thing.next:
-  <div class="showmore">${_("show more")}</div>
-%endif
+% if thing.nextprev and (thing.prev or thing.next):
+<nav class="nextprev">
+  ${_("view more:")}&#32;
+  %if thing.prev:
+    <a href="${thing.prev}" rel="nofollow prev">&lsaquo; ${_("prev")}</a>
+  %endif
+  %if thing.prev and thing.next:
+    <span class="separator"></span>
+  %endif
+  %if thing.next:
+    <a href="${thing.next}" rel="nofollow next">${_("next")} &rsaquo;</a>
+  %endif
+  </span>
+</nav>
+% endif
 </div>
 % else:
 <p id="noresults" class="error">${_("there doesn't seem to be anything here")}</p>
