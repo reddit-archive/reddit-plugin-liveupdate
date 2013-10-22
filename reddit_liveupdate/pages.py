@@ -180,8 +180,8 @@ class LiveUpdateOtherDiscussions(Templated):
         Templated.__init__(self)
 
     @classmethod
-    @memoize("live_update_discussions", time=60)
-    def get_links(cls, event_id):
+    @memoize("live_update_discussion_ids", time=60)
+    def _get_related_link_ids(cls, event_id):
         url = add_sr("/live/%s" % event_id, sr_path=False, force_hostname=True)
 
         try:
@@ -189,6 +189,12 @@ class LiveUpdateOtherDiscussions(Templated):
         except NotFound:
             links = []
 
+        return [link._id for link in links]
+
+    @classmethod
+    def get_links(cls, event_id):
+        link_ids = cls._get_related_link_ids(event_id)
+        links = Link._byID(link_ids, data=True, return_dict=False)
         links.sort(key=lambda L: L.num_comments, reverse=True)
 
         sr_ids = set(L.sr_id for L in links)
