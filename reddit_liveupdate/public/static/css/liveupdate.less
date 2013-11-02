@@ -46,7 +46,19 @@
 
         li {
             display: inline-block;
-            margin-right: 1em;
+            margin: 0 .5em 0 0;
+
+            a {
+                margin-right: .1em;
+            }
+
+            &:after {
+                content: " + ";
+            }
+
+            &:last-child:after {
+                content: "";
+            }
         }
     }
 }
