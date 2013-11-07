@@ -14,7 +14,7 @@ from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
 from r2.models import Account, Subreddit, Link, NotFound, Listing
 from r2.lib.strings import strings
-from r2.lib.utils import tup
+from r2.lib.utils import tup, fuzz_activity
 from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
@@ -22,6 +22,7 @@ from r2.lib.jsontemplates import (
 )
 
 from reddit_liveupdate.utils import pretty_time, pairwise
+from reddit_liveupdate.models import ActiveVisitorsByLiveUpdateEvent
 
 
 class LiveUpdateTitle(Templated):
@@ -80,6 +81,7 @@ class LiveUpdateEvent(Templated):
         self.event = event
         self.listing = listing
         self.discussions = LiveUpdateOtherDiscussions()
+        self.visitor_count = self._get_active_visitors()
 
         editor_accounts = Account._byID(event.editor_ids,
                                         data=True, return_dict=False)
@@ -87,6 +89,18 @@ class LiveUpdateEvent(Templated):
                               key=lambda e: e.name)
 
         Templated.__init__(self)
+
+    def _get_active_visitors(self):
+        count = ActiveVisitorsByLiveUpdateEvent.get_count(self.event)
+
+        if count < 100 and not c.user_is_admin:
+            cache_key = "liveupdate_visitors-" + str(self.event._id)
+            fuzzed_count = g.cache.get(cache_key)
+            if not fuzzed_count:
+                fuzzed_count = fuzz_activity(count)
+                g.cache.set(cache_key, fuzzed_count, time=5 * 60)
+            return "~%d" % fuzzed_count
+        return count
 
 
 class LiveUpdateEventConfiguration(Templated):

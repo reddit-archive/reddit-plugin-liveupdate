@@ -14,6 +14,8 @@
     <p class="state live">${_("live")}</p>
   % endif
 
+  <p id="visitor-count">${_("viewers:")}&nbsp;<span>${thing.visitor_count}</span></p>
+
   <p>${_("reported by:")}</p>
 
   <ul>
@@ -53,3 +55,5 @@
 
 ${thing.listing}
 </div>
+
+<img src="//${g.liveupdate_pixel_domain}/live/${c.liveupdate_event._id}/pixel.png" height="1" width="1" alt="">

@@ -1,8 +1,11 @@
-from pylons import c
+import hashlib
+
+from pylons import g, c, request, response
 from pylons.i18n import _
 
 from r2.controllers import add_controller
 from r2.controllers.reddit_base import RedditController, base_listing
+from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.validator import (
     validate,
@@ -24,6 +27,7 @@ from reddit_liveupdate.models import (
     LiveUpdate,
     LiveUpdateEvent,
     LiveUpdateStream,
+    ActiveVisitorsByLiveUpdateEvent,
 )
 from reddit_liveupdate.validators import (
     VLiveUpdate,
@@ -45,6 +49,35 @@ class LiveUpdateBuilder(QueryBuilder):
 
     def keep_item(self, item):
         return not item.deleted
+
+
+@add_controller
+class LiveUpdatePixelController(BaseController):
+    def __init__(self, *args, **kwargs):
+        self._pixel_data = None
+        BaseController.__init__(self, *args, **kwargs)
+
+    @property
+    def _pixel_contents(self):
+        if not self._pixel_data:
+            with open(g.paths["static_files"] + "/static/pixel.png") as f:
+                self._pixel_data = f.read()
+        return self._pixel_data
+
+    def GET_pixel(self, event):
+        extension = request.environ.get("extension")
+        if extension != "png":
+            abort(404)
+
+        event_id = event[:50]  # some very simple poor-man's validation
+        user_id = hashlib.sha1(request.ip + request.user_agent).hexdigest()
+        ActiveVisitorsByLiveUpdateEvent.touch(event_id, user_id)
+
+        response.content_type = "image/png"
+        response.headers["Cache-Control"] = "no-cache, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        return self._pixel_contents
 
 
 @add_controller

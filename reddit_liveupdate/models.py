@@ -10,6 +10,7 @@ from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 
 from r2.lib.db import tdb_cassandra
 from r2.lib import utils
+from r2.lib.memoize import memoize
 
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
@@ -141,3 +142,29 @@ class LiveUpdate(object):
     @property
     def _fullname(self):
         return "%s_%s" % (self.__class__.__name__, self._id)
+
+
+class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
+    _use_db = True
+    _connection_pool = 'main'
+    _ttl = datetime.timedelta(minutes=15)
+
+    _extra_schema_creation_args = dict(
+        key_validation_class=tdb_cassandra.ASCII_TYPE,
+    )
+
+    _read_consistency_level  = tdb_cassandra.CL.ONE
+    _write_consistency_level = tdb_cassandra.CL.ANY
+
+    @classmethod
+    def touch(cls, event_id, hash):
+        cls._set_values(event_id, {hash: ''})
+
+    @classmethod
+    def get_count(cls, event, cached=True):
+        return cls._get_count_cached(event._id, _update=not cached)
+
+    @classmethod
+    @memoize('lu-active', time=60)
+    def _get_count_cached(cls, event_id):
+        return cls._cf.get_count(event_id)
