@@ -1,4 +1,5 @@
 import hashlib
+import os
 
 from pylons import g, c, request, response
 from pylons.i18n import _
@@ -60,7 +61,8 @@ class LiveUpdatePixelController(BaseController):
     @property
     def _pixel_contents(self):
         if not self._pixel_data:
-            with open(g.paths["static_files"] + "/static/pixel.png") as f:
+            with open(os.path.join(g.paths["root"],
+                                   "public/static/pixel.png")) as f:
                 self._pixel_data = f.read()
         return self._pixel_data
 
