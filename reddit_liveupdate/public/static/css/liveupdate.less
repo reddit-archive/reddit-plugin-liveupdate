@@ -320,4 +320,16 @@ aside.sidebar {
     ul.buttonrow {
         display: block !important; // make up for super-specificity of the other rule
     }
+
+    ////////// hacks to clean up the header until the rest of reddit is responsive
+    #sr-header-area,
+    #header-bottom-right {
+        display: none;
+    }
+
+    .pagename {
+        display: block;
+        margin-top: 5px;
+    }
+    //////////
 }
