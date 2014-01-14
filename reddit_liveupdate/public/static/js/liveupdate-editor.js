@@ -78,19 +78,4 @@ r.liveupdate.editor = {
     }
 }
 
-$.insert_liveupdates = function (things, append) {
-    var $listing = $('.liveupdate-listing'),
-        $initial = $listing.find('tr.initial')
-
-    // this must've been the first update. refresh to get a proper listing.
-    if (!$listing.length)
-        window.location.reload()
-
-    _.each(things, function (thing) {
-        var $newThing = $($.unsafe(thing.data.content))
-        r.liveupdate.editor._addButtons($newThing.find('td'))
-        $initial.after($newThing)
-    })
-}
-
 $(function () { r.liveupdate.editor.init() })

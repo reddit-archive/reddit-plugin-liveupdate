@@ -6,6 +6,7 @@ from pylons.i18n import _
 
 from r2.controllers import add_controller
 from r2.controllers.reddit_base import RedditController, base_listing
+from r2.lib import websockets
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.validator import (
@@ -129,8 +130,15 @@ class LiveUpdateController(RedditController):
             listing=listing.listing(),
         )
 
+        # don't generate a url unless this is the main page of an event
+        websocket_url = None
+        if not after and not before:
+            websocket_url = websockets.make_url(
+                "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
+
         return pages.LiveUpdatePage(
             content=content,
+            websocket_url=websocket_url,
         ).render()
 
     @base_listing
@@ -235,10 +243,11 @@ class LiveUpdateController(RedditController):
         })
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
-        # send back a rendered update for client-side insertion
+        # tell the world about our new update
         builder = LiveUpdateBuilder(None)
         wrapped = builder.wrap_items([update])
-        jquery._things(wrapped, "insert_liveupdates")
+        rendered = [w.render() for w in wrapped]
+        websockets.send_broadcast("/live/" + c.liveupdate_event._id, rendered)
 
         # reset the submission form
         t = form.find("textarea")
