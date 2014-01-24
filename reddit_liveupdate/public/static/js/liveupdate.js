@@ -18,6 +18,7 @@ r.liveupdate = {
                 'reconnecting': this._onWebSocketReconnecting,
                 'message:delete': this._onDelete,
                 'message:strike': this._onStrike,
+                'message:activity': this._onActivityUpdated,
                 'message:update': this._onNewUpdate
             }, this)
         }
@@ -66,6 +67,15 @@ r.liveupdate = {
 
     _onStrike: function (id) {
         $.things(id).addClass('stricken')
+    },
+
+    _onActivityUpdated: function (visitors) {
+        var text = visitors.count
+        if (visitors.fuzzed)
+            text = '~' + text
+
+        // TODO: animate this?
+        $('#visitor-count .count').text(text)
     },
 
     _loadMoreIfNearBottom: function () {

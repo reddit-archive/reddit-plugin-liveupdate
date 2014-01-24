@@ -5,6 +5,7 @@ import uuid
 
 import pytz
 
+from pylons import g
 from pycassa.util import convert_uuid_to_time
 from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 
@@ -161,8 +162,17 @@ class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
         cls._set_values(event_id, {hash: ''})
 
     @classmethod
-    def get_count(cls, event, cached=True):
-        return cls._get_count_cached(event._id, _update=not cached)
+    def get_count(cls, event_id, cached=True, fuzz=True):
+        count = cls._get_count_cached(event_id, _update=not cached)
+
+        if fuzz and count < 100:
+            cache_key = "liveupdate_visitors-" + str(event_id)
+            fuzzed_count = g.cache.get(cache_key)
+            if not fuzzed_count:
+                fuzzed_count = utils.fuzz_activity(count)
+                g.cache.set(cache_key, fuzzed_count, time=5 * 60)
+            return fuzzed_count, True
+        return count, False
 
     @classmethod
     @memoize('lu-active', time=60)
