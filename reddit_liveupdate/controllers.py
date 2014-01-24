@@ -247,7 +247,8 @@ class LiveUpdateController(RedditController):
         builder = LiveUpdateBuilder(None)
         wrapped = builder.wrap_items([update])
         rendered = [w.render() for w in wrapped]
-        websockets.send_broadcast("/live/" + c.liveupdate_event._id, rendered)
+        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
+                                  type="update", payload=rendered)
 
         # reset the submission form
         t = form.find("textarea")
