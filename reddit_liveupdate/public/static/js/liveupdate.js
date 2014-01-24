@@ -16,6 +16,8 @@ r.liveupdate = {
                 'connected': this._onWebSocketConnected,
                 'disconnected': this._onWebSocketDisconnected,
                 'reconnecting': this._onWebSocketReconnecting,
+                'message:delete': this._onDelete,
+                'message:strike': this._onStrike,
                 'message:update': this._onNewUpdate
             }, this)
         }
@@ -56,6 +58,14 @@ r.liveupdate = {
             }
             $initial.after($newThing)
         })
+    },
+
+    _onDelete: function (id) {
+        $.things(id).remove()
+    },
+
+    _onStrike: function (id) {
+        $.things(id).addClass('stricken')
     },
 
     _loadMoreIfNearBottom: function () {

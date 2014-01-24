@@ -266,6 +266,9 @@ class LiveUpdateController(RedditController):
         update.deleted = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
+        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
+                                  type="delete", payload=update._fullname)
+
     @validatedForm(
         VLiveUpdateEventEditor(),
         VModhash(),
@@ -277,3 +280,6 @@ class LiveUpdateController(RedditController):
 
         update.stricken = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
+
+        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
+                                  type="strike", payload=update._fullname)
