@@ -132,7 +132,7 @@ class LiveUpdateController(RedditController):
 
         # don't generate a url unless this is the main page of an event
         websocket_url = None
-        if not after and not before:
+        if c.liveupdate_event.state == "live" and not after and not before:
             websocket_url = websockets.make_url(
                 "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
 
