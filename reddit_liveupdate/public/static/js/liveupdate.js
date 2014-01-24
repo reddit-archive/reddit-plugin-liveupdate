@@ -12,10 +12,11 @@ r.liveupdate = {
     },
 
     _loadMoreIfNearBottom: function () {
+        var hasUpdates = (this.$listing.length != 0)
         var isLoading = this.$listing.hasClass('loading')
         var canLoadMore = (this.$table.find('.final').length == 0)
 
-        if (isLoading || !canLoadMore)
+        if (!hasUpdates || isLoading || !canLoadMore)
             return
 
         // technically, window.innerHeight includes the horizontal
