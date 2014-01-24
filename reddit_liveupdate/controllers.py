@@ -40,6 +40,11 @@ from reddit_liveupdate.validators import (
 )
 
 
+def send_websocket_broadcast(type, payload):
+    websockets.send_broadcast(namespace="/live/" + c.liveupdate_event._id,
+                              type=type, payload=payload)
+
+
 class LiveUpdateBuilder(QueryBuilder):
     def wrap_items(self, items):
         wrapped = []
@@ -247,8 +252,7 @@ class LiveUpdateController(RedditController):
         builder = LiveUpdateBuilder(None)
         wrapped = builder.wrap_items([update])
         rendered = [w.render() for w in wrapped]
-        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
-                                  type="update", payload=rendered)
+        send_websocket_broadcast(type="update", payload=rendered)
 
         # reset the submission form
         t = form.find("textarea")
@@ -266,8 +270,7 @@ class LiveUpdateController(RedditController):
         update.deleted = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
-        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
-                                  type="delete", payload=update._fullname)
+        send_websocket_broadcast(type="delete", payload=update._fullname)
 
     @validatedForm(
         VLiveUpdateEventEditor(),
@@ -281,5 +284,4 @@ class LiveUpdateController(RedditController):
         update.stricken = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
-        websockets.send_broadcast("/live/" + c.liveupdate_event._id,
-                                  type="strike", payload=update._fullname)
+        send_websocket_broadcast(type="strike", payload=update._fullname)
