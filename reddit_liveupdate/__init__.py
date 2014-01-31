@@ -34,7 +34,9 @@ class LiveUpdate(Plugin):
 
     def add_routes(self, mc):
         mc("/live/:event", controller="liveupdate", action="listing",
-           conditions={"function": not_in_sr})
+           conditions={"function": not_in_sr}, is_embed=False)
+        mc("/live/:event/embed", controller="liveupdate", action="listing",
+           conditions={"function": not_in_sr}, is_embed=True)
 
         mc("/live/:event/pixel",
            controller="liveupdatepixel", action="pixel",
@@ -56,3 +58,6 @@ class LiveUpdate(Plugin):
         from reddit_liveupdate import pages
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)
+
+        from reddit_liveupdate import scraper
+        scraper.hooks.register_all()

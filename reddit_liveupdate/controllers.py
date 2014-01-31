@@ -12,6 +12,7 @@ from r2.lib.db import tdb_cassandra
 from r2.lib.validator import (
     validate,
     validatedForm,
+    VBoolean,
     VByName,
     VCount,
     VExistingUname,
@@ -114,8 +115,9 @@ class LiveUpdateController(RedditController):
         after=VLiveUpdateID("after"),
         before=VLiveUpdateID("before"),
         count=VCount("count"),
+        is_embed=VBoolean("is_embed"),
     )
-    def GET_listing(self, num, after, before, count):
+    def GET_listing(self, num, after, before, count, is_embed):
         reverse = False
         if before:
             reverse = True
@@ -133,6 +135,7 @@ class LiveUpdateController(RedditController):
         content = pages.LiveUpdateEvent(
             event=c.liveupdate_event,
             listing=listing.listing(),
+            show_sidebar=not is_embed,
         )
 
         # don't generate a url unless this is the main page of an event
@@ -141,10 +144,20 @@ class LiveUpdateController(RedditController):
             websocket_url = websockets.make_url(
                 "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
 
-        return pages.LiveUpdatePage(
-            content=content,
-            websocket_url=websocket_url,
-        ).render()
+        if not is_embed:
+            return pages.LiveUpdatePage(
+                content=content,
+                websocket_url=websocket_url,
+            ).render()
+        else:
+            # embeds should always look logged out for simplicity
+            c.liveupdate_can_manage = False
+            c.liveupdate_can_edit = False
+            return pages.LiveUpdateEmbed(
+                content=content,
+                websocket_url=websocket_url,
+            ).render()
+
 
     @base_listing
     def GET_discussions(self, num, after, reverse, count):

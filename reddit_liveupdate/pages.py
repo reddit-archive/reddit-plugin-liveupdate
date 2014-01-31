@@ -81,12 +81,18 @@ class LiveUpdatePage(Reddit):
         return toolbars
 
 
+class LiveUpdateEmbed(LiveUpdatePage):
+    extra_page_classes = LiveUpdatePage.extra_page_classes + ["embed"]
+
+
 class LiveUpdateEvent(Templated):
-    def __init__(self, event, listing):
+    def __init__(self, event, listing, show_sidebar):
         self.event = event
         self.listing = listing
-        self.discussions = LiveUpdateOtherDiscussions()
         self.visitor_count = self._get_active_visitors()
+        if show_sidebar:
+            self.discussions = LiveUpdateOtherDiscussions()
+        self.show_sidebar = show_sidebar
 
         editor_accounts = Account._byID(event.editor_ids,
                                         data=True, return_dict=False)
