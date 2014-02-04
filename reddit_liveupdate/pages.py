@@ -37,6 +37,7 @@ class LiveUpdatePage(Reddit):
     def __init__(self, content, websocket_url=None):
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
+            "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
         }
 
         if websocket_url:

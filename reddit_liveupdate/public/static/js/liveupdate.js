@@ -1,4 +1,6 @@
 r.liveupdate = {
+    _pixelInterval: 10 * 60 * 1000,
+
     init: function () {
         this.$listing = $('.liveupdate-listing')
         this.$table = this.$listing.find('table tbody')
@@ -22,6 +24,8 @@ r.liveupdate = {
                 'message:update': this._onNewUpdate
             }, this)
         }
+
+        this._fetchPixel()
     },
 
     _onWebSocketConnecting: function () {
@@ -129,6 +133,17 @@ r.liveupdate = {
             .always($.proxy(function () {
                 this.$listing.removeClass('loading')
             }, this))
+    },
+
+    _fetchPixel: function () {
+        var pixel = new Image()
+        pixel.src = '//' + r.config.liveupdate_pixel_domain +
+                    '/live/' + r.config.liveupdate_event + '/pixel.png' +
+                    '?rand=' + Math.random()
+
+        var delay = Math.floor(this._pixelInterval -
+                               this._pixelInterval * Math.random() / 2)
+        setTimeout($.proxy(this, '_fetchPixel'), delay)
     }
 }
 
