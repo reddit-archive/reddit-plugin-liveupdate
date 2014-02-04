@@ -22,6 +22,7 @@ r.liveupdate = {
                 'message:strike': this._onStrike,
                 'message:activity': this._onActivityUpdated,
                 'message:refresh': this._onRefresh,
+                'message:settings': this._onSettingsChanged,
                 'message:update': this._onNewUpdate
             }, this)
         }
@@ -87,6 +88,18 @@ r.liveupdate = {
 
         // TODO: animate this?
         $('#visitor-count .count').text(text)
+    },
+
+    _onSettingsChanged: function (changes) {
+        if ('title' in changes) {
+            $('#liveupdate-title').text(changes['title'])
+            $('#header .pagename a').text(changes['title'])
+            document.title = r._('[live]') + ' ' + changes['title']
+        }
+
+        if ('description' in changes) {
+            $('.sidebar .md').html($.unsafe(changes['description']))
+        }
     },
 
     _loadMoreIfNearBottom: function () {
