@@ -22,4 +22,6 @@ def broadcast_update():
         websockets.send_broadcast(
             "/live/" + event_id, type="activity", payload=payload)
 
+    # ensure that all the amqp messages we've put on the worker's queue are
+    # sent before we allow this script to exit.
     amqp.worker.join()
