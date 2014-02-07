@@ -150,9 +150,11 @@ class LiveUpdateController(RedditController):
                 websocket_url=websocket_url,
             ).render()
         else:
-            # embeds should always look logged out for simplicity
+            # embeds are always logged out and therefore safe for frames.
             c.liveupdate_can_manage = False
             c.liveupdate_can_edit = False
+            c.allow_framing = True
+
             return pages.LiveUpdateEmbed(
                 content=content,
                 websocket_url=websocket_url,
