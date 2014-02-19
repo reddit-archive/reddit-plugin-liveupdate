@@ -7,12 +7,12 @@ import pytz
 from pylons import c, g
 from pylons.i18n import _, ungettext
 
-from r2.lib.pages import Reddit, UserList
+from r2.lib.pages import Reddit, UserTableItem
 from r2.lib.menus import NavMenu, NavButton
 from r2.lib.template_helpers import add_sr
 from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
-from r2.models import Account, Subreddit, Link, NotFound, Listing
+from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
 from r2.lib.strings import strings
 from r2.lib.utils import tup
 from r2.lib.jsontemplates import (
@@ -126,31 +126,49 @@ class LiveUpdateEventConfiguration(Templated):
         Templated.__init__(self)
 
 
-class EditorList(UserList):
+class EditorTableItem(UserTableItem):
     type = "liveupdate_editor"
 
-    def __init__(self, event):
+    def __init__(self, user, event):
         self.event = event
-        UserList.__init__(self, editable=True)
+        self.render_class = EditorTableItem
+        UserTableItem.__init__(self, user, addable=True)
+
+    @property
+    def _id(self):
+        return self.user._id
+
+    @classmethod
+    def add_props(cls, item, *k):
+        return item
+
+    @property
+    def container_name(self):
+        return self.event._id
+
+    @property
+    def remove_action(self):
+        return "live/%s/rm_editor" % self.event._id
+
+
+class EditorListing(UserListing):
+    type = "liveupdate_editor"
+
+    def __init__(self, event, builder):
+        self.event = event
+        UserListing.__init__(self, builder, addable=True, nextprev=False)
 
     @property
     def destination(self):
         return "live/%s/add_editor" % self.event._id
 
     @property
-    def remove_action(self):
-        return "live/%s/rm_editor" % self.event._id
-
-    @property
     def form_title(self):
         return _("add editor")
 
     @property
-    def table_title(self):
+    def title(self):
         return _("current editors")
-
-    def user_ids(self):
-        return self.event.editor_ids
 
     @property
     def container_name(self):

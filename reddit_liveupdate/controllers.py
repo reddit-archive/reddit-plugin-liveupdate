@@ -21,7 +21,7 @@ from r2.lib.validator import (
     VMarkdown,
     VModhash,
 )
-from r2.models import QueryBuilder, Account, LinkListing
+from r2.models import QueryBuilder, Account, LinkListing, SimpleBuilder
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 
@@ -214,8 +214,19 @@ class LiveUpdateController(RedditController):
         VLiveUpdateEventManager(),
     )
     def GET_editors(self):
+        event = c.liveupdate_event
+        wrapper = lambda user: pages.EditorTableItem(user, event)
+        accounts = Account._byID(event.editor_ids,
+                                 data=True, return_dict=False)
+        b = SimpleBuilder(
+            accounts,
+            wrap=wrapper,
+            skip=False,
+            num=0,
+        )
+        listing = pages.EditorListing(event, b).listing()
         return pages.LiveUpdatePage(
-            content=pages.EditorList(c.liveupdate_event),
+            content=listing,
         ).render()
 
     @validatedForm(
@@ -234,8 +245,7 @@ class LiveUpdateController(RedditController):
         # TODO: send PM to new editor
 
         # add the user to the table
-        user_row = (pages.EditorList(c.liveupdate_event)
-                         .user_row(pages.EditorList.type, user))
+        user_row = pages.EditorTableItem(user, c.liveupdate_event)
         jquery(".liveupdate_editor-table").show(
             ).find("table").insert_table_rows(user_row)
 
