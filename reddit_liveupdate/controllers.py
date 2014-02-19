@@ -218,10 +218,12 @@ class LiveUpdateController(RedditController):
         wrapper = lambda user: pages.EditorTableItem(user, event)
         accounts = Account._byID(event.editor_ids,
                                  data=True, return_dict=False)
+        keep_fn = lambda item: not item.user._deleted
         b = SimpleBuilder(
             accounts,
+            keep_fn=keep_fn,
             wrap=wrapper,
-            skip=False,
+            skip=True,
             num=0,
         )
         listing = pages.EditorListing(event, b).listing()
