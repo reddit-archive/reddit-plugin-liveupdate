@@ -79,7 +79,7 @@ class LiveUpdatePixelController(BaseController):
             abort(404)
 
         event_id = event[:50]  # some very simple poor-man's validation
-        user_agent = getattr(request, 'user_agent', '')
+        user_agent = request.user_agent or ''
         user_id = hashlib.sha1(request.ip + user_agent).hexdigest()
         ActiveVisitorsByLiveUpdateEvent.touch(event_id, user_id)
 
