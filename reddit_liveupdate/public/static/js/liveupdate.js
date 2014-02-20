@@ -21,6 +21,7 @@ r.liveupdate = {
                 'message:delete': this._onDelete,
                 'message:strike': this._onStrike,
                 'message:activity': this._onActivityUpdated,
+                'message:refresh': this._onRefresh,
                 'message:update': this._onNewUpdate
             }, this)
         }
@@ -47,6 +48,12 @@ r.liveupdate = {
     _onWebSocketReconnecting: function (delay) {
         this.$statusField.removeClass('connecting')
                          .text(r._('lost connection to update server. one moment...'))
+    },
+
+    _onRefresh: function () {
+        // delay a random amount to reduce thundering herd
+        var delay = Math.random() * 60 * 1000
+        setTimeout(function () { location.reload() }, delay)
     },
 
     _onNewUpdate: function (data) {
