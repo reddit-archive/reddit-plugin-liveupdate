@@ -41,8 +41,13 @@ r.liveupdate = {
     },
 
     _onPageVisible: function () {
+        if (this._needToFetchPixel) {
+            this._fetchPixel()
+        }
+
         this._pageVisible = true
         this._unreadUpdates = 0
+        this._needToFetchPixel = false
         Tinycon.reset()
     },
 
@@ -181,6 +186,11 @@ r.liveupdate = {
     },
 
     _fetchPixel: function () {
+        if (!this._pageVisible) {
+            this._needToFetchPixel = true
+            return
+        }
+
         var pixel = new Image()
         pixel.src = '//' + r.config.liveupdate_pixel_domain +
                     '/live/' + r.config.liveupdate_event + '/pixel.png' +
