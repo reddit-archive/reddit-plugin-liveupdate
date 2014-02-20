@@ -43,8 +43,12 @@ class LiveUpdatePage(Reddit):
         if websocket_url:
             extra_js_config["liveupdate_websocket"] = websocket_url
 
+        title = c.liveupdate_event.title
+        if c.liveupdate_event.state == "live":
+            title = _("[live]") + " " + title
+
         Reddit.__init__(self,
-            title=c.liveupdate_event.title,
+            title=title,
             show_sidebar=False,
             content=content,
             extra_js_config=extra_js_config,
