@@ -27,7 +27,27 @@ r.liveupdate = {
             }, this)
         }
 
+        Tinycon.setOptions({
+            'background': '#ff4500'
+        })
+
+        $(document).on({
+            'show': $.proxy(this, '_onPageVisible'),
+            'hide': $.proxy(this, '_onPageHide')
+        })
+        this._onPageVisible()
+
         this._fetchPixel()
+    },
+
+    _onPageVisible: function () {
+        this._pageVisible = true
+        this._unreadUpdates = 0
+        Tinycon.reset()
+    },
+
+    _onPageHide: function () {
+        this._pageVisible = false
     },
 
     _onWebSocketConnecting: function () {
@@ -71,6 +91,11 @@ r.liveupdate = {
             }
             $initial.after($newThing)
         })
+
+        if (!this._pageVisible) {
+            this._unreadUpdates += data.length
+            Tinycon.setBubble(this._unreadUpdates)
+        }
     },
 
     _onDelete: function (id) {
