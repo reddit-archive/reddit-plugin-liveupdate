@@ -36,8 +36,14 @@ r.timetext = {
             now = Date.now()
 
         var $el = $(el)
-        var isoTimestamp = $el.attr('datetime')
-        var timestamp = Date.parse(isoTimestamp)
+        var timestamp = $el.data('timestamp')
+
+        if (!timestamp) {
+            var isoTimestamp = $el.attr('datetime')
+            timestamp = Date.parse(isoTimestamp)
+            $el.data('timestamp', timestamp)
+        }
+
         var age = (now - timestamp) / 1000
         var chunks = r.timetext._chunks
         var text = r._('less than a minute ago')
