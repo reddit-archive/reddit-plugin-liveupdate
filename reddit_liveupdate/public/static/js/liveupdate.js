@@ -80,7 +80,7 @@ r.liveupdate = {
 
     _onRefresh: function () {
         // delay a random amount to reduce thundering herd
-        var delay = Math.random() * 60 * 1000
+        var delay = Math.random() * 300 * 1000
         setTimeout(function () { location.reload() }, delay)
     },
 
