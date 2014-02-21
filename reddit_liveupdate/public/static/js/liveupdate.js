@@ -32,7 +32,6 @@ r.liveupdate = {
             'background': '#ff4500'
         })
         Tinycon.setImage(this._favicon)
-        Tinycon.setBubble()  // ensures that reset() is safe
 
         $(document).on({
             'show': $.proxy(this, '_onPageVisible'),
@@ -51,7 +50,7 @@ r.liveupdate = {
         this._pageVisible = true
         this._unreadUpdates = 0
         this._needToFetchPixel = false
-        Tinycon.reset()
+        Tinycon.setBubble()
     },
 
     _onPageHide: function () {
