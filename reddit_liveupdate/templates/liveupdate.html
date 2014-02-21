@@ -10,7 +10,7 @@
 
 <tr data-fullname="${thing._fullname}" class="thing id-${thing._fullname} ${"stricken" if thing.stricken else ""}">
   <th scope="row">
-    <time title="${format_datetime(thing._date, format='long', tzinfo=c.liveupdate_event.timezone, locale=c.locale)}" datetime="${html_datetime(thing._date)}">${thing.date_str}</time>
+    <time title="${format_datetime(thing._date, format='long', tzinfo=c.liveupdate_event.timezone, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live">${thing.date_str}</time>
   </th>
 
   <td class="md">
