@@ -222,7 +222,7 @@ class LiveUpdateController(RedditController):
     def GET_reporters(self):
         event = c.liveupdate_event
         wrapper = lambda user: pages.EditorTableItem(user, event,
-                                         editable=c.liveupdate_can_manage)
+                                         editable=c.liveupdate_can_edit)
         accounts = Account._byID(event.editor_ids,
                                  data=True, return_dict=False)
         keep_fn = lambda item: not item.user._deleted
@@ -234,13 +234,13 @@ class LiveUpdateController(RedditController):
             num=0,
         )
         listing = pages.EditorListing(event, b,
-                          editable=c.liveupdate_can_manage).listing()
+                          editable=c.liveupdate_can_edit).listing()
         return pages.LiveUpdatePage(
             content=listing,
         ).render()
 
     @validatedForm(
-        VLiveUpdateEventManager(),
+        VLiveUpdateEventEditor(),
         VModhash(),
         user=VExistingUname("name"),
     )
@@ -260,7 +260,7 @@ class LiveUpdateController(RedditController):
             ).find("table").insert_table_rows(user_row)
 
     @validatedForm(
-        VLiveUpdateEventManager(),
+        VLiveUpdateEventEditor(),
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )

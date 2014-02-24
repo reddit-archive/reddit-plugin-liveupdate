@@ -72,7 +72,6 @@ class LiveUpdatePage(Reddit):
                     "/edit",
                 ))
 
-            if c.liveupdate_can_manage:
                 tabs.append(NavButton(
                     _("reporters"),
                     "/reporters",
