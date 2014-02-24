@@ -46,7 +46,7 @@ r.timetext = {
 
         var age = (now - timestamp) / 1000
         var chunks = r.timetext._chunks
-        var text = r._('less than a minute ago')
+        var text = r._('just now')
 
         $.each(r.timetext._chunks, function (ix, chunk) {
             var count = Math.floor(age / chunk[0])
