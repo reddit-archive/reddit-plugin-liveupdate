@@ -218,12 +218,11 @@ class LiveUpdateController(RedditController):
         form.set_html(".status", _("saved"))
         form.refresh()
 
-    @validate(
-        VLiveUpdateEventManager(),
-    )
+    # TODO: pass listing params on
     def GET_editors(self):
         event = c.liveupdate_event
-        wrapper = lambda user: pages.EditorTableItem(user, event)
+        wrapper = lambda user: pages.EditorTableItem(user, event,
+                                         editable=c.liveupdate_can_manage)
         accounts = Account._byID(event.editor_ids,
                                  data=True, return_dict=False)
         keep_fn = lambda item: not item.user._deleted
@@ -234,7 +233,8 @@ class LiveUpdateController(RedditController):
             skip=True,
             num=0,
         )
-        listing = pages.EditorListing(event, b).listing()
+        listing = pages.EditorListing(event, b,
+                          editable=c.liveupdate_can_manage).listing()
         return pages.LiveUpdatePage(
             content=listing,
         ).render()

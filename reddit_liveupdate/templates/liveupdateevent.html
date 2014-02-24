@@ -1,5 +1,7 @@
 <%!
   from r2.lib.pages import UserText
+
+  EDITOR_CUTOFF = 3
 %>
 
 <%namespace name="utils" file="utils.html" />
@@ -19,10 +21,14 @@
   <p>${_("reported by:")}</p>
 
   <ul>
-    % for editor in thing.editors:
+    % for editor in thing.editors[:EDITOR_CUTOFF]:
     <li>${editor}</li>
     % endfor
   </ul>
+
+  % if len(thing.editors) > EDITOR_CUTOFF:
+  <a href="/live/${c.liveupdate_event._id}/editors" class="more-editors">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.editors) - EDITOR_CUTOFF))}</a>
+  % endif
 </div>
 </header>
 

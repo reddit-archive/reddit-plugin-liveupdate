@@ -134,10 +134,17 @@ class LiveUpdateEventConfiguration(Templated):
 class EditorTableItem(UserTableItem):
     type = "liveupdate_editor"
 
-    def __init__(self, user, event):
+    def __init__(self, user, event, editable=True):
         self.event = event
         self.render_class = EditorTableItem
-        UserTableItem.__init__(self, user, addable=True)
+        UserTableItem.__init__(self, user, editable=editable)
+
+    @property
+    def cells(self):
+        if self.editable:
+            return ("user", "sendmessage", "remove")
+        else:
+            return ("user",)
 
     @property
     def _id(self):
@@ -159,9 +166,9 @@ class EditorTableItem(UserTableItem):
 class EditorListing(UserListing):
     type = "liveupdate_editor"
 
-    def __init__(self, event, builder):
+    def __init__(self, event, builder, editable=True):
         self.event = event
-        UserListing.__init__(self, builder, addable=True, nextprev=False)
+        UserListing.__init__(self, builder, addable=editable, nextprev=False)
 
     @property
     def destination(self):
