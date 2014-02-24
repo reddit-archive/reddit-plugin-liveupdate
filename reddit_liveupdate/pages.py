@@ -7,6 +7,7 @@ import pytz
 from pylons import c, g
 from pylons.i18n import _, ungettext
 
+from r2.lib import filters
 from r2.lib.pages import Reddit, UserTableItem
 from r2.lib.menus import NavMenu, NavButton
 from r2.lib.template_helpers import add_sr
@@ -188,11 +189,14 @@ class LiveUpdateJsonTemplate(ThingJsonTemplate):
     _data_attrs_ = ThingJsonTemplate.data_attrs(
         id="_id",
         body="body",
+        body_html="body_html",
     )
 
     def thing_attr(self, thing, attr):
         if attr == "_id":
             return str(thing._id)
+        elif attr == "body_html":
+            return filters.spaceCompress(filters.safemarkdown(thing.body))
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
     def kind(self, wrapped):
