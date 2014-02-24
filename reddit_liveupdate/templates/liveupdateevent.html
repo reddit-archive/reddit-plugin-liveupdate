@@ -27,7 +27,7 @@
   </ul>
 
   % if len(thing.editors) > EDITOR_CUTOFF:
-  <a href="/live/${c.liveupdate_event._id}/editors" class="more-editors">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.editors) - EDITOR_CUTOFF))}</a>
+  <a href="/live/${c.liveupdate_event._id}/reporters" class="more-editors">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.editors) - EDITOR_CUTOFF))}</a>
   % endif
 </div>
 </header>

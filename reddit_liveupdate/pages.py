@@ -74,8 +74,8 @@ class LiveUpdatePage(Reddit):
 
             if c.liveupdate_can_manage:
                 tabs.append(NavButton(
-                    _("editors"),
-                    "/editors",
+                    _("reporters"),
+                    "/reporters",
                 ))
 
             toolbars.append(NavMenu(
@@ -176,11 +176,11 @@ class EditorListing(UserListing):
 
     @property
     def form_title(self):
-        return _("add editor")
+        return _("add reporter")
 
     @property
     def title(self):
-        return _("current editors")
+        return _("current reporters")
 
     @property
     def container_name(self):

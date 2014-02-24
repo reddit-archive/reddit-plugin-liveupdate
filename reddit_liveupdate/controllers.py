@@ -219,7 +219,7 @@ class LiveUpdateController(RedditController):
         form.refresh()
 
     # TODO: pass listing params on
-    def GET_editors(self):
+    def GET_reporters(self):
         event = c.liveupdate_event
         wrapper = lambda user: pages.EditorTableItem(user, event,
                                          editable=c.liveupdate_can_manage)
