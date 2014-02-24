@@ -1,0 +1,11 @@
+<%!
+    from r2.lib.filters import spaceCompress, safemarkdown
+%>
+
+<item>
+    <guid isPermaLink="false">${thing._id}</guid>
+    <pubDate>${thing._date.strftime('%a, %d %b %Y %H:%M:%S %z')}</pubDate>
+    <description>
+        ${spaceCompress(safemarkdown(thing.body))}
+    </description>
+</item>
