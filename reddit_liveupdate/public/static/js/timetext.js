@@ -19,8 +19,7 @@ r.timetext = {
 
     init: function () {
         this.refresh()
-        // TODO: is it worth making this more dynamic and going below 1 minute?
-        setInterval(this.refresh, 60000)
+        setInterval(this.refresh, 20 * 1000)
     },
 
     refresh: function () {
