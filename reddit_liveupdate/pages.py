@@ -15,15 +15,15 @@ from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
 from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
 from r2.lib.strings import strings
-from r2.lib.utils import tup
+from r2.lib.utils import tup, fuzz_activity
 from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
     ThingJsonTemplate,
 )
 
+from reddit_liveupdate.activity import ACTIVITY_FUZZING_THRESHOLD
 from reddit_liveupdate.utils import pretty_time, pairwise
-from reddit_liveupdate.models import ActiveVisitorsByLiveUpdateEvent
 
 
 class LiveUpdateTitle(Templated):
@@ -107,11 +107,10 @@ class LiveUpdateEvent(Templated):
         Templated.__init__(self)
 
     def _get_active_visitors(self):
-        count, is_fuzzed = ActiveVisitorsByLiveUpdateEvent.get_count(
-            self.event._id, fuzz=not c.user_is_admin)
+        count = self.event.active_visitors
 
-        if is_fuzzed:
-            return "~%d" % count
+        if count < ACTIVITY_FUZZING_THRESHOLD and not c.user_is_admin:
+            return "~%d" % fuzz_activity(count)
         return count
 
 

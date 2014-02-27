@@ -5,13 +5,11 @@ import uuid
 
 import pytz
 
-from pylons import g
 from pycassa.util import convert_uuid_to_time
 from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 
 from r2.lib.db import tdb_cassandra
 from r2.lib import utils
-from r2.lib.memoize import memoize
 
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
@@ -20,11 +18,16 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     _use_db = True
     _read_consistency_level = tdb_cassandra.CL.ONE
     _write_consistency_level = tdb_cassandra.CL.QUORUM
+
+    _int_props = (
+        "active_visitors",
+    )
     _defaults = {
         "description": "",
         "timezone": "UTC",
         # one of "live", "complete"
         "state": "live",
+        "active_visitors": 0,
     }
 
     @classmethod
@@ -59,6 +62,13 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         event = cls(id, title=title, **properties)
         event._commit()
         return event
+
+    @classmethod
+    def update_activity(cls, id, activity):
+        thing = cls(_id=id, _partial=["active_visitors"])
+        thing._committed = True  # hack to prevent overwriting the date attr
+        thing.active_visitors = activity
+        thing._commit()
 
 
 class LiveUpdateStream(tdb_cassandra.View):
@@ -162,19 +172,5 @@ class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
         cls._set_values(event_id, {hash: ''})
 
     @classmethod
-    def get_count(cls, event_id, cached=True, fuzz=True):
-        count = cls._get_count_cached(event_id, _update=not cached)
-
-        if fuzz and count < 100:
-            cache_key = "liveupdate_visitors-" + str(event_id)
-            fuzzed_count = g.cache.get(cache_key)
-            if not fuzzed_count:
-                fuzzed_count = utils.fuzz_activity(count)
-                g.cache.set(cache_key, fuzzed_count, time=5 * 60)
-            return fuzzed_count, True
-        return count, False
-
-    @classmethod
-    @memoize('lu-active', time=60)
-    def _get_count_cached(cls, event_id):
+    def get_count(cls, event_id):
         return cls._cf.get_count(event_id)
