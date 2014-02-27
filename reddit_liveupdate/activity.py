@@ -25,13 +25,14 @@ def update_activity():
             count = utils.fuzz_activity(count)
             is_fuzzed = True
 
-        payload = {
-            "count": count,
-            "fuzzed": is_fuzzed,
-        }
-
         websockets.send_broadcast(
-            "/live/" + event_id, type="activity", payload=payload)
+            "/live/" + event_id,
+            type="activity",
+            payload={
+                "count": count,
+                "fuzzed": is_fuzzed,
+            },
+        )
 
     # ensure that all the amqp messages we've put on the worker's queue are
     # sent before we allow this script to exit.
