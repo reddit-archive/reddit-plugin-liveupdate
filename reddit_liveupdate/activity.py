@@ -1,4 +1,7 @@
+from pylons import g
+
 from r2.lib import amqp, websockets, utils
+from r2.lib.db import tdb_cassandra
 
 from reddit_liveupdate.models import (
     ActiveVisitorsByLiveUpdateEvent,
@@ -16,11 +19,26 @@ def update_activity():
 
     for event_id, is_active in event_ids:
         count = 0
-        if is_active:
-            count = ActiveVisitorsByLiveUpdateEvent.get_count(event_id)
 
-        LiveUpdateEvent.update_activity(event_id, count)
-        LiveUpdateActivityHistoryByEvent.record_activity(event_id, count)
+        if is_active:
+            try:
+                count = ActiveVisitorsByLiveUpdateEvent.get_count(event_id)
+            except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
+                g.log.warning("Failed to fetch activity count for %r: %s",
+                              event_id, e)
+                return
+
+        try:
+            LiveUpdateEvent.update_activity(event_id, count)
+        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
+            g.log.warning("Failed to update event activity for %r: %s",
+                          event_id, e)
+
+        try:
+            LiveUpdateActivityHistoryByEvent.record_activity(event_id, count)
+        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
+            g.log.warning("Failed to update activity history for %r: %s",
+                          event_id, e)
 
         is_fuzzed = False
         if count < ACTIVITY_FUZZING_THRESHOLD:
