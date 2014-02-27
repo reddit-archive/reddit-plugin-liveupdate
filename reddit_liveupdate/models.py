@@ -174,3 +174,19 @@ class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
     @classmethod
     def get_count(cls, event_id):
         return cls._cf.get_count(event_id)
+
+
+class LiveUpdateActivityHistoryByEvent(tdb_cassandra.View):
+    _use_db = True
+    _connection_pool = "main"
+    _compare_with = "TimeUUIDType"
+    _value_type = "bytes"  # use pycassa, not tdb_c*, to serialize
+    _read_consistency_level = tdb_cassandra.CL.QUORUM
+    _write_consistency_level = tdb_cassandra.CL.QUORUM
+    _extra_schema_creation_args = {
+        "default_validation_class": "IntegerType",
+    }
+
+    @classmethod
+    def record_activity(cls, event_id, activity_count):
+        cls._set_values(event_id, {uuid.uuid1(): activity_count})

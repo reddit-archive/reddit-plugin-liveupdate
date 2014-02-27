@@ -3,6 +3,7 @@ from r2.lib import amqp, websockets, utils
 from reddit_liveupdate.models import (
     ActiveVisitorsByLiveUpdateEvent,
     LiveUpdateEvent,
+    LiveUpdateActivityHistoryByEvent,
 )
 
 
@@ -19,6 +20,7 @@ def update_activity():
             count = ActiveVisitorsByLiveUpdateEvent.get_count(event_id)
 
         LiveUpdateEvent.update_activity(event_id, count)
+        LiveUpdateActivityHistoryByEvent.record_activity(event_id, count)
 
         is_fuzzed = False
         if count < ACTIVITY_FUZZING_THRESHOLD:
