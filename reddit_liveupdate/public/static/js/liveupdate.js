@@ -26,6 +26,7 @@ r.liveupdate = {
                 'message:settings': this._onSettingsChanged,
                 'message:update': this._onNewUpdate
             }, this)
+            this._websocket.start()
         }
 
         Tinycon.setOptions({
