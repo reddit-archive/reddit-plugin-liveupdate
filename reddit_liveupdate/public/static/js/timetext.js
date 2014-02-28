@@ -6,16 +6,13 @@ if (!Date.now) {
 }
 
 r.timetext = {
-    _chunks: (function () {
-        function P_(x, y) { return [x, y] }
-        return [
-            [60 * 60 * 24 * 365, P_('a year ago', '%(num)s years ago')],
-            [60 * 60 * 24 * 30, P_('a month ago', '%(num)s months ago')],
-            [60 * 60 * 24, P_('a day ago', '%(num)s days ago')],
-            [60 * 60, P_('an hour ago', '%(num)s hours ago')],
-            [60, P_('a minute ago', '%(num)s minutes ago')]
-        ]
-    })(),
+    _chunks: [
+        [60 * 60 * 24 * 365, r.NP_('a year ago', '%(num)s years ago')],
+        [60 * 60 * 24 * 30, r.NP_('a month ago', '%(num)s months ago')],
+        [60 * 60 * 24, r.NP_('a day ago', '%(num)s days ago')],
+        [60 * 60, r.NP_('an hour ago', '%(num)s hours ago')],
+        [60, r.NP_('a minute ago', '%(num)s minutes ago')]
+    ],
 
     init: function () {
         this.refresh()
