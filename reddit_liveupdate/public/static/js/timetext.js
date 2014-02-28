@@ -57,4 +57,6 @@ r.timetext = {
     }
 }
 
-r.timetext.init()
+$(function () {
+    r.timetext.init()
+})
