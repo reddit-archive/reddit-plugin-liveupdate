@@ -40,6 +40,7 @@ r.liveupdate = {
         })
         this._onPageVisible()
 
+        this._pixelsFetched = 0
         this._fetchPixel()
     },
 
@@ -210,6 +211,15 @@ r.liveupdate = {
         pixel.src = '//' + r.config.liveupdate_pixel_domain +
                     '/live/' + r.config.liveupdate_event + '/pixel.png' +
                     '?rand=' + Math.random()
+
+        // we don't need to fire a heartbeat for GA on the first pixel request, also
+        // google analytics might not be enabled, so only use this if we're sure it's safe
+        if (this._pixelsFetched > 0 && window._gaq) {
+            // TODO: do something when we hit the 500 ping limit
+            _gaq.push(['_trackEvent', 'Heartbeat', 'Heartbeat', '', 0, true]);
+        }
+
+        this._pixelsFetched += 1
 
         var delay = Math.floor(this._pixelInterval -
                                this._pixelInterval * Math.random() / 2)
