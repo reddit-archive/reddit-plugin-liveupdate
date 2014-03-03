@@ -13,7 +13,7 @@ from r2.lib import utils
 
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
-    _editor_prefix = "editor_"
+    _reporter_prefix = "reporter_"
 
     _use_db = True
     _read_consistency_level = tdb_cassandra.CL.ONE
@@ -31,29 +31,29 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     }
 
     @classmethod
-    def _editor_key(cls, user):
-        return "%s%s" % (cls._editor_prefix, user._id36)
+    def _reporter_key(cls, user):
+        return "%s%s" % (cls._reporter_prefix, user._id36)
 
-    def add_editor(self, user):
-        self[self._editor_key(user)] = ""
+    def add_reporter(self, user):
+        self[self._reporter_key(user)] = ""
         self._commit()
 
-    def remove_editor(self, user):
-        del self[self._editor_key(user)]
+    def remove_reporter(self, user):
+        del self[self._reporter_key(user)]
         self._commit()
 
-    def is_editor(self, user):
-        return self._editor_key(user) in self._t
+    def is_reporter(self, user):
+        return self._reporter_key(user) in self._t
 
     @property
     def _fullname(self):
         return self._id
 
     @property
-    def editor_ids(self):
-        return [int(k[len(self._editor_prefix):], 36)
+    def reporter_ids(self):
+        return [int(k[len(self._reporter_prefix):], 36)
                 for k in self._t.iterkeys()
-                if k.startswith(self._editor_prefix)]
+                if k.startswith(self._reporter_prefix)]
 
     @classmethod
     def new(cls, id, title, **properties):

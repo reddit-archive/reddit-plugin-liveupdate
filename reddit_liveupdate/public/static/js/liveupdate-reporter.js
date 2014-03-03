@@ -1,4 +1,4 @@
-r.liveupdate.editor = {
+r.liveupdate.reporter = {
     init: function () {
         this.$listing = $('.liveupdate-listing')
         this.$buttonRow = $(r.templates.make('liveupdate/edit-buttons', {
@@ -78,4 +78,4 @@ r.liveupdate.editor = {
     }
 }
 
-$(function () { r.liveupdate.editor.init() })
+$(function () { r.liveupdate.reporter.init() })

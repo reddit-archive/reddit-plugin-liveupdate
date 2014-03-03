@@ -99,10 +99,11 @@ class LiveUpdateEvent(Templated):
             self.discussions = LiveUpdateOtherDiscussions()
         self.show_sidebar = show_sidebar
 
-        editor_accounts = Account._byID(event.editor_ids,
-                                        data=True, return_dict=False)
-        self.editors = sorted((LiveUpdateAccount(e) for e in editor_accounts),
-                              key=lambda e: e.name)
+        reporter_accounts = Account._byID(event.reporter_ids,
+                                          data=True, return_dict=False)
+        self.reporters = sorted((LiveUpdateAccount(e)
+                                 for e in reporter_accounts),
+                                key=lambda e: e.name)
 
         Templated.__init__(self)
 
@@ -129,12 +130,12 @@ class LiveUpdateEventConfiguration(Templated):
         Templated.__init__(self)
 
 
-class EditorTableItem(UserTableItem):
-    type = "liveupdate_editor"
+class ReporterTableItem(UserTableItem):
+    type = "liveupdate_reporter"
 
     def __init__(self, user, event, editable=True):
         self.event = event
-        self.render_class = EditorTableItem
+        self.render_class = ReporterTableItem
         UserTableItem.__init__(self, user, editable=editable)
 
     @property
@@ -158,11 +159,11 @@ class EditorTableItem(UserTableItem):
 
     @property
     def remove_action(self):
-        return "live/%s/rm_editor" % self.event._id
+        return "live/%s/rm_reporter" % self.event._id
 
 
-class EditorListing(UserListing):
-    type = "liveupdate_editor"
+class ReporterListing(UserListing):
+    type = "liveupdate_reporter"
 
     def __init__(self, event, builder, editable=True):
         self.event = event
@@ -170,7 +171,7 @@ class EditorListing(UserListing):
 
     @property
     def destination(self):
-        return "live/%s/add_editor" % self.event._id
+        return "live/%s/add_reporter" % self.event._id
 
     @property
     def form_title(self):

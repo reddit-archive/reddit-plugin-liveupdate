@@ -106,8 +106,8 @@ r.liveupdate = {
         var now = Date.now()
         _.each(data, function (thing) {
             var $newThing = $($.unsafe(thing.data.content))
-            if (r.liveupdate.editor) {
-                r.liveupdate.editor._addButtons($newThing.find('td'))
+            if (r.liveupdate.reporter) {
+                r.liveupdate.reporter._addButtons($newThing.find('td'))
             }
             $initial.after($newThing)
             r.timetext.refreshOne($newThing.find('time.live'), now)

@@ -45,7 +45,7 @@ class VLiveUpdateEventManager(Validator):
             abort(403, "Forbidden")
 
 
-class VLiveUpdateEventEditor(Validator):
+class VLiveUpdateEventReporter(Validator):
     def run(self):
         if not c.liveupdate_can_edit:
             abort(403, "Forbidden")

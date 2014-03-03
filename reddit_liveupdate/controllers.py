@@ -35,7 +35,7 @@ from reddit_liveupdate.models import (
 )
 from reddit_liveupdate.validators import (
     VLiveUpdate,
-    VLiveUpdateEventEditor,
+    VLiveUpdateEventReporter,
     VLiveUpdateEventManager,
     VLiveUpdateID,
     VTimeZone,
@@ -109,7 +109,7 @@ class LiveUpdateController(RedditController):
                                    (c.user_is_loggedin and c.user_is_admin))
         c.liveupdate_can_edit = (c.liveupdate_event.state == "live" and
                                  (c.user_is_loggedin and
-                                  (c.liveupdate_event.is_editor(c.user) or
+                                  (c.liveupdate_event.is_reporter(c.user) or
                                    c.user_is_admin)))
 
     @validate(
@@ -178,7 +178,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validate(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
     )
     def GET_edit(self):
         return pages.LiveUpdatePage(
@@ -186,7 +186,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         title=VLength("title", max_length=120),
         description=VMarkdown("description", empty_error=None),
@@ -221,9 +221,9 @@ class LiveUpdateController(RedditController):
     # TODO: pass listing params on
     def GET_reporters(self):
         event = c.liveupdate_event
-        wrapper = lambda user: pages.EditorTableItem(user, event,
+        wrapper = lambda user: pages.ReporterTableItem(user, event,
                                          editable=c.liveupdate_can_edit)
-        accounts = Account._byID(event.editor_ids,
+        accounts = Account._byID(event.reporter_ids,
                                  data=True, return_dict=False)
         keep_fn = lambda item: not item.user._deleted
         b = SimpleBuilder(
@@ -233,42 +233,42 @@ class LiveUpdateController(RedditController):
             skip=True,
             num=0,
         )
-        listing = pages.EditorListing(event, b,
+        listing = pages.ReporterListing(event, b,
                           editable=c.liveupdate_can_edit).listing()
         return pages.LiveUpdatePage(
             content=listing,
         ).render()
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         user=VExistingUname("name"),
     )
-    def POST_add_editor(self, form, jquery, user):
+    def POST_add_reporter(self, form, jquery, user):
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
 
         # make the user able to edit
-        c.liveupdate_event.add_editor(user)
+        c.liveupdate_event.add_reporter(user)
 
-        # TODO: send PM to new editor
+        # TODO: send PM to new reporter
 
         # add the user to the table
-        user_row = pages.EditorTableItem(user, c.liveupdate_event)
-        jquery(".liveupdate_editor-table").show(
+        user_row = pages.ReporterTableItem(user, c.liveupdate_event)
+        jquery(".liveupdate_reporter-table").show(
             ).find("table").insert_table_rows(user_row)
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )
-    def POST_rm_editor(self, form, jquery, user):
-        c.liveupdate_event.remove_editor(user)
+    def POST_rm_reporter(self, form, jquery, user):
+        c.liveupdate_event.remove_reporter(user)
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         text=VMarkdown("body", max_length=4096),
     )
@@ -295,7 +295,7 @@ class LiveUpdateController(RedditController):
         t.attr('rows', 3).html("").val("")
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         update=VLiveUpdate("id"),
     )
@@ -309,7 +309,7 @@ class LiveUpdateController(RedditController):
         send_websocket_broadcast(type="delete", payload=update._fullname)
 
     @validatedForm(
-        VLiveUpdateEventEditor(),
+        VLiveUpdateEventReporter(),
         VModhash(),
         update=VLiveUpdate("id"),
     )

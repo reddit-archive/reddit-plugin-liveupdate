@@ -24,8 +24,8 @@ class LiveUpdate(Plugin):
             "timetext.js",
             "liveupdate.js",
         ),
-        "liveupdate-editor": Module("liveupdate-editor.js",
-            "liveupdate-editor.js",
+        "liveupdate-reporter": Module("liveupdate-reporter.js",
+            "liveupdate-reporter.js",
             TemplateFileSource("liveupdate/edit-buttons.html"),
         ),
     }
