@@ -270,7 +270,7 @@ class LiveUpdateController(RedditController):
     @validatedForm(
         VLiveUpdateEventEditor(),
         VModhash(),
-        text=VMarkdown("body", max_length=512),
+        text=VMarkdown("body", max_length=4096),
     )
     def POST_update(self, form, jquery, text):
         if form.has_errors("body", errors.NO_TEXT,
