@@ -10,7 +10,7 @@
     ${utils.error_field("TOO_LONG", "title")}
   </%utils:line_field>
 
-  <%utils:line_field title="${_('description')}">
+  <%utils:line_field title="${_('description')}" description="${_('information and resources that are useful at any point')}">
     ${UserText(None, text=c.liveupdate_event.description, editable=True, creating=True, name="description", have_form=False)}
     ${utils.error_field("TOO_LONG", "description")}
   </%utils:line_field>
