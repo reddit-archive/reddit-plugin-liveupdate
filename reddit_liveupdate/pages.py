@@ -8,7 +8,7 @@ from pylons import c, g
 from pylons.i18n import _, ungettext
 
 from r2.lib import filters
-from r2.lib.pages import Reddit, UserTableItem
+from r2.lib.pages import Reddit, UserTableItem, ModeratorPermissions
 from r2.lib.menus import NavMenu, NavButton
 from r2.lib.template_helpers import add_sr
 from r2.lib.memoize import memoize
@@ -23,6 +23,7 @@ from r2.lib.jsontemplates import (
 )
 
 from reddit_liveupdate.activity import ACTIVITY_FUZZING_THRESHOLD
+from reddit_liveupdate.permissions import ReporterPermissionSet
 from reddit_liveupdate.utils import pretty_time, pairwise
 
 
@@ -39,6 +40,7 @@ class LiveUpdatePage(Reddit):
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
             "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
+            "liveupdate_permissions": c.liveupdate_permissions,
         }
 
         if websocket_url:
@@ -58,7 +60,7 @@ class LiveUpdatePage(Reddit):
     def build_toolbars(self):
         toolbars = [LiveUpdateTitle()]
 
-        if c.liveupdate_can_edit or c.liveupdate_can_manage:
+        if c.liveupdate_permissions:
             tabs = [
                 NavButton(
                     _("updates"),
@@ -66,12 +68,13 @@ class LiveUpdatePage(Reddit):
                 ),
             ]
 
-            if c.liveupdate_can_edit:
+            if c.liveupdate_permissions.allow("settings"):
                 tabs.append(NavButton(
                     _("settings"),
                     "/edit",
                 ))
 
+            if c.liveupdate_permissions.allow("manage"):
                 tabs.append(NavButton(
                     _("reporters"),
                     "/reporters",
@@ -99,7 +102,7 @@ class LiveUpdateEvent(Templated):
             self.discussions = LiveUpdateOtherDiscussions()
         self.show_sidebar = show_sidebar
 
-        reporter_accounts = Account._byID(event.reporter_ids,
+        reporter_accounts = Account._byID(event.reporters.keys(),
                                           data=True, return_dict=False)
         self.reporters = sorted((LiveUpdateAccount(e)
                                  for e in reporter_accounts),
@@ -130,18 +133,32 @@ class LiveUpdateEventConfiguration(Templated):
         Templated.__init__(self)
 
 
+class LiveUpdateReporterPermissions(ModeratorPermissions):
+    def __init__(self, account, permissions, embedded=False):
+        ModeratorPermissions.__init__(
+            self,
+            user=account,
+            permissions_type=ReporterTableItem.type,
+            permissions=permissions,
+            editable=True,
+            embedded=embedded,
+        )
+
+
 class ReporterTableItem(UserTableItem):
     type = "liveupdate_reporter"
 
-    def __init__(self, user, event, editable=True):
+    def __init__(self, reporter, event, editable):
         self.event = event
         self.render_class = ReporterTableItem
-        UserTableItem.__init__(self, user, editable=editable)
+        self.permissions = LiveUpdateReporterPermissions(
+            reporter.account, reporter.permissions)
+        UserTableItem.__init__(self, reporter.account, editable=editable)
 
     @property
     def cells(self):
         if self.editable:
-            return ("user", "sendmessage", "remove")
+            return ("user", "sendmessage", "permissions", "permissionsctl")
         else:
             return ("user",)
 
@@ -164,6 +181,11 @@ class ReporterTableItem(UserTableItem):
 
 class ReporterListing(UserListing):
     type = "liveupdate_reporter"
+    permissions_form = LiveUpdateReporterPermissions(
+        account=None,
+        permissions=ReporterPermissionSet.SUPERUSER,
+        embedded=True,
+    )
 
     def __init__(self, event, builder, editable=True):
         self.event = event

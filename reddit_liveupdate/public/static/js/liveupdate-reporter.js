@@ -1,17 +1,21 @@
 r.liveupdate.reporter = {
     init: function () {
+        this.permissions = new r.liveupdate.PermissionSet(r.config.liveupdate_permissions)
         this.$listing = $('.liveupdate-listing')
-        this.$buttonRow = $(r.templates.make('liveupdate/edit-buttons', {
-            strikeLabel: r._('strike'),
-            deleteLabel: r._('delete')
-        }))
 
-        this.$listing
-            .on('confirm', '.strike', $.proxy(this, 'strike'))
-            .on('confirm', '.delete', $.proxy(this, 'delete_'))
-            .on('more-updates', $.proxy(this, 'onMoreUpdates'))
+        if (this.permissions.allow('edit')) {
+            this.$buttonRow = $(r.templates.make('liveupdate/edit-buttons', {
+                strikeLabel: r._('strike'),
+                deleteLabel: r._('delete')
+            }))
 
-        this._addButtons(this.$listing.find('tr.thing td'))
+            this.$listing
+                .on('confirm', '.strike', $.proxy(this, 'strike'))
+                .on('confirm', '.delete', $.proxy(this, 'delete_'))
+                .on('more-updates', $.proxy(this, 'onMoreUpdates'))
+
+            this._addButtons(this.$listing.find('tr.thing td'))
+        }
     },
 
     onMoreUpdates: function (ev, updates) {
@@ -75,6 +79,23 @@ r.liveupdate.reporter = {
                 $(this).remove()
             })
         })
+    }
+}
+
+r.liveupdate.PermissionSet = function (permissions) {
+    this._permissions = permissions
+}
+r.liveupdate.PermissionSet.prototype = {
+    isSuperUser: function () {
+        return !!this._permissions.all
+    },
+
+    allow: function (name) {
+        if (this.isSuperUser()) {
+            return true
+        }
+
+        return !!this._permissions[name]
     }
 }
 

@@ -10,7 +10,7 @@
     ${parent.javascript_bottom()}
     ${unsafe(js.use("liveupdate"))}
 
-    % if c.liveupdate_can_edit:
+    % if c.liveupdate_permissions:
     ${unsafe(js.use("liveupdate-reporter"))}
     % endif
 </%def>

@@ -33,10 +33,11 @@ from reddit_liveupdate.models import (
     LiveUpdateStream,
     ActiveVisitorsByLiveUpdateEvent,
 )
+from reddit_liveupdate.permissions import ReporterPermissionSet
 from reddit_liveupdate.validators import (
     VLiveUpdate,
-    VLiveUpdateEventReporter,
-    VLiveUpdateEventManager,
+    VLiveUpdateReporterWithPermission,
+    VLiveUpdatePermissions,
     VLiveUpdateID,
     VTimeZone,
 )
@@ -58,6 +59,53 @@ class LiveUpdateBuilder(QueryBuilder):
 
     def keep_item(self, item):
         return not item.deleted
+
+
+class LiveUpdateReporter(object):
+    def __init__(self, account, permissions):
+        self.account = account
+        self.permissions = permissions
+
+    @property
+    def _id(self):
+        return self.account._id
+
+
+class LiveUpdateReporterBuilder(SimpleBuilder):
+    def __init__(self, event, editable):
+        self.event = event
+        self.editable = editable
+
+        perms_by_reporter = event.reporters
+        reporter_accounts = Account._byID(perms_by_reporter.keys(), data=True)
+        reporters = [LiveUpdateReporter(account, perms_by_reporter[account._id])
+                     for account in reporter_accounts.itervalues()]
+        reporters.sort(key=lambda r: r.account.name)
+
+        SimpleBuilder.__init__(
+            self,
+            reporters,
+            keep_fn=self.keep_item,
+            wrap=self.wrap_item,
+            skip=False,
+            num=0,
+        )
+
+    def keep_item(self, item):
+        return not item.account._deleted
+
+    def wrap_item(self, item):
+        return pages.ReporterTableItem(
+            item,
+            self.event,
+            editable=self.editable,
+        )
+
+    def wrap_items(self, items):
+        wrapped = []
+        for item in items:
+            wrapped.append(self.wrap_item(item))
+        return wrapped
 
 
 @add_controller
@@ -105,12 +153,13 @@ class LiveUpdateController(RedditController):
         if not c.liveupdate_event:
             self.abort404()
 
-        c.liveupdate_can_manage = (c.liveupdate_event.state == "live" and
-                                   (c.user_is_loggedin and c.user_is_admin))
-        c.liveupdate_can_edit = (c.liveupdate_event.state == "live" and
-                                 (c.user_is_loggedin and
-                                  (c.liveupdate_event.is_reporter(c.user) or
-                                   c.user_is_admin)))
+        if c.user_is_loggedin:
+            c.liveupdate_permissions = \
+                    c.liveupdate_event.get_permissions(c.user)
+            if c.user_is_admin:
+                c.liveupdate_permissions = ReporterPermissionSet.SUPERUSER
+        else:
+            c.liveupdate_permissions = ReporterPermissionSet.NONE
 
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
@@ -153,8 +202,7 @@ class LiveUpdateController(RedditController):
             ).render()
         else:
             # embeds are always logged out and therefore safe for frames.
-            c.liveupdate_can_manage = False
-            c.liveupdate_can_edit = False
+            c.liveupdate_permissions = ReporterPermissionSet.NONE
             c.allow_framing = True
 
             return pages.LiveUpdateEmbed(
@@ -178,7 +226,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validate(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("settings"),
     )
     def GET_edit(self):
         return pages.LiveUpdatePage(
@@ -186,7 +234,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("settings"),
         VModhash(),
         title=VLength("title", max_length=120),
         description=VMarkdown("description", empty_error=None),
@@ -220,47 +268,69 @@ class LiveUpdateController(RedditController):
 
     # TODO: pass listing params on
     def GET_reporters(self):
-        event = c.liveupdate_event
-        wrapper = lambda user: pages.ReporterTableItem(user, event,
-                                         editable=c.liveupdate_can_edit)
-        accounts = Account._byID(event.reporter_ids,
-                                 data=True, return_dict=False)
-        keep_fn = lambda item: not item.user._deleted
-        b = SimpleBuilder(
-            accounts,
-            keep_fn=keep_fn,
-            wrap=wrapper,
-            skip=True,
-            num=0,
-        )
-        listing = pages.ReporterListing(event, b,
-                          editable=c.liveupdate_can_edit).listing()
+        editable = c.liveupdate_permissions.allow("manage")
+        builder = LiveUpdateReporterBuilder(c.liveupdate_event, editable)
+        listing = pages.ReporterListing(
+            c.liveupdate_event,
+            builder,
+            editable=editable,
+        ).listing()
+
         return pages.LiveUpdatePage(
             content=listing,
         ).render()
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("manage"),
         VModhash(),
         user=VExistingUname("name"),
+        type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
-    def POST_add_reporter(self, form, jquery, user):
+    def POST_add_reporter(self, form, jquery, user, type_and_perms):
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
+        if form.has_errors("type", errors.INVALID_PERMISSION_TYPE):
+            return
+        if form.has_errors("permissions", errors.INVALID_PERMISSIONS):
+            return
 
-        # make the user able to edit
-        c.liveupdate_event.add_reporter(user)
+        type, permissions = type_and_perms
+        c.liveupdate_event.add_reporter(user, permissions)
 
         # TODO: send PM to new reporter
 
         # add the user to the table
-        user_row = pages.ReporterTableItem(user, c.liveupdate_event)
+        reporter = LiveUpdateReporter(user, permissions)
+        user_row = pages.ReporterTableItem(reporter, c.liveupdate_event,
+                                           editable=True)
         jquery(".liveupdate_reporter-table").show(
             ).find("table").insert_table_rows(user_row)
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("manage"),
+        VModhash(),
+        user=VExistingUname("name"),
+        type_and_perms=VLiveUpdatePermissions("type", "permissions"),
+    )
+    def POST_set_reporter_permissions(self, form, jquery, user, type_and_perms):
+        if form.has_errors("name", errors.USER_DOESNT_EXIST,
+                                   errors.NO_USER):
+            return
+        if form.has_errors("type", errors.INVALID_PERMISSION_TYPE):
+            return
+        if form.has_errors("permissions", errors.INVALID_PERMISSIONS):
+            return
+
+        type, permissions = type_and_perms
+        c.liveupdate_event.update_reporter_permissions(user, permissions)
+
+        row = form.closest("tr")
+        editor = row.find(".permissions").data("PermissionEditor")
+        editor.onCommit(permissions.dumps())
+
+    @validatedForm(
+        VLiveUpdateReporterWithPermission("manage"),
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )
@@ -268,7 +338,7 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event.remove_reporter(user)
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("update"),
         VModhash(),
         text=VMarkdown("body", max_length=4096),
     )
@@ -295,7 +365,7 @@ class LiveUpdateController(RedditController):
         t.attr('rows', 3).html("").val("")
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("edit"),
         VModhash(),
         update=VLiveUpdate("id"),
     )
@@ -309,7 +379,7 @@ class LiveUpdateController(RedditController):
         send_websocket_broadcast(type="delete", payload=update._fullname)
 
     @validatedForm(
-        VLiveUpdateEventReporter(),
+        VLiveUpdateReporterWithPermission("edit"),
         VModhash(),
         update=VLiveUpdate("id"),
     )

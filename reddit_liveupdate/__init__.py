@@ -2,8 +2,14 @@ from pylons.i18n import N_
 
 from r2.config.routing import not_in_sr
 from r2.lib.configparse import ConfigValue
-from r2.lib.js import Module, LocalizedModule, TemplateFileSource
+from r2.lib.js import (
+    LocalizedModule,
+    TemplateFileSource,
+    PermissionsDataSource,
+)
 from r2.lib.plugin import Plugin
+
+from reddit_liveupdate.permissions import ReporterPermissionSet
 
 
 class LiveUpdate(Plugin):
@@ -24,9 +30,12 @@ class LiveUpdate(Plugin):
             "timetext.js",
             "liveupdate.js",
         ),
-        "liveupdate-reporter": Module("liveupdate-reporter.js",
+        "liveupdate-reporter": LocalizedModule("liveupdate-reporter.js",
             "liveupdate-reporter.js",
             TemplateFileSource("liveupdate/edit-buttons.html"),
+            PermissionsDataSource({
+                "liveupdate_reporter": ReporterPermissionSet,
+            }),
         ),
     }
 

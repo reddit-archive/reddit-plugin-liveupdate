@@ -32,7 +32,7 @@
 </div>
 </header>
 
-% if c.liveupdate_can_edit:
+% if c.liveupdate_permissions.allow("update"):
 <div id="new-update-form" class="prettyform">
   ${UserText(None, text="", editable=True, creating=True, name="body", have_form=False)}
 

@@ -1,0 +1,34 @@
+<%namespace file="utils.html" import="error_field"/>
+
+<%def name="form_content()">
+  %if not thing.embedded:
+    <input type="hidden" name="name"
+      value="${thing.user.name if thing.user else ''}">
+  %endif
+  <input type="hidden" name="type" value="${thing.permissions_type}">
+  <input type="hidden" name="permissions"
+    value="${thing.permissions.dumps()}">
+  %if not thing.embedded:
+    ${error_field("USER_DOESNT_EXIST", "name")}
+    ${error_field("NO_USER", "name")}
+  %endif
+  ${error_field("INVALID_PERMISSION_TYPE", "type")}
+  ${error_field("INVALID_PERMISSIONS", "permissions")}
+  %if not thing.embedded:
+    <span class="status"></span>
+  %endif
+</%def>
+
+<div class="permissions">
+  %if thing.embedded:
+    ${form_content()}
+  %else:
+    <form method="post" class="pretty-form medium-text"
+      onsubmit="return post_form(this, 'live/${c.liveupdate_event._id}/set_reporter_permissions')">
+      ${form_content()}
+      <button type="submit">${_('save')}</button>
+    </form>
+  %endif
+  <div class="permission-summary">
+  </div>
+</div>

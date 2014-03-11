@@ -5,11 +5,12 @@ import pytz
 from pylons import c
 from pylons.controllers.util import abort
 
-from r2.lib.validator import Validator
+from r2.lib.validator import Validator, VPermissions
 from r2.lib.db import tdb_cassandra
 from r2.lib.errors import errors
 
 from reddit_liveupdate import models
+from reddit_liveupdate.permissions import ReporterPermissionSet
 
 
 class VLiveUpdateID(Validator):
@@ -39,15 +40,16 @@ class VLiveUpdate(VLiveUpdateID):
         self.set_error(errors.NO_THING_ID)
 
 
-class VLiveUpdateEventManager(Validator):
+class VLiveUpdateReporterWithPermission(Validator):
+    def __init__(self, permission):
+        self.permission = permission
+        Validator.__init__(self)
+
     def run(self):
-        if not c.liveupdate_can_manage:
+        if not c.liveupdate_event.state == "live":
             abort(403, "Forbidden")
 
-
-class VLiveUpdateEventReporter(Validator):
-    def run(self):
-        if not c.liveupdate_can_edit:
+        if not c.liveupdate_permissions.allow(self.permission):
             abort(403, "Forbidden")
 
 
@@ -57,3 +59,9 @@ class VTimeZone(Validator):
             return pytz.timezone(timezone_name)
         except pytz.exceptions.UnknownTimeZoneError:
             self.set_error(errors.INVALID_TIMEZONE)
+
+
+class VLiveUpdatePermissions(VPermissions):
+    types = {
+        "liveupdate_reporter": ReporterPermissionSet,
+    }

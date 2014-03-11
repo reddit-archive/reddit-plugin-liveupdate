@@ -11,6 +11,8 @@ from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 from r2.lib.db import tdb_cassandra
 from r2.lib import utils
 
+from reddit_liveupdate.permissions import ReporterPermissionSet
+
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
     _reporter_prefix = "reporter_"
@@ -34,26 +36,31 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     def _reporter_key(cls, user):
         return "%s%s" % (cls._reporter_prefix, user._id36)
 
-    def add_reporter(self, user):
-        self[self._reporter_key(user)] = ""
+    def add_reporter(self, user, permissions):
+        self[self._reporter_key(user)] = permissions.dumps()
         self._commit()
+
+    def update_reporter_permissions(self, user, permissions):
+        return self.add_reporter(user, permissions)
 
     def remove_reporter(self, user):
         del self[self._reporter_key(user)]
         self._commit()
 
-    def is_reporter(self, user):
-        return self._reporter_key(user) in self._t
+    def get_permissions(self, user):
+        permission_string = self._t.get(self._reporter_key(user), "")
+        return ReporterPermissionSet.loads(permission_string)
 
     @property
     def _fullname(self):
         return self._id
 
     @property
-    def reporter_ids(self):
-        return [int(k[len(self._reporter_prefix):], 36)
-                for k in self._t.iterkeys()
-                if k.startswith(self._reporter_prefix)]
+    def reporters(self):
+        return {int(k[len(self._reporter_prefix):], 36):
+                    ReporterPermissionSet.loads(v)
+                for k, v in self._t.iteritems()
+                if k.startswith(self._reporter_prefix)}
 
     @classmethod
     def new(cls, id, title, **properties):
