@@ -106,12 +106,10 @@ r.liveupdate = {
         var now = Date.now()
         _.each(data, function (thing) {
             var $newThing = $($.unsafe(thing.data.content))
-            if (r.liveupdate.reporter) {
-                r.liveupdate.reporter._addButtons($newThing.find('td'))
-            }
+            this.$listing.trigger('more-updates', [$newThing])
             $initial.after($newThing)
             r.timetext.refreshOne($newThing.find('time.live'), now)
-        })
+        }, this)
 
         if (!this._pageVisible) {
             this._unreadUpdates += data.length
