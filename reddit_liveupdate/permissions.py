@@ -22,7 +22,7 @@ class ReporterPermissionSet(PermissionSet):
 
         "edit": {
             "title": N_("edit"),
-            "description": N_("strike and delete updates"),
+            "description": N_("strike and delete others' updates"),
         },
     }
 

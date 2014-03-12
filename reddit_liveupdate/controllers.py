@@ -365,7 +365,6 @@ class LiveUpdateController(RedditController):
         t.attr('rows', 3).html("").val("")
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("edit"),
         VModhash(),
         update=VLiveUpdate("id"),
     )
@@ -373,19 +372,26 @@ class LiveUpdateController(RedditController):
         if form.has_errors("id", errors.NO_THING_ID):
             return
 
+        if not (c.liveupdate_permissions.allow("edit") or
+                (c.user_is_loggedin and update.author_id == c.user._id)):
+            abort(403)
+
         update.deleted = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
         send_websocket_broadcast(type="delete", payload=update._fullname)
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("edit"),
         VModhash(),
         update=VLiveUpdate("id"),
     )
     def POST_strike_update(self, form, jquery, update):
         if form.has_errors("id", errors.NO_THING_ID):
             return
+
+        if not (c.liveupdate_permissions.allow("edit") or
+                (c.user_is_loggedin and update.author_id == c.user._id)):
+            abort(403)
 
         update.stricken = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)

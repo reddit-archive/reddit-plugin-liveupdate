@@ -1,5 +1,5 @@
 % if not thing.deleted:
-<a href="/user/${thing.name}" class="author id-${thing.fullname}">/u/${thing.name}</a>
+<a href="/user/${thing.name}" class="author id-${thing.fullname}" data-name="${thing.name}">/u/${thing.name}</a>
 % else:
 ${_("[deleted]")}
 % endif

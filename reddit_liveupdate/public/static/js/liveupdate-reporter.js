@@ -3,19 +3,17 @@ r.liveupdate.reporter = {
         this.permissions = new r.liveupdate.PermissionSet(r.config.liveupdate_permissions)
         this.$listing = $('.liveupdate-listing')
 
-        if (this.permissions.allow('edit')) {
-            this.$buttonRow = $(r.templates.make('liveupdate/edit-buttons', {
-                strikeLabel: r._('strike'),
-                deleteLabel: r._('delete')
-            }))
+        this.$buttonRow = $(r.templates.make('liveupdate/edit-buttons', {
+            strikeLabel: r._('strike'),
+            deleteLabel: r._('delete')
+        }))
 
-            this.$listing
-                .on('confirm', '.strike', $.proxy(this, 'strike'))
-                .on('confirm', '.delete', $.proxy(this, 'delete_'))
-                .on('more-updates', $.proxy(this, 'onMoreUpdates'))
+        this.$listing
+            .on('confirm', '.strike', $.proxy(this, 'strike'))
+            .on('confirm', '.delete', $.proxy(this, 'delete_'))
+            .on('more-updates', $.proxy(this, 'onMoreUpdates'))
 
-            this._addButtons(this.$listing.find('tr.thing td'))
-        }
+        this._addButtons(this.$listing.find('tr.thing td'))
     },
 
     onMoreUpdates: function (ev, updates) {
@@ -24,18 +22,22 @@ r.liveupdate.reporter = {
 
     _addButtons: function (updates) {
         updates.each($.proxy(function (index, el) {
-            var $buttonRow = this.$buttonRow.clone()
             var $el = $(el)
+            var author = $el.find('.author').data('name')
 
-            if ($el.thing().hasClass('stricken')) {
-                $buttonRow.find('button.strike').parent().remove()
+            if (this.permissions.allow('edit') || author == r.config.logged) {
+                var $buttonRow = this.$buttonRow.clone()
+
+                if ($el.thing().hasClass('stricken')) {
+                    $buttonRow.find('button.strike').parent().remove()
+                }
+
+                $buttonRow.find('button').each(function (index, el) {
+                    new r.ui.ConfirmButton({'el': el})
+                })
+
+                $el.append($buttonRow)
             }
-
-            $buttonRow.find('button').each(function (index, el) {
-                new r.ui.ConfirmButton({'el': el})
-            })
-
-            $el.append($buttonRow)
         }, this))
     },
 
