@@ -375,9 +375,14 @@ class LiveUpdateController(RedditController):
 
         # tell the world about our new update
         builder = LiveUpdateBuilder(None)
-        wrapped = builder.wrap_items([update])
-        rendered = [w.render() for w in wrapped]
-        _broadcast(type="update", payload=rendered)
+        wrapped = builder.wrap_items([update])[0]
+        rendered = wrapped.render(style="html")
+        _broadcast(type="update", payload={
+            "id": str(update._id),
+            "author": c.user.name,
+            "body": text,
+            "rendered": rendered,
+        })
 
         # Queue up parsing any embeds
         queue_parse_embeds(c.liveupdate_event, update)
