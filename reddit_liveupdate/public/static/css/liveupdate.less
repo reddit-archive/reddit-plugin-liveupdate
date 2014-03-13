@@ -100,6 +100,25 @@ body.liveupdate-event{
         }
     }
 
+    #liveupdate-options {
+        color: #4f4f4f;
+        margin-top: -2em;
+        padding: 5px 0;
+        text-align: left;
+        width: @sidebar-width;
+        float: right;
+
+        input {
+            vertical-align: middle;
+            margin: 0 3px 0 0;
+        }
+
+        label {
+            text-transform: uppercase;
+            vertical-align: bottom;
+        }
+    }
+
     .liveupdate-listing {
         max-width: 600px;
         min-width: 300px;
@@ -406,6 +425,14 @@ body.liveupdate-event{
             .usertext{
                 max-width: none;
             }
+        }
+
+        #liveupdate-options {
+            float: none;
+            clear: both;
+            margin-top: 1em;
+            text-align: right;
+            width: auto;
         }
 
         aside.sidebar {

@@ -15,6 +15,7 @@ r.liveupdate = {
 
         if (r.config.liveupdate_websocket) {
             this._websocket = new r.WebSocket(r.config.liveupdate_websocket)
+
             this._websocket.on({
                 'connecting': this._onWebSocketConnecting,
                 'connected': this._onWebSocketConnected,
@@ -28,6 +29,11 @@ r.liveupdate = {
                 'message:embeds_ready': this._onEmbedsReady,
                 'message:update': this._onNewUpdate
             }, this)
+
+            var $optionsEl = $('<div id="liveupdate-options">')
+            this.notifier = new r.liveupdate.Notifier($optionsEl, this._websocket)
+            $optionsEl.insertAfter('.liveupdate-event header')
+
             this._websocket.start()
         }
 
@@ -233,6 +239,108 @@ r.liveupdate = {
     }
 }
 
+r.liveupdate.Notifier = function ($optionsEl, socket) {
+    if (!("Notification" in window)) {
+        return
+    }
+
+    this.$checkbox = $('<input type="checkbox">')
+    this._activeNotifications = []
+    this._icon = r.utils.staticURL('liveupdate-notification-icon.png')
+    this._pageVisible = true
+
+    $(document).on({
+        'show': $.proxy(this, '_onPageVisible'),
+        'hide': $.proxy(this, '_onPageHide')
+    })
+
+    socket.on({
+        'message:update': this._onNewUpdate
+    }, this)
+
+    if (Notification.permission == 'granted') {
+        if (store.safeGet('live.desktop-notifications')) {
+            this.$checkbox.prop('checked', true)
+        }
+    }
+
+    this.$checkbox.change($.proxy(this._notificationSettingChanged, this))
+
+    $('<label>')
+        .text(r._('popup notifications'))
+        .prepend(this.$checkbox)
+        .appendTo($optionsEl)
+}
+_.extend(r.liveupdate.Notifier.prototype, {
+    _onPageVisible: function () {
+        this._pageVisible = true
+        this._clearNotifications()
+    },
+
+    _onPageHide: function () {
+        this._pageVisible = false
+    },
+
+    _notificationSettingChanged: function () {
+        var notificationsDesired = this.$checkbox.prop('checked')
+        store.safeSet('live.desktop-notifications', notificationsDesired)
+
+        if (notificationsDesired && Notification.permission != 'granted') {
+            this._requestPermission()
+        }
+    },
+
+    _requestPermission: function () {
+        this.$checkbox.prop('disabled', true)
+        Notification.requestPermission(_.bind(this._onPermissionChanged, this))
+    },
+
+    _onPermissionChanged: function (permission) {
+        if (permission == 'granted') {
+            this.$checkbox.prop('disabled', false)
+        } else if (permission == 'denied') {
+            this.$checkbox
+                .prop('checked', false)
+                .prop('disabled', true)
+        }
+    },
+
+    _onNewUpdate: function (thing) {
+        if (!this._pageVisible && this.$checkbox.prop('checked')) {
+            // never notify a user about their own posts
+            if (thing.author === r.config.logged) {
+                return
+            }
+
+            var title = $('#liveupdate-title').text()
+            var notification = new Notification(title, {
+                body: r.liveupdate.utils.ellipsize(thing.body, 160),
+                icon: this._icon
+            })
+            this._activeNotifications.push(notification)
+
+            notification.onclick = _.bind(function (ev) {
+                this._clearNotifications()
+                window.focus()
+                ev.preventDefault()
+            }, this)
+
+            notification.onclose = _.bind(function (ev) {
+                var index = this._activeNotifications.indexOf(ev.target)
+                this._activeNotifications.splice(index, 1)
+            }, this)
+
+            setTimeout(function () {
+                notification.close()
+            }, 10 * 1000)
+        }
+    },
+
+    _clearNotifications: function () {
+        _.invoke(this._activeNotifications, 'close')
+    }
+})
+
 r.liveupdate.Countdown = function (tickCallback, delay) {
     this._tickCallback = tickCallback
     this._deadline = Date.now() + delay
@@ -325,5 +433,13 @@ r.liveupdate.EmbedViewer = r.ScrollUpdater.extend({
     }
 })
 
+r.liveupdate.utils = {
+    ellipsize: function (text, limit) {
+        if (text.length > limit) {
+            return text.substring(0, limit) + '…'
+        }
+        return text
+    }
+}
 
 r.liveupdate.init()
