@@ -99,24 +99,14 @@ r.liveupdate = {
         setTimeout(function () { location.reload() }, delay)
     },
 
-    _onNewUpdate: function (data) {
+    _onNewUpdate: function (thing) {
         var $initial = this.$listing.find('tr.initial')
 
         // this must've been the first update. refresh to get a proper listing.
         if (!this.$listing.length)
             window.location.reload()
 
-        var thing = data
-        if (_.isArray(data)) {
-            thing = data[0]
-        }
-
-        var content = thing.rendered
-        if (!content) {
-            content = thing.data.content
-        }
-
-        var $newThing = $($.unsafe(content))
+        var $newThing = $($.unsafe(thing.rendered))
         this.$listing.trigger('more-updates', [$newThing])
         $initial.after($newThing)
         r.timetext.refreshOne($newThing.find('time.live'))
