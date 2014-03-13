@@ -106,16 +106,23 @@ r.liveupdate = {
         if (!this.$listing.length)
             window.location.reload()
 
-        var now = Date.now()
-        _.each(data, function (thing) {
-            var $newThing = $($.unsafe(thing.data.content))
-            this.$listing.trigger('more-updates', [$newThing])
-            $initial.after($newThing)
-            r.timetext.refreshOne($newThing.find('time.live'), now)
-        }, this)
+        var thing = data
+        if (_.isArray(data)) {
+            thing = data[0]
+        }
+
+        var content = thing.rendered
+        if (!content) {
+            content = thing.data.content
+        }
+
+        var $newThing = $($.unsafe(content))
+        this.$listing.trigger('more-updates', [$newThing])
+        $initial.after($newThing)
+        r.timetext.refreshOne($newThing.find('time.live'))
 
         if (!this._pageVisible) {
-            this._unreadUpdates += data.length
+            this._unreadUpdates += 1
             Tinycon.setBubble(this._unreadUpdates)
         }
     },
