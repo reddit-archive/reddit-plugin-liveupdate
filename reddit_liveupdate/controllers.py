@@ -8,6 +8,7 @@ from pylons.i18n import _
 from r2.config.extensions import is_api
 from r2.controllers import add_controller
 from r2.controllers.api_docs import api_doc, api_section
+from r2.controllers.oauth2 import require_oauth2_scope
 from r2.controllers.reddit_base import (
     MinimalController,
     RedditController,
@@ -240,6 +241,7 @@ class LiveUpdateController(RedditController):
             self.abort403()
 
 
+    @require_oauth2_scope("read")
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
         after=VLiveUpdateID("after"),
@@ -329,6 +331,7 @@ class LiveUpdateController(RedditController):
         content = Wrapped(c.liveupdate_event)
         return pages.LiveUpdateEventPage(content=content).render()
 
+    @require_oauth2_scope("read")
     @base_listing
     @api_doc(
         section=api_section.live,
@@ -623,6 +626,7 @@ class LiveUpdateController(RedditController):
         """
         c.liveupdate_event.remove_contributor(user)
 
+    @require_oauth2_scope("submit")
     @validatedForm(
         VLiveUpdateContributorWithPermission("update"),
         VModhash(),
@@ -670,6 +674,7 @@ class LiveUpdateController(RedditController):
         t = form.find("textarea")
         t.attr('rows', 3).html("").val("")
 
+    @require_oauth2_scope("edit")
     @validatedForm(
         VModhash(),
         update=VLiveUpdate("id"),
@@ -698,6 +703,7 @@ class LiveUpdateController(RedditController):
 
         _broadcast(type="delete", payload=update._fullname)
 
+    @require_oauth2_scope("edit")
     @validatedForm(
         VModhash(),
         update=VLiveUpdate("id"),
