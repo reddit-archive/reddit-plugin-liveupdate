@@ -5,7 +5,11 @@ from pylons import g, c, request, response
 from pylons.i18n import _
 
 from r2.controllers import add_controller
-from r2.controllers.reddit_base import RedditController, base_listing
+from r2.controllers.reddit_base import (
+    MinimalController,
+    RedditController,
+    base_listing,
+)
 from r2.lib import websockets
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
@@ -21,12 +25,17 @@ from r2.lib.validator import (
     VLimit,
     VMarkdown,
     VModhash,
+    VInt,
 )
 from r2.models import QueryBuilder, Account, LinkListing, SimpleBuilder
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 
 from reddit_liveupdate import pages
+from reddit_liveupdate.media_embeds import (
+    get_live_media_embed,
+    queue_parse_embeds,
+)
 from reddit_liveupdate.models import (
     LiveUpdate,
     LiveUpdateEvent,
@@ -34,6 +43,7 @@ from reddit_liveupdate.models import (
     ActiveVisitorsByLiveUpdateEvent,
 )
 from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.utils import send_event_broadcast
 from reddit_liveupdate.validators import (
     VLiveUpdate,
     VLiveUpdateReporterWithPermission,
@@ -43,9 +53,8 @@ from reddit_liveupdate.validators import (
 )
 
 
-def send_websocket_broadcast(type, payload):
-    websockets.send_broadcast(namespace="/live/" + c.liveupdate_event._id,
-                              type=type, payload=payload)
+def _broadcast(type, payload):
+    send_event_broadcast(c.liveupdate_event._id, type, payload)
 
 
 class LiveUpdateBuilder(QueryBuilder):
@@ -256,7 +265,7 @@ class LiveUpdateController(RedditController):
             changes["title"] = title
         if description != c.liveupdate_event.description:
             changes["description"] = safemarkdown(description, wrap=False)
-        send_websocket_broadcast(type="settings", payload=changes)
+        _broadcast(type="settings", payload=changes)
 
         c.liveupdate_event.title = title
         c.liveupdate_event.description = description
@@ -358,7 +367,10 @@ class LiveUpdateController(RedditController):
         builder = LiveUpdateBuilder(None)
         wrapped = builder.wrap_items([update])
         rendered = [w.render() for w in wrapped]
-        send_websocket_broadcast(type="update", payload=rendered)
+        _broadcast(type="update", payload=rendered)
+
+        # Queue up parsing any embeds
+        queue_parse_embeds(c.liveupdate_event, update)
 
         # reset the submission form
         t = form.find("textarea")
@@ -379,7 +391,7 @@ class LiveUpdateController(RedditController):
         update.deleted = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
-        send_websocket_broadcast(type="delete", payload=update._fullname)
+        _broadcast(type="delete", payload=update._fullname)
 
     @validatedForm(
         VModhash(),
@@ -396,4 +408,53 @@ class LiveUpdateController(RedditController):
         update.stricken = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
-        send_websocket_broadcast(type="strike", payload=update._fullname)
+        _broadcast(type="strike", payload=update._fullname)
+
+
+@add_controller
+class LiveUpdateEmbedController(MinimalController):
+    def __before__(self, event):
+        MinimalController.__before__(self)
+
+        if event:
+            try:
+                c.liveupdate_event = LiveUpdateEvent._byID(event)
+            except tdb_cassandra.NotFound:
+                pass
+
+        if not c.liveupdate_event:
+            self.abort404()
+
+    @validate(
+        liveupdate=VLiveUpdate('liveupdate'),
+        embed_index=VInt('embed_index', min=0)
+    )
+    def GET_mediaembed(self, liveupdate, embed_index):
+        if c.errors or request.host != g.media_domain:
+            # don't serve up untrusted content except on our
+            # specifically untrusted domain
+            abort(404)
+
+        try:
+            media_object = liveupdate.media_objects[embed_index]
+        except IndexError:
+            abort(404)
+
+        embed = get_live_media_embed(media_object)
+
+        if not embed:
+            abort(404)
+
+        content = embed.content
+        c.allow_framing = True
+
+        args = {
+            "body": content,
+            "unknown_dimensions": not (embed.width and embed.height),
+            "js_context": {
+                "liveupdate_id": unicode(liveupdate._id),  # UUID serializing
+                "embed_index": embed_index,
+            }
+        }
+
+        return pages.LiveUpdateMediaEmbedBody(**args).render()

@@ -1,0 +1,43 @@
+<%!
+   import json
+%>
+<!doctype html>
+<html>
+<head>
+    <style type="text/css">
+    html, iframe, body, object, embed, div, span, p {
+        margin: 0;
+        padding: 0;
+    }
+    </style>
+</head>
+<body>
+    ${unsafe(thing.body)}
+    % if thing.unknown_dimensions:
+    <script type="text/javascript">
+    if (window.parent) {
+        var knownWidth = 0, knownHeight = 0;
+        window.setInterval(function() {
+            var root = document.documentElement,
+                context = ${unsafe(json.dumps(thing.js_context))};
+
+            if (knownWidth === root.offsetWidth && knownHeight === root.offsetHeight) {
+                return;
+            }
+
+            knownWidth = root.offsetWidth;
+            knownHeight = root.offsetHeight;
+
+            window.parent.postMessage(JSON.stringify({
+                "action": "dimensionsChange",
+                "width": knownWidth,
+                "height": knownHeight,
+                "updateId": context.liveupdate_id,
+                "embedIndex": context.embed_index
+            }), '*');
+        }, 500);
+    }
+    </script>
+    % endif
+</body>
+</html>

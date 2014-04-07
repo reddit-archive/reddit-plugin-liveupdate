@@ -28,6 +28,7 @@ class LiveUpdate(Plugin):
             "lib/tinycon.js",
             "websocket.js",
             "timetext.js",
+            "scrollupdater.js",
             "liveupdate.js",
         ),
         "liveupdate-reporter": LocalizedModule("liveupdate-reporter.js",
@@ -46,6 +47,7 @@ class LiveUpdate(Plugin):
     def add_routes(self, mc):
         mc("/live/:event", controller="liveupdate", action="listing",
            conditions={"function": not_in_sr}, is_embed=False)
+
         mc("/live/:event/embed", controller="liveupdate", action="listing",
            conditions={"function": not_in_sr}, is_embed=True)
 
@@ -58,6 +60,9 @@ class LiveUpdate(Plugin):
 
         mc("/api/live/:event/:action", controller="liveupdate",
            conditions={"function": not_in_sr})
+
+        mc('/mediaembed/liveupdate/:event/:liveupdate/:embed_index',
+           controller="liveupdateembed", action="mediaembed")
 
     def load_controllers(self):
         from reddit_liveupdate.controllers import (
@@ -72,3 +77,9 @@ class LiveUpdate(Plugin):
 
         from reddit_liveupdate import scraper
         scraper.hooks.register_all()
+
+    def declare_queues(self, queues):
+        from r2.config.queues import MessageQueue
+        queues.declare({
+            "liveupdate_scraper_q": MessageQueue(bind_to_self=True),
+        })

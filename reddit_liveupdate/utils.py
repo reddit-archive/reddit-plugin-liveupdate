@@ -5,6 +5,7 @@ import pytz
 
 from babel.dates import format_time, format_datetime
 from pylons import c
+from r2.lib import websockets
 
 
 def pairwise(iterable):
@@ -39,3 +40,10 @@ def pretty_time(dt):
             format="dd MMM YYYY HH:mm z",
             locale=c.locale,
         )
+
+
+def send_event_broadcast(event_id, type, payload):
+    """ Send a liveupdate broadcast for a specific event. """
+    websockets.send_broadcast(namespace="/live/" + event_id,
+                              type=type,
+                              payload=payload)

@@ -6,6 +6,7 @@ r.liveupdate = {
         this.$listing = $('.liveupdate-listing')
         this.$table = this.$listing.find('table tbody')
         this.$statusField = this.$listing.find('tr.initial td')
+        this._embedViewer = new r.liveupdate.EmbedViewer()
 
         this.$listing.find('nav.nextprev').remove()
         $(window)
@@ -24,6 +25,7 @@ r.liveupdate = {
                 'message:activity': this._onActivityUpdated,
                 'message:refresh': this._onRefresh,
                 'message:settings': this._onSettingsChanged,
+                'message:embeds_ready': this._onEmbedsReady,
                 'message:update': this._onNewUpdate
             }, this)
             this._websocket.start()
@@ -42,6 +44,7 @@ r.liveupdate = {
 
         this._pixelsFetched = 0
         this._fetchPixel()
+        this._embedViewer.init()
     },
 
     _onPageVisible: function () {
@@ -115,6 +118,14 @@ r.liveupdate = {
             this._unreadUpdates += data.length
             Tinycon.setBubble(this._unreadUpdates)
         }
+    },
+
+    _onEmbedsReady: function (data) {
+        $('tr.id-LiveUpdate_' + data.liveupdate_id)
+            .data('embeds', data.media_embeds)
+            .addClass('pending-embed')
+
+        $(window).trigger('liveupdate:refreshEmbeds')
     },
 
     _onDelete: function (id) {
@@ -251,5 +262,71 @@ _.extend(r.liveupdate.Countdown.prototype, {
         }
     }
 })
+
+/**
+ * EmbedViewer displays matching embeddable links inline nicely for live updates (like tweets).
+ * Workflow:
+ * 1. On scroll, see if updates with pending embeds are in the viewport (denoted by .pending-embed)
+ * 2. For each of those updates, load all of the embeds within the update and replace them with their iframes.
+**/
+r.liveupdate.EmbedViewer = r.ScrollUpdater.extend({
+    selector: '.pending-embed',
+    _embedBase: '//' + r.config.media_domain + '/mediaembed/liveupdate/' + r.config.liveupdate_event,
+
+    _listen: function() {
+        $(window).on('liveupdate:refreshEmbeds', $.proxy(this, 'restart'))
+        $(window).on('message', this._handleMessage)
+        r.ScrollUpdater.prototype._listen.apply(this, arguments);
+    },
+
+    update: function($el) {
+        var updateId = $el.data('fullname'),
+            embeds = $el.data('embeds')
+
+        if (!$el.hasClass('pending-embed')) {
+            return
+        }
+        $el.removeClass('pending-embed')
+
+        _.each(embeds, function(embed, embedIndex) {
+            var $link = $el.find('a[href="' + embed.url + '"]'),
+                embedUri = this._embedBase + '/' + updateId + '/' + embedIndex,
+                iframe = $('<iframe />').attr({
+                    'class': 'embedFrame embed-' + embedIndex,
+                    'src': embedUri,
+                    'width': embed.width,
+                    'height': embed.height || 200,
+                    'scrolling': 'no',
+                    'frameborder': 0
+                })
+            r.debug("Rendering embed for link: ", $link)
+            $link.replaceWith(iframe)
+        }, this)
+    },
+
+    _handleMessage: function(e) {
+       var ev = e.originalEvent
+
+       if (ev.origin.replace(/^https?:\/\//,'') !== r.config.media_domain) {
+           return false
+       }
+
+       var data = JSON.parse(ev.data)
+       if (data.action === 'dimensionsChange') {
+           /* Yuck. A good reason to give embeds unique IDs. */
+           var $embedFrame = $('.id-LiveUpdate_' + data.updateId + ' .embed-' + data.embedIndex)
+
+           $embedFrame.attr({
+               'width': Math.min(data.width, 480),
+               'height': data.height
+           })
+       }
+    },
+
+    init: function() {
+        this.start()
+    }
+})
+
 
 r.liveupdate.init()

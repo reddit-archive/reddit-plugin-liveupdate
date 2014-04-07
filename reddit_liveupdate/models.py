@@ -8,8 +8,9 @@ import pytz
 from pycassa.util import convert_uuid_to_time
 from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 
-from r2.lib.db import tdb_cassandra
 from r2.lib import utils
+from r2.lib.db import tdb_cassandra
+
 
 from reddit_liveupdate.permissions import ReporterPermissionSet
 
@@ -122,6 +123,7 @@ class LiveUpdate(object):
     defaults = {
         "deleted": False,
         "stricken": False,
+        "media_objects": [],
     }
 
     def __init__(self, id=None, data=None):
@@ -160,6 +162,19 @@ class LiveUpdate(object):
     @property
     def _fullname(self):
         return "%s_%s" % (self.__class__.__name__, self._id)
+
+    @property
+    def embeds(self):
+        """Return the media objects in a whitelisted, json-ready format."""
+
+        embeds = []
+        for media_object in self.media_objects:
+            embeds.append({
+                "url": media_object['oembed']['url'],
+                "width": media_object['oembed']['width'],
+                "height": media_object['oembed']['height'],
+            })
+        return embeds
 
 
 class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
