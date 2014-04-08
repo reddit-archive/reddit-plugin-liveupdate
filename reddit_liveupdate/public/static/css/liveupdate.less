@@ -38,16 +38,18 @@ body.liveupdate-event{
         }
 
         .status-bar {
-            font-size: x-small;
+            color: #4f4f4f;
+            font-size: medium;
             padding: 5px;
             background-color: #e2ffdb;
             border: 1px solid #b3e0aa;
 
-            .state.live {
-                color: #4f4f4f;
-                text-transform: uppercase;
+            .state {
                 font-weight: bold;
-                font-size: medium;
+            }
+
+            .state.live {
+                text-transform: uppercase;
                 margin: 0 .8em 0 0;
             }
 
@@ -64,10 +66,6 @@ body.liveupdate-event{
             p {
                 display: inline-block;
                 margin-right: 1em;
-
-                &#visitor-count {
-                    margin-right: 2em;
-                }
             }
         }
     }
