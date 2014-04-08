@@ -14,30 +14,35 @@ def pairwise(iterable):
     return itertools.izip(a, b)
 
 
-def pretty_time(dt):
+def pretty_time(dt, include_timezone=True):
     display_tz = pytz.timezone(c.liveupdate_event.timezone)
     today = datetime.datetime.now(display_tz).date()
     date = dt.astimezone(display_tz).date()
+
+    if include_timezone:
+        format_suffix = " z"
+    else:
+        format_suffix = ""
 
     if date == today:
         return format_time(
             time=dt,
             tzinfo=display_tz,
-            format="HH:mm z",
+            format="HH:mm" + format_suffix,
             locale=c.locale,
         )
     elif today - date < datetime.timedelta(days=365):
         return format_datetime(
             datetime=dt,
             tzinfo=display_tz,
-            format="dd MMM HH:mm z",
+            format="dd MMM HH:mm" + format_suffix,
             locale=c.locale,
         )
     else:
         return format_datetime(
             datetime=dt,
             tzinfo=display_tz,
-            format="dd MMM YYYY HH:mm z",
+            format="dd MMM YYYY HH:mm" + format_suffix,
             locale=c.locale,
         )
 

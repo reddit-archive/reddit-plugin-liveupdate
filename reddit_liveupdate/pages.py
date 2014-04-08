@@ -339,4 +339,4 @@ def liveupdate_add_props(user, wrapped):
     for item in wrapped:
         item.author = LiveUpdateAccount(accounts[item.author_id])
 
-        item.date_str = pretty_time(item._date)
+        item.date_str = pretty_time(item._date, include_timezone=False)
