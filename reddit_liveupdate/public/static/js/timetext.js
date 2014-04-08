@@ -6,6 +6,7 @@ if (!Date.now) {
 }
 
 r.timetext = {
+    _maxAge: 24 * 60 * 60,
     _chunks: [
         [60 * 60 * 24 * 365, r.NP_('a year ago', '%(num)s years ago')],
         [60 * 60 * 24 * 30, r.NP_('a month ago', '%(num)s months ago')],
@@ -41,6 +42,10 @@ r.timetext = {
         }
 
         var age = (now - timestamp) / 1000
+        if (age > this._maxAge) {
+            return
+        }
+
         var chunks = r.timetext._chunks
         var text = r._('just now')
 
