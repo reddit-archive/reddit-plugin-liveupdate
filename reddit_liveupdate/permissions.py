@@ -31,6 +31,15 @@ class ReporterPermissionSet(PermissionSet):
             return True
         return self.get(permission, False)
 
+    def without(self, permission):
+        if self.is_superuser():
+            permissions = {k: True for k in self.info}
+        else:
+            permissions = self.copy()
+
+        permissions.pop(permission, None)
+        return ReporterPermissionSet(permissions)
+
 
 ReporterPermissionSet.SUPERUSER = ReporterPermissionSet.loads("+all")
 ReporterPermissionSet.NONE = ReporterPermissionSet.loads("")

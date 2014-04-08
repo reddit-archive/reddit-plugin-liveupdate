@@ -46,9 +46,6 @@ class VLiveUpdateReporterWithPermission(Validator):
         Validator.__init__(self)
 
     def run(self):
-        if not c.liveupdate_event.state == "live":
-            abort(403, "Forbidden")
-
         if not c.liveupdate_permissions.allow(self.permission):
             abort(403, "Forbidden")
 

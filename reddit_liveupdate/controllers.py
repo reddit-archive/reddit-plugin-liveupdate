@@ -166,6 +166,12 @@ class LiveUpdateController(RedditController):
         if c.user_is_loggedin:
             c.liveupdate_permissions = \
                     c.liveupdate_event.get_permissions(c.user)
+
+            # revoke "update" permission from everyone after closing
+            if c.liveupdate_event.state != "live":
+                c.liveupdate_permissions = \
+                        c.liveupdate_permissions.without("update")
+
             if c.user_is_admin:
                 c.liveupdate_permissions = ReporterPermissionSet.SUPERUSER
         else:
