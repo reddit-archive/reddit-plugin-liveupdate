@@ -32,17 +32,12 @@ from reddit_liveupdate.permissions import ReporterPermissionSet
 from reddit_liveupdate.utils import pretty_time, pairwise
 
 
-class LiveUpdateTitle(Templated):
-    pass
-
-
 class LiveUpdatePage(Reddit):
     extension_handling = False
-    extra_page_classes = ["live-update"]
+    extra_page_classes = ["liveupdate"]
     extra_stylesheets = Reddit.extra_stylesheets + ["liveupdate.less"]
 
-    def __init__(self, content, websocket_url=None):
-
+    def __init__(self, content, websocket_url=None, **kwargs):
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
             "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
@@ -62,10 +57,11 @@ class LiveUpdatePage(Reddit):
             show_sidebar=False,
             content=content,
             extra_js_config=extra_js_config,
+            **kwargs
         )
 
     def build_toolbars(self):
-        toolbars = [LiveUpdateTitle()]
+        toolbars = []
 
         if c.liveupdate_permissions:
             tabs = [
@@ -213,6 +209,10 @@ class ReporterListing(UserListing):
     @property
     def container_name(self):
         return self.event._id
+
+
+class LinkBackToLiveUpdate(Templated):
+    pass
 
 
 class LiveUpdateEventJsonTemplate(JsonTemplate):

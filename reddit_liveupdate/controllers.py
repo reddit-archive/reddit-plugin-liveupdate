@@ -30,6 +30,7 @@ from r2.lib.validator import (
 from r2.models import QueryBuilder, Account, LinkListing, SimpleBuilder
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
+from r2.lib.pages import PaneStack
 
 from reddit_liveupdate import pages
 from reddit_liveupdate.media_embeds import (
@@ -208,6 +209,7 @@ class LiveUpdateController(RedditController):
             return pages.LiveUpdatePage(
                 content=content,
                 websocket_url=websocket_url,
+                page_classes=['liveupdate-event'],
             ).render()
         else:
             # embeds are always logged out and therefore safe for frames.
@@ -285,8 +287,9 @@ class LiveUpdateController(RedditController):
             editable=editable,
         ).listing()
 
+        pane_stack = PaneStack([pages.LinkBackToLiveUpdate(), listing])
         return pages.LiveUpdatePage(
-            content=listing,
+            content=pane_stack,
         ).render()
 
     @validatedForm(

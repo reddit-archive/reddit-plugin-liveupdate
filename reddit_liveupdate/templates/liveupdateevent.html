@@ -11,25 +11,14 @@
 <h1 id="liveupdate-title">${thing.event.title}</h1>
 </div>
 
-<div class="tagline">
-  % if thing.event.state == "live":
+% if thing.event.state == "live":
+<div class="status-bar">
     <p class="state live">${_("live")}</p>
-  % endif
-
-  <p id="visitor-count">${_("viewers:")}&nbsp;<span class="count">${thing.visitor_count}</span></p>
-
-  <p>${_("reported by:")}</p>
-
-  <ul>
-    % for reporter in thing.reporters[:REPORTER_CUTOFF]:
-    <li>${reporter}</li>
-    % endfor
-  </ul>
-
-  % if len(thing.reporters) > REPORTER_CUTOFF:
-  <a href="/live/${c.liveupdate_event._id}/reporters" class="more-reporters">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.reporters) - REPORTER_CUTOFF))}</a>
-  % endif
+    <p id="visitor-count"><span class="count">${thing.visitor_count}</span>&nbsp;${_("viewers")}</p>
 </div>
+% endif
+
+
 </header>
 
 % if c.liveupdate_permissions.allow("update"):
@@ -58,8 +47,23 @@
     <h1>${_("discussions")}</h1>
     ${thing.discussions}
   </section>
+  <section id="reporters">
+    <h1>${_("reported by")}</h1>
+
+    <ul>
+      % for reporter in thing.reporters[:REPORTER_CUTOFF]:
+      <li>${reporter}</li>
+      % endfor
+    </ul>
+
+    % if len(thing.reporters) > REPORTER_CUTOFF:
+    <a href="/live/${c.liveupdate_event._id}/reporters" class="more-reporters">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.reporters) - REPORTER_CUTOFF))}</a>
+    % endif
+  </section>
+
 </aside>
 % endif
 
 ${thing.listing}
+
 </div>

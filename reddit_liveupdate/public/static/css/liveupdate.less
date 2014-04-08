@@ -1,381 +1,587 @@
-.live-update > .content {
-    padding-left: 10px;
-}
-
 body.embed .infobar.welcome {
     display: none !important;
 }
 
-.content > header {
-    overflow: auto;
-
-    h1 {
-        float: left;
-        font-size: 28px;
-        padding: 10px 0 10px 0;
-        margin-top: 0;
-    }
-
-    .tagline {
-        clear: both;
-        font-size: x-small;
-        margin-left: 0;
-
-        .state.live {
-            color: #4f4f4f;
-            text-transform: uppercase;
-            font-weight: bold;
-            font-size: medium;
-            margin: 0 .8em 0 0;
-        }
-
-        .state.live:before {
-            content: "";
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 6px;
-            background: #ff4500;
-            margin-right: 6px;
-        }
-
-        p {
-            display: inline-block;
-            margin-right: 1em;
-
-            &#visitor-count {
-                margin-right: 2em;
-            }
-        }
-
-        ul {
-            display: inline-block;
-        }
-
-        li {
-            display: inline-block;
-            margin: 0 .5em 0 0;
-
-            a {
-                margin-right: .1em;
-            }
-
-            &:after {
-                content: " + ";
-            }
-
-            &:last-child:after {
-                content: "";
-            }
-        }
-    }
+body {
+    background-color: #fcfcfc;
 }
 
-.liveupdate-listing {
-    max-width: 600px;
-    min-width: 300px;
-    margin-top: 2em;
+body.liveupdate-event{
+    @sidebar-width: 300px;
+    @time-col-width: 120px;
+    @update-col-width: 480px;
+    @header-width: 480px;
+    @table-width: 600px;
 
-    &.loading {
-        padding-bottom: 30px;
-        background: url(../throbber.gif) center bottom no-repeat;
+    .content {
+        margin: 0px auto;
+        max-width: 1000px;
+        border: 1px solid #ebebeb;
+        border-top: none;
+        border-bottom-right-radius: 7px;
+        border-bottom-left-radius: 7px;
+        padding: 10px 20px 40px 20px;
+        background-color: #fff;
     }
 
-    table {
-        .embed & {
-            width: 600px;
+    .content > header {
+        overflow: auto;
+        margin-left: @time-col-width;
+        max-width: @header-width;
+
+        h1 {
+            padding: 0;
+            margin: 0;
+            font-size: 30px;
+            font-weight: bolder;
+            padding: 10px 0 10px 0;
         }
 
-        @transition-time: .3s;
+        .status-bar {
+            font-size: x-small;
+            padding: 5px;
+            background-color: #e2ffdb;
+            border: 1px solid #b3e0aa;
 
-        tr.initial + tr {
-            th {
+            .state.live {
+                color: #4f4f4f;
+                text-transform: uppercase;
+                font-weight: bold;
                 font-size: medium;
+                margin: 0 .8em 0 0;
             }
 
-            td {
-                font-size: large;
-                padding-left: 1.2em;
-
-                a.author {
-                    font-size: small;
-                }
-            }
-        }
-
-        tr.stricken td.md {
-            text-decoration: line-through;
-        }
-
-        th, td {
-            vertical-align: top;
-            padding-bottom: .5em;
-        }
-
-        th {
-            font-size: small;
-            width: 120px;
-            max-width: 120px;
-            text-align: left;
-            overflow: hidden;
-
-            time {
-                font-size: smaller;
+            .state.live:before {
+                content: "";
                 display: inline-block;
-                white-space: nowrap;
-                color: #888;
-                transition: color @transition-time;
+                width: 12px;
+                height: 12px;
+                border-radius: 6px;
+                background: #ff4500;
+                margin-right: 6px;
+            }
+
+            p {
+                display: inline-block;
+                margin-right: 1em;
+
+                &#visitor-count {
+                    margin-right: 2em;
+                }
+            }
+        }
+    }
+
+    .main-content {
+        margin-top: 2em;
+        overflow: auto;
+    }
+
+    #new-update-form {
+        margin-left: @time-col-width;
+
+        .usertext {
+            max-width: @update-col-width;
+
+            .usertext-edit{
+                width: auto;
+                padding: 0;
+
+                textarea {
+                    width: 100%;
+                    -webkit-box-sizing: border-box;
+                    -moz-box-sizing: border-box;
+                    box-sizing: border-box;
+                }
             }
         }
 
-        td {
-            padding-left: 2em;
+        .bottom-area {
+            float: right;
+            width: auto;
+        }
+    }
 
-            &.md {
-                overflow: hidden;
-                max-width: 480px;
-                word-break: break-word;
+    .liveupdate-listing {
+        max-width: 600px;
+        min-width: 300px;
+
+        &.loading {
+            padding-bottom: 30px;
+            background: url(../throbber.gif) center bottom no-repeat;
+        }
+
+        table {
+            .embed & {
+                width: 600px;
             }
 
-            form {
-                display: inline;
+            @transition-time: .3s;
+
+            tr.stricken td.md {
+                text-decoration: line-through;
             }
 
-            p:first-child {
-                margin-top: 0;
+            th, td {
+                vertical-align: top;
             }
 
-            a.author {
-                color: #b6c6d6;
-                transition: color @transition-time;
-            }
-
-            ul.buttonrow {
-                display: none;
+            th {
                 font-size: small;
-                margin: .2em 0 0 0;
-
-                li {
-                    display: inline-block;
-                    margin: 0 1em 0 0;
-                }
-
-                button {
-                    border: none;
-                    background: inherit;
-                    padding: 0;
-                    font-size: small;
-                    color: #369;
-                }
-            }
-        }
-
-        tr:hover {
-            th time {
-                color: black;
-                transition: color @transition-time;
-            }
-
-            a.author {
-                color: #369;
-                transition: color @transition-time;
-            }
-
-            ul.buttonrow {
-                display: block;
-            }
-        }
-
-        tr.separator {
-            font-size: small;
-
-            td {
-                font-size: smaller;
-                padding: .7em 0;
-                background: #fff url(../liveupdate-border.png) center left repeat-x;
+                max-width: 120px;
+                min-width: 120px;
+                text-align: left;
+                overflow: hidden;
 
                 time {
-                    background: white;
-                    padding-right: 10px;
+                    font-size: smaller;
+                    display: inline-block;
+                    color: #888;
+                    transition: color @transition-time;
+                    padding-left: 20px;
+                    text-indent: -20px;
+                }
+
+                time:before {
+                    content: "";
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 4px;
+                    background: #ebebeb;
+                    margin-right: 6px;
+                    margin-left: 6px;
+                    transition: background @transition-time;
                 }
             }
-        }
-
-        tr.initial {
-            color: #888;
-            border-bottom: 1px solid #888;
 
             td {
-                padding: 0 0 .3em 0;
-                min-height: 18px; /* for the throbber */
 
-                &.connecting {
-                    background: transparent url(../throbber.gif) no-repeat bottom right;
+                &.md {
+                    overflow: hidden;
+                    width: 100%;
+                    max-width: 480px;
+                    word-break: break-word;
+                    padding-bottom: 1em;
+                }
+
+                form, p {
+                    display: inline;
+                }
+
+                p:first-child {
+                    margin-top: 0;
+                }
+
+                a.author {
+                    color: #b6c6d6;
+                    transition: color @transition-time;
+                }
+
+                ul.buttonrow {
+                    display: none;
+                    font-size: small;
+                    margin: .2em 0 0 0;
+
+                    li {
+                        display: inline-block;
+                        margin: 0 0.1em 0 0;
+                    }
+
+                    button {
+                        border: 1px solid #ccc;
+                        background: #fafafa;
+                        padding: 0.1em 0.5em;
+                        font-size: small;
+                        color: #369;
+                    }
                 }
             }
-        }
 
-        tr.final {
-            font-size: small;
-            color: #888;
-            border-top: 1px solid #888;
+            tr:hover {
+                th time {
+                    color: black;
+                    transition: color @transition-time;
+                }
 
-            td {
-                font-size: smaller;
-                padding: 0 0 0 2.5em;
+                th time:before{
+                     background: #ccc;
+                    transition: background @transition-time;
+                }
+
+                a.author {
+                    color: #369;
+                    transition: color @transition-time;
+                }
+
+                ul.buttonrow {
+                    display: block;
+                }
+            }
+
+            tr.separator {
+                font-size: small;
+                border-bottom: 1em solid transparent;
+
+                td {
+                    text-align: center;
+                    font-size: smaller;
+                    padding: .7em 0;
+                    background: #fff url(../liveupdate-border.png) center left repeat-x;
+
+                    time {
+                        background: white;
+                        font-size: 1.3em;
+                        padding-left: 0.5em;
+                        padding-right: 0.5em;
+                    }
+                }
+            }
+
+            tr.initial {
+                color: #888;
+                border-bottom: 1px solid #888;
+
+                td {
+                    padding: 0 0 .3em 0;
+                    min-height: 18px; /* for the throbber */
+
+                    &.connecting {
+                        background: transparent url(../throbber.gif) no-repeat bottom right;
+                    }
+                }
+
+                //latest update
+
+                &+tr{
+
+                    th{
+                        padding-top: 0.5em;
+
+                        time:before {
+                            background: #ff4500;
+                        }
+                    }
+
+                    td{
+                        padding-top: 0.5em;
+                    }
+                }
+            }
+
+            tr.final {
+                font-size: small;
+                color: #888;
+                border-top: 1px solid #888;
+
+                td {
+                    font-size: smaller;
+                }
             }
         }
     }
-}
 
-.embedFrame {
-    border: 0;
-    max-width: 100%;
-}
+    .embedFrame {
+        border: 0;
+        max-width: 100%;
+    }
 
-#noresults {
-    margin-top: 10px;
-}
+    #noresults {
+        margin-top: 10px;
+        margin-left: @time-col-width;
+    }
 
-.main-content {
-    max-width: 1000px;
-    overflow: auto;
-}
-
-nav.nextprev {
-    margin: 10px 0;
-    font-size: small;
-}
-
-aside.sidebar {
-    color: #333;
-    width: 300px;
-    float: right;
-    margin-left: 30px;
-
-    h1, h2, h3, h4, h5, h6 {
-        color: #333;
+    nav.nextprev {
+        margin: 10px 0;
         font-size: small;
     }
 
-    h1 {
-        font-size: large;
-    }
+    aside.sidebar {
+        @transition-time: .3s;
 
-    h2 {
-        font-size: medium;
-        font-weight: normal;
-    }
+        color: #333;
+        width: @sidebar-width;
+        float: right;
+        margin-left: 30px;
+        opacity: 0.5;
+        transition: opacity @transition-time;
 
-    h3, h4, h5, h6 {
-        font-weight: bold;
-    }
+        &:hover {
+            opacity: 1;
+            transition: opacity @transition-time;
+        }
 
-    .md + #discussions {
-        border-top: 1px dotted #999;
-    }
+        h1, h2, h3, h4, h5, h6 {
+            color: #333;
+            font-size: small;
+        }
 
-    #discussions {
-        margin-top: .7em;
+        h1 {
+            font-size: large;
+        }
+
+        h2 {
+            font-size: medium;
+            font-weight: normal;
+        }
+
+        h3, h4, h5, h6 {
+            font-weight: bold;
+        }
 
         p {
             font-size: small;
-            margin: .3em 0;
         }
 
-        li {
-            color: #888;
-            background: white;
-            font-size: grey;
-            display: inline-block;
-            border-right: 1px solid #888;
-            padding: 0 .7em;
+        section{
+            margin-bottom: .7em;
+        }
 
-            a {
-                color: #888;
+        section:not(:first-child){
+            border-top: 1px dotted #999;
+        }
+
+        #discussions {
+
+            p {
+                margin: .3em 0;
             }
-        }
 
-        li:first-child {
-            padding-left: 0;
-        }
+            li {
+                color: #888;
+                background: white;
+                font-size: grey;
+                display: inline-block;
+                border-right: 1px solid #888;
+                padding: 0 .7em;
 
-        li:last-child {
-            border-right: none;
+                a {
+                    color: #888;
+                }
+            }
+
+            li:first-child {
+                padding-left: 0;
+            }
+
+            li:last-child {
+                border-right: none;
+            }
         }
     }
 }
 
 @media all and (max-width: 700px) {
-    #new-update-form {
-        margin-bottom: 1em;
+
+    body{
+        background-color: #fff;
     }
 
-    .tagline {
-        margin-bottom: 1em;
-    }
+    body.liveupdate-event{
 
-    .live-update > .content {
-        padding-left: 0;
-    }
-
-    aside.sidebar {
-        float: none;
-        margin: 0 0 2em 0;
-        max-width: 700px;
-        width: auto;
-
-        section {
-            border: 1px solid #369;
-            background-color: #fafafa;
-            padding: 10px;
-            border-radius: 9px;
+        .content {
+            max-width: 95%;
+            border: none;
+            padding: 0;
+            margin: 0 auto;
         }
 
-        #discussions {
-            border-top: 1px solid #369 !important;
+        .content > header {
+            margin-left: 0;
+            margin-right: 0;
+            max-width: none;
 
             h1 {
-                margin-top: 0;
+                font-size: 22px;
+                word-wrap: break-word;
+            }
+        }
+
+        .main-content {
+            margin-top: 1em;
+        }
+
+        #new-update-form {
+            margin-bottom: 1em;
+            margin-left: 0;
+
+            .usertext{
+                max-width: none;
+            }
+        }
+
+        aside.sidebar {
+            float: none;
+            margin: 0 0 2em 0;
+            max-width: 700px;
+            width: auto;
+            opacity: 1;
+            transition: opacity 0;
+
+            section {
+                border: 1px solid #ccc;
+                background-color: #fafafa;
+                padding: 10px;
+                font-size: 1em;
+
+                h1 {
+                    margin-top: 0;
+                    font-size: 1.4em;
+                }
+
+                p {
+                    font-size: small;
+                }
+
+                &:not(:first-child){
+                    border: 1px solid #ccc;
+                }
+
+                &.md {
+                    max-width: none;
+                }
             }
 
-            li {
-                color: black;
-                background: #fafafa;
+            #discussions {
+
+                li {
+                    color: black;
+                    background: #fafafa;
+                }
             }
+
+            #reporters {
+
+                li {
+                    display: inline;
+
+                    &:not(:last-child):after{
+                        content: "+";
+                        margin-right: 0.5em;
+                        margin-left: 0.5em;
+                    }
+                }
+
+                a.author{
+                    margin-right: 0;
+                }
+            }
+        }
+
+        .liveupdate-listing {
+            max-width: 700px;
+
+            table{
+                width:100%;
+            }
+
+            table tr.separator{
+                border-bottom: none;
+            }
+
+            tr.thing,
+            tr.final {
+                display: block;
+
+                th, td {
+                    display: block;
+                }
+
+                th {
+                    float: none;
+                    text-align: left;
+                    width: 100%;
+                    max-width: none;
+                    padding: 0.1em 0 0.2em 0;
+                    margin: 0.2em 0 0.2em 0;
+
+                    time {
+                        margin-left: 0.2em;
+                    }
+
+                    time:after {
+                        content: none;
+                    }
+
+                    time:before {
+                    margin-right: 6px;
+                    margin-left: 0px;
+                    }
+                }
+
+                td.md {
+                    float: none;
+                    margin-bottom: 1em;
+                    padding: 0;
+                    width: 100%;
+                    max-width: none;
+                }
+            }
+        }
+
+        // always display the buttons in tiny-screen mode since it's likely a touch
+        // device and hover doesn't work so well there.
+        ul.buttonrow {
+            display: block !important; // make up for super-specificity of the other rule
         }
     }
 
-    .liveupdate-listing tr.thing,
-    .liveupdate-listing tr.final {
-        display: block;
+    // settings and reporters page
 
-        th, td {
+    #liveupdate-form .linefield {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        width: 100%;
+
+        .usertext-edit{
+            width: 100%;
+        }
+
+        textarea,
+        input[type=text]{
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .gray {
             display: block;
         }
-
-        th {
-            float: right;
-            margin-left: 1em;
-            text-align: right;
-        }
     }
 
-    // always display the buttons in tiny-screen mode since it's likely a touch
-    // device and hover doesn't work so well there.
-    ul.buttonrow {
-        display: block !important; // make up for super-specificity of the other rule
+    #liveupdate_reporter input#name {
+        width: 50%;
     }
 
-    ////////// hacks to clean up the header until the rest of reddit is responsive
+    ////////// hacks to clean up the header and footer until the rest of reddit is responsive
     #sr-header-area,
     #header-bottom-right {
         display: none;
     }
 
-    .pagename {
-        display: block;
-        margin-top: 5px;
+    .footer {
+        display:none;
     }
     //////////
+}
+
+//Make menu tabs neat when intersecting page borders
+.tabmenu li.selected a {
+    border-bottom: none;
+}
+
+.liveupdatelinkback {
+    margin: 10px 10px;
+    font-size: small;
+}
+
+.liveupdatelinkback a:before{
+    height: 19px;
+    width: 19px;
+    display: block;
+    content: " ";
+    float: left;
+    background-image: url(../prev_organic.png);
 }
