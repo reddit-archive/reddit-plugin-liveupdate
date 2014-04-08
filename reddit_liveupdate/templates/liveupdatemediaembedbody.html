@@ -17,21 +17,22 @@
 </head>
 <body>
     ${unsafe(thing.body)}
+
     % if thing.unknown_dimensions:
     <script type="text/javascript">
     if (window.parent) {
-        var knownWidth = 0, knownHeight = 0;
-        window.setInterval(function() {
-            var root = document.documentElement,
-                context = ${unsafe(json.dumps(thing.js_context))};
+        var root = document.documentElement,
+            context = ${unsafe(json.dumps(thing.js_context))},
+            knownHeight = 0,
+            knownWidth = 0;
 
-            if (knownWidth === root.offsetWidth && knownHeight === root.offsetHeight) {
+        var checkDimensions = function() {
+            if (root.offsetHeight === knownHeight && root.offsetWidth === knownWidth) {
                 return;
             }
 
             knownWidth = root.offsetWidth;
             knownHeight = root.offsetHeight;
-
             window.parent.postMessage(JSON.stringify({
                 "action": "dimensionsChange",
                 "width": knownWidth,
@@ -39,7 +40,17 @@
                 "updateId": context.liveupdate_id,
                 "embedIndex": context.embed_index
             }), '*');
-        }, 500);
+        };
+
+        if ('MutationObserver' in window) {
+            /* Currently just check on every set of mutations. */
+            var observer = new MutationObserver(checkDimensions),
+                config = { attributes: true, subtree: true};
+
+            observer.observe(root, config);
+        } else {
+            window.setInterval(checkDimensions, 500);
+        }
     }
     </script>
     % endif
