@@ -34,7 +34,7 @@ from reddit_liveupdate.utils import pretty_time, pairwise
 
 class LiveUpdatePage(Reddit):
     extension_handling = False
-    extra_page_classes = ["liveupdate"]
+    extra_page_classes = ["liveupdate-event"]
     extra_stylesheets = Reddit.extra_stylesheets + ["liveupdate.less"]
 
     def __init__(self, content, websocket_url=None, **kwargs):
