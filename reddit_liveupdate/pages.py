@@ -257,7 +257,7 @@ class LiveUpdateOtherDiscussions(Templated):
         self.submit_url = "/submit?" + urllib.urlencode({
             "url": add_sr("/live/" + c.liveupdate_event._id,
                           sr_path=False, force_hostname=True),
-            "title": c.liveupdate_event.title,
+            "title": c.liveupdate_event.title.encode("utf-8"),
         })
 
         Templated.__init__(self)
