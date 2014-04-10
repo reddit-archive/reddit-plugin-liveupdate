@@ -218,8 +218,9 @@ class LiveUpdateController(RedditController):
                 page_classes=['liveupdate-event'],
             ).render()
         else:
-            # embeds are always logged out and therefore safe for frames.
-            c.liveupdate_permissions = ReporterPermissionSet.NONE
+            # ensure we're off the cookie domain before allowing embedding
+            if request.host != g.media_domain:
+                abort(404)
             c.allow_framing = True
 
             return pages.LiveUpdateEmbed(
