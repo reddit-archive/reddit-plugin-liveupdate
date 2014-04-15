@@ -13,7 +13,7 @@ from r2.controllers.reddit_base import (
 from r2.lib import websockets
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
-from r2.lib.filters import safemarkdown
+from r2.lib.filters import safemarkdown, websafe_json
 from r2.lib.validator import (
     validate,
     validatedForm,
@@ -381,7 +381,7 @@ class LiveUpdateController(RedditController):
             "id": str(update._id),
             "author": c.user.name,
             "body": text,
-            "rendered": rendered,
+            "rendered": websafe_json(rendered),
         })
 
         # Queue up parsing any embeds
