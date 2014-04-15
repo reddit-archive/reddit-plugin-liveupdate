@@ -161,7 +161,8 @@ class ReporterTableItem(UserTableItem):
     @property
     def cells(self):
         if self.editable:
-            return ("user", "sendmessage", "permissions", "permissionsctl")
+            return ("user", "sendmessage", "remove", "permissions",
+                    "permissionsctl")
         else:
             return ("user",)
 
