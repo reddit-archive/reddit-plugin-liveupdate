@@ -51,6 +51,8 @@ r.liveupdate = {
         this._pixelsFetched = 0
         this._fetchPixel()
         this._embedViewer.init()
+
+        this.timeText = new r.TimeText('.live-timestamp')
     },
 
     _onPageVisible: function () {
@@ -115,7 +117,7 @@ r.liveupdate = {
         var $newThing = $($.unsafe(thing.rendered))
         this.$listing.trigger('more-updates', [$newThing])
         $initial.after($newThing)
-        r.timetext.refreshOne($newThing.find('time.live'))
+        this.timetext.refreshOne($newThing.find('.live-timestamp'))
 
         if (!this._pageVisible) {
             this._unreadUpdates += 1
@@ -206,7 +208,7 @@ r.liveupdate = {
                 this.$table.append($newRows)
                 this.lastFetchedId = lastId
 
-                r.timetext.refresh()
+                this.timetext.updateCache($('.live-timestamp'))
             }, this))
             .always($.proxy(function () {
                 this.$listing.removeClass('loading')
