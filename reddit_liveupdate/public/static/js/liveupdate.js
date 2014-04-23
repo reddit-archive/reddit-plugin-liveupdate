@@ -6,7 +6,7 @@ r.liveupdate = {
         this.$listing = $('.liveupdate-listing')
         this.$table = this.$listing.find('table tbody')
         this.$statusField = this.$listing.find('tr.initial td')
-        this._embedViewer = new r.liveupdate.EmbedViewer()
+        this._embedViewer = new r.liveupdate.EmbedViewer({ el: this.$listing })
 
         this.$listing.find('nav.nextprev').remove()
         $(window)
@@ -117,7 +117,7 @@ r.liveupdate = {
         var $newThing = $($.unsafe(thing.rendered))
         this.$listing.trigger('more-updates', [$newThing])
         $initial.after($newThing)
-        this.timetext.refreshOne($newThing.find('.live-timestamp'))
+        this.timeText.refreshOne($newThing.find('.live-timestamp'))
 
         if (!this._pageVisible) {
             this._unreadUpdates += 1
@@ -208,7 +208,7 @@ r.liveupdate = {
                 this.$table.append($newRows)
                 this.lastFetchedId = lastId
 
-                this.timetext.updateCache($('.live-timestamp'))
+                this.timeText.updateCache($('.live-timestamp'))
             }, this))
             .always($.proxy(function () {
                 this.$listing.removeClass('loading')
