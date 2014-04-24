@@ -116,8 +116,9 @@ r.liveupdate = {
 
         var $newThing = $($.unsafe(thing.rendered))
         this.$listing.trigger('more-updates', [$newThing])
-        $initial.after($newThing)
         this.timeText.refreshOne($newThing.find('.live-timestamp'))
+        $initial.after($newThing)
+        this.timeText.updateCache($('.live-timestamp'))
 
         if (!this._pageVisible) {
             this._unreadUpdates += 1
