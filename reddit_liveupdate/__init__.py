@@ -23,7 +23,6 @@ class LiveUpdate(Plugin):
 
     js = {
         "liveupdate": LocalizedModule("liveupdate.js",
-            "lib/iso8601.js",
             "lib/visibility.js",
             "lib/tinycon.js",
             "websocket.js",
