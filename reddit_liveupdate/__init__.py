@@ -27,8 +27,6 @@ class LiveUpdate(Plugin):
             "lib/visibility.js",
             "lib/tinycon.js",
             "websocket.js",
-            "timetext.js",
-            "scrollupdater.js",
             "liveupdate.js",
         ),
         "liveupdate-reporter": LocalizedModule("liveupdate-reporter.js",
