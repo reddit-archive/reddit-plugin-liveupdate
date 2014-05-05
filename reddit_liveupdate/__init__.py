@@ -9,7 +9,7 @@ from r2.lib.js import (
 )
 from r2.lib.plugin import Plugin
 
-from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
 class LiveUpdate(Plugin):
@@ -28,11 +28,11 @@ class LiveUpdate(Plugin):
             "websocket.js",
             "liveupdate.js",
         ),
-        "liveupdate-reporter": LocalizedModule("liveupdate-reporter.js",
-            "liveupdate-reporter.js",
+        "liveupdate-contributor": LocalizedModule("liveupdate-contributor.js",
+            "liveupdate-contributor.js",
             TemplateFileSource("liveupdate/edit-buttons.html"),
             PermissionsDataSource({
-                "liveupdate_reporter": ReporterPermissionSet,
+                "liveupdate_contributor": ContributorPermissionSet,
             }),
         ),
     }

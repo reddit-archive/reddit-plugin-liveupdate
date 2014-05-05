@@ -28,7 +28,7 @@ from r2.lib.jsontemplates import (
 )
 
 from reddit_liveupdate.activity import ACTIVITY_FUZZING_THRESHOLD
-from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import pretty_time, pairwise
 
 
@@ -79,8 +79,8 @@ class LiveUpdatePage(Reddit):
 
             if c.liveupdate_permissions.allow("manage"):
                 tabs.append(NavButton(
-                    _("reporters"),
-                    "/reporters",
+                    _("contributors"),
+                    "/contributors",
                 ))
 
             toolbars.append(NavMenu(
@@ -105,11 +105,11 @@ class LiveUpdateEvent(Templated):
             self.discussions = LiveUpdateOtherDiscussions()
         self.show_sidebar = show_sidebar
 
-        reporter_accounts = Account._byID(event.reporters.keys(),
-                                          data=True, return_dict=False)
-        self.reporters = sorted((LiveUpdateAccount(e)
-                                 for e in reporter_accounts),
-                                key=lambda e: e.name)
+        contributor_accounts = Account._byID(event.contributors.keys(),
+                                             data=True, return_dict=False)
+        self.contributors = sorted((LiveUpdateAccount(e)
+                                   for e in contributor_accounts),
+                                   key=lambda e: e.name)
 
         Templated.__init__(self)
 
@@ -136,27 +136,27 @@ class LiveUpdateEventConfiguration(Templated):
         Templated.__init__(self)
 
 
-class LiveUpdateReporterPermissions(ModeratorPermissions):
+class LiveUpdateContributorPermissions(ModeratorPermissions):
     def __init__(self, account, permissions, embedded=False):
         ModeratorPermissions.__init__(
             self,
             user=account,
-            permissions_type=ReporterTableItem.type,
+            permissions_type=ContributorTableItem.type,
             permissions=permissions,
             editable=True,
             embedded=embedded,
         )
 
 
-class ReporterTableItem(UserTableItem):
-    type = "liveupdate_reporter"
+class ContributorTableItem(UserTableItem):
+    type = "liveupdate_contributor"
 
-    def __init__(self, reporter, event, editable):
+    def __init__(self, contributor, event, editable):
         self.event = event
-        self.render_class = ReporterTableItem
-        self.permissions = LiveUpdateReporterPermissions(
-            reporter.account, reporter.permissions)
-        UserTableItem.__init__(self, reporter.account, editable=editable)
+        self.render_class = ContributorTableItem
+        self.permissions = LiveUpdateContributorPermissions(
+            contributor.account, contributor.permissions)
+        UserTableItem.__init__(self, contributor.account, editable=editable)
 
     @property
     def cells(self):
@@ -180,14 +180,14 @@ class ReporterTableItem(UserTableItem):
 
     @property
     def remove_action(self):
-        return "live/%s/rm_reporter" % self.event._id
+        return "live/%s/rm_contributor" % self.event._id
 
 
-class ReporterListing(UserListing):
-    type = "liveupdate_reporter"
-    permissions_form = LiveUpdateReporterPermissions(
+class ContributorListing(UserListing):
+    type = "liveupdate_contributor"
+    permissions_form = LiveUpdateContributorPermissions(
         account=None,
-        permissions=ReporterPermissionSet.SUPERUSER,
+        permissions=ContributorPermissionSet.SUPERUSER,
         embedded=True,
     )
 
@@ -197,15 +197,15 @@ class ReporterListing(UserListing):
 
     @property
     def destination(self):
-        return "live/%s/add_reporter" % self.event._id
+        return "live/%s/add_contributor" % self.event._id
 
     @property
     def form_title(self):
-        return _("add reporter")
+        return _("add contributor")
 
     @property
     def title(self):
-        return _("current reporters")
+        return _("current contributors")
 
     @property
     def container_name(self):

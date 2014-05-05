@@ -10,7 +10,7 @@ from r2.lib.db import tdb_cassandra
 from r2.lib.errors import errors
 
 from reddit_liveupdate import models
-from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
 class VLiveUpdateID(Validator):
@@ -40,7 +40,7 @@ class VLiveUpdate(VLiveUpdateID):
         self.set_error(errors.NO_THING_ID)
 
 
-class VLiveUpdateReporterWithPermission(Validator):
+class VLiveUpdateContributorWithPermission(Validator):
     def __init__(self, permission):
         self.permission = permission
         Validator.__init__(self)
@@ -60,5 +60,5 @@ class VTimeZone(Validator):
 
 class VLiveUpdatePermissions(VPermissions):
     types = {
-        "liveupdate_reporter": ReporterPermissionSet,
+        "liveupdate_contributor": ContributorPermissionSet,
     }

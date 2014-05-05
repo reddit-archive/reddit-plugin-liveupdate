@@ -3,7 +3,7 @@ from pylons.i18n import N_
 from r2.lib.permissions import PermissionSet
 
 
-class ReporterPermissionSet(PermissionSet):
+class ContributorPermissionSet(PermissionSet):
     info = {
         "update": {
             "title": N_("update"),
@@ -11,8 +11,8 @@ class ReporterPermissionSet(PermissionSet):
         },
 
         "manage": {
-            "title": N_("manage reporters"),
-            "description": N_("add, remove, and change permissions of reporters"),
+            "title": N_("manage contributors"),
+            "description": N_("add, remove, and change permissions of contributors"),
         },
 
         "settings": {
@@ -38,8 +38,8 @@ class ReporterPermissionSet(PermissionSet):
             permissions = self.copy()
 
         permissions.pop(permission, None)
-        return ReporterPermissionSet(permissions)
+        return ContributorPermissionSet(permissions)
 
 
-ReporterPermissionSet.SUPERUSER = ReporterPermissionSet.loads("+all")
-ReporterPermissionSet.NONE = ReporterPermissionSet.loads("")
+ContributorPermissionSet.SUPERUSER = ContributorPermissionSet.loads("+all")
+ContributorPermissionSet.NONE = ContributorPermissionSet.loads("")

@@ -12,11 +12,11 @@ from r2.lib import utils
 from r2.lib.db import tdb_cassandra
 
 
-from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
-    _reporter_prefix = "reporter_"
+    _contributor_prefix = "contributor_"
 
     _use_db = True
     _read_consistency_level = tdb_cassandra.CL.ONE
@@ -34,34 +34,34 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     }
 
     @classmethod
-    def _reporter_key(cls, user):
-        return "%s%s" % (cls._reporter_prefix, user._id36)
+    def _contributor_key(cls, user):
+        return "%s%s" % (cls._contributor_prefix, user._id36)
 
-    def add_reporter(self, user, permissions):
-        self[self._reporter_key(user)] = permissions.dumps()
+    def add_contributor(self, user, permissions):
+        self[self._contributor_key(user)] = permissions.dumps()
         self._commit()
 
-    def update_reporter_permissions(self, user, permissions):
-        return self.add_reporter(user, permissions)
+    def update_contributor_permissions(self, user, permissions):
+        return self.add_contributor(user, permissions)
 
-    def remove_reporter(self, user):
-        del self[self._reporter_key(user)]
+    def remove_contributor(self, user):
+        del self[self._contributor_key(user)]
         self._commit()
 
     def get_permissions(self, user):
-        permission_string = self._t.get(self._reporter_key(user), "")
-        return ReporterPermissionSet.loads(permission_string)
+        permission_string = self._t.get(self._contributor_key(user), "")
+        return ContributorPermissionSet.loads(permission_string)
 
     @property
     def _fullname(self):
         return self._id
 
     @property
-    def reporters(self):
-        return {int(k[len(self._reporter_prefix):], 36):
-                    ReporterPermissionSet.loads(v)
+    def contributors(self):
+        return {int(k[len(self._contributor_prefix):], 36):
+                    ContributorPermissionSet.loads(v)
                 for k, v in self._t.iteritems()
-                if k.startswith(self._reporter_prefix)}
+                if k.startswith(self._contributor_prefix)}
 
     @classmethod
     def new(cls, id, title, **properties):

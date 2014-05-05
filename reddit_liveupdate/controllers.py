@@ -43,11 +43,11 @@ from reddit_liveupdate.models import (
     LiveUpdateStream,
     ActiveVisitorsByLiveUpdateEvent,
 )
-from reddit_liveupdate.permissions import ReporterPermissionSet
+from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import send_event_broadcast
 from reddit_liveupdate.validators import (
     VLiveUpdate,
-    VLiveUpdateReporterWithPermission,
+    VLiveUpdateContributorWithPermission,
     VLiveUpdatePermissions,
     VLiveUpdateID,
     VTimeZone,
@@ -71,7 +71,7 @@ class LiveUpdateBuilder(QueryBuilder):
         return not item.deleted
 
 
-class LiveUpdateReporter(object):
+class LiveUpdateContributor(object):
     def __init__(self, account, permissions):
         self.account = account
         self.permissions = permissions
@@ -81,20 +81,22 @@ class LiveUpdateReporter(object):
         return self.account._id
 
 
-class LiveUpdateReporterBuilder(SimpleBuilder):
+class LiveUpdateContributorBuilder(SimpleBuilder):
     def __init__(self, event, editable):
         self.event = event
         self.editable = editable
 
-        perms_by_reporter = event.reporters
-        reporter_accounts = Account._byID(perms_by_reporter.keys(), data=True)
-        reporters = [LiveUpdateReporter(account, perms_by_reporter[account._id])
-                     for account in reporter_accounts.itervalues()]
-        reporters.sort(key=lambda r: r.account.name)
+        perms_by_contributor = event.contributors
+        contributor_accounts = Account._byID(
+            perms_by_contributor.keys(), data=True)
+        contributors = [
+            LiveUpdateContributor(account, perms_by_contributor[account._id])
+            for account in contributor_accounts.itervalues()]
+        contributors.sort(key=lambda r: r.account.name)
 
         SimpleBuilder.__init__(
             self,
-            reporters,
+            contributors,
             keep_fn=self.keep_item,
             wrap=self.wrap_item,
             skip=False,
@@ -105,7 +107,7 @@ class LiveUpdateReporterBuilder(SimpleBuilder):
         return not item.account._deleted
 
     def wrap_item(self, item):
-        return pages.ReporterTableItem(
+        return pages.ContributorTableItem(
             item,
             self.event,
             editable=self.editable,
@@ -173,9 +175,9 @@ class LiveUpdateController(RedditController):
                         c.liveupdate_permissions.without("update")
 
             if c.user_is_admin:
-                c.liveupdate_permissions = ReporterPermissionSet.SUPERUSER
+                c.liveupdate_permissions = ContributorPermissionSet.SUPERUSER
         else:
-            c.liveupdate_permissions = ReporterPermissionSet.NONE
+            c.liveupdate_permissions = ContributorPermissionSet.NONE
 
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
@@ -244,7 +246,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validate(
-        VLiveUpdateReporterWithPermission("settings"),
+        VLiveUpdateContributorWithPermission("settings"),
     )
     def GET_edit(self):
         return pages.LiveUpdatePage(
@@ -252,7 +254,7 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("settings"),
+        VLiveUpdateContributorWithPermission("settings"),
         VModhash(),
         title=VLength("title", max_length=120),
         description=VMarkdown("description", empty_error=None),
@@ -285,10 +287,10 @@ class LiveUpdateController(RedditController):
         form.refresh()
 
     # TODO: pass listing params on
-    def GET_reporters(self):
+    def GET_contributors(self):
         editable = c.liveupdate_permissions.allow("manage")
-        builder = LiveUpdateReporterBuilder(c.liveupdate_event, editable)
-        listing = pages.ReporterListing(
+        builder = LiveUpdateContributorBuilder(c.liveupdate_event, editable)
+        listing = pages.ContributorListing(
             c.liveupdate_event,
             builder,
             editable=editable,
@@ -300,12 +302,12 @@ class LiveUpdateController(RedditController):
         ).render()
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("manage"),
+        VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
         user=VExistingUname("name"),
         type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
-    def POST_add_reporter(self, form, jquery, user, type_and_perms):
+    def POST_add_contributor(self, form, jquery, user, type_and_perms):
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
@@ -315,24 +317,24 @@ class LiveUpdateController(RedditController):
             return
 
         type, permissions = type_and_perms
-        c.liveupdate_event.add_reporter(user, permissions)
+        c.liveupdate_event.add_contributor(user, permissions)
 
-        # TODO: send PM to new reporter
+        # TODO: send PM to new contributor
 
         # add the user to the table
-        reporter = LiveUpdateReporter(user, permissions)
-        user_row = pages.ReporterTableItem(reporter, c.liveupdate_event,
-                                           editable=True)
-        jquery(".liveupdate_reporter-table").show(
+        contributor = LiveUpdateContributor(user, permissions)
+        user_row = pages.ContributorTableItem(
+            contributor, c.liveupdate_event, editable=True)
+        jquery(".liveupdate_contributor-table").show(
             ).find("table").insert_table_rows(user_row)
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("manage"),
+        VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
         user=VExistingUname("name"),
         type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
-    def POST_set_reporter_permissions(self, form, jquery, user, type_and_perms):
+    def POST_set_contributor_permissions(self, form, jquery, user, type_and_perms):
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
@@ -342,22 +344,22 @@ class LiveUpdateController(RedditController):
             return
 
         type, permissions = type_and_perms
-        c.liveupdate_event.update_reporter_permissions(user, permissions)
+        c.liveupdate_event.update_contributor_permissions(user, permissions)
 
         row = form.closest("tr")
         editor = row.find(".permissions").data("PermissionEditor")
         editor.onCommit(permissions.dumps())
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("manage"),
+        VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )
-    def POST_rm_reporter(self, form, jquery, user):
-        c.liveupdate_event.remove_reporter(user)
+    def POST_rm_contributor(self, form, jquery, user):
+        c.liveupdate_event.remove_contributor(user)
 
     @validatedForm(
-        VLiveUpdateReporterWithPermission("update"),
+        VLiveUpdateContributorWithPermission("update"),
         VModhash(),
         text=VMarkdown("body", max_length=4096),
     )

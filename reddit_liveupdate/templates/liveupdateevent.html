@@ -1,7 +1,7 @@
 <%!
   from r2.lib.pages import UserText
 
-  REPORTER_CUTOFF = 3
+  CONTRIBUTOR_CUTOFF = 3
 %>
 
 <%namespace name="utils" file="utils.html" />
@@ -45,17 +45,17 @@
     <h1>${_("discussions")}</h1>
     ${thing.discussions}
   </section>
-  <section id="reporters">
-    <h1>${_("reported by")}</h1>
+  <section id="contributors">
+    <h1>${_("updated by")}</h1>
 
     <ul>
-      % for reporter in thing.reporters[:REPORTER_CUTOFF]:
-      <li>${reporter}</li>
+      % for contributor in thing.contributors[:CONTRIBUTOR_CUTOFF]:
+      <li>${contributor}</li>
       % endfor
     </ul>
 
-    % if len(thing.reporters) > REPORTER_CUTOFF:
-    <a href="/live/${c.liveupdate_event._id}/reporters" class="more-reporters">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.reporters) - REPORTER_CUTOFF))}</a>
+    % if len(thing.contributors) > CONTRIBUTOR_CUTOFF:
+    <a href="/live/${c.liveupdate_event._id}/contributors" class="more-contributors">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.contributors) - CONTRIBUTOR_CUTOFF))}</a>
     % endif
   </section>
 

@@ -24,7 +24,7 @@
     ${form_content()}
   %else:
     <form method="post" class="pretty-form medium-text"
-      onsubmit="return post_form(this, 'live/${c.liveupdate_event._id}/set_reporter_permissions')">
+      onsubmit="return post_form(this, 'live/${c.liveupdate_event._id}/set_contributor_permissions')">
       ${form_content()}
       <button type="submit">${_('save')}</button>
     </form>

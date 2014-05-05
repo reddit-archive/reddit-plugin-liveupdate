@@ -1,4 +1,4 @@
-r.liveupdate.reporter = {
+r.liveupdate.contributor = {
     init: function () {
         this.permissions = new r.liveupdate.PermissionSet(r.config.liveupdate_permissions)
         this.$listing = $('.liveupdate-listing')
@@ -101,4 +101,4 @@ r.liveupdate.PermissionSet.prototype = {
     }
 }
 
-$(function () { r.liveupdate.reporter.init() })
+$(function () { r.liveupdate.contributor.init() })
