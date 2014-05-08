@@ -226,6 +226,9 @@ class LiveUpdateJsonTemplate(ThingJsonTemplate):
         id="_id",
         body="body",
         body_html="body_html",
+        author="author",
+        stricken="stricken",
+        embeds="embeds",
     )
 
     def thing_attr(self, thing, attr):
@@ -233,6 +236,13 @@ class LiveUpdateJsonTemplate(ThingJsonTemplate):
             return str(thing._id)
         elif attr == "body_html":
             return filters.spaceCompress(filters.safemarkdown(thing.body))
+        elif attr == "author":
+            if not thing.author.deleted:
+                return thing.author.name
+            else:
+                return None
+        elif attr == "stricken":
+            return bool(thing.stricken)
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
     def kind(self, wrapped):
