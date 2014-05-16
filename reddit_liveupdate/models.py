@@ -25,12 +25,16 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     _int_props = (
         "active_visitors",
     )
+    _bool_props = (
+        "active_visitors_fuzzed",
+    )
     _defaults = {
         "description": "",
         "timezone": "UTC",
         # one of "live", "complete"
         "state": "live",
         "active_visitors": 0,
+        "active_visitors_fuzzed": True,
     }
 
     @classmethod
@@ -72,10 +76,11 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         return event
 
     @classmethod
-    def update_activity(cls, id, activity):
+    def update_activity(cls, id, activity, fuzzed):
         thing = cls(_id=id, _partial=["active_visitors"])
         thing._committed = True  # hack to prevent overwriting the date attr
         thing.active_visitors = activity
+        thing.active_visitors_fuzzed = fuzzed
         thing._commit()
 
 

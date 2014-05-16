@@ -9,8 +9,4 @@
     <% from r2.lib import js %>
     ${parent.javascript_bottom()}
     ${unsafe(js.use("liveupdate"))}
-
-    % if c.liveupdate_permissions:
-    ${unsafe(js.use("liveupdate-contributor"))}
-    % endif
 </%def>

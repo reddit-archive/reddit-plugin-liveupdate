@@ -4,8 +4,6 @@
 
 %>
 
-<tr class="separator">
-  <td colspan="2">
-    <time datetime="${html_datetime(thing.date)}">${thing.date_str}</time>
-  </td>
-</tr>
+<li class="separator">
+  <time class="live-timestamp absolute" datetime="${html_datetime(thing.date)}">${thing.date_str}</time>
+</li>

@@ -1,0 +1,8 @@
+<time class="live-timestamp" title="<%- thing.fullDate %>" datetime="<%- thing.isoDate %>"></time>
+
+<div class="body">
+  <%= thing.body %>
+  <% if (typeof(thing.authorName) !== 'null') { %>
+  <a href="/user/<%- thing.authorName %>" class="author">/u/<%- thing.authorName %></a>
+  <% } %>
+</div>

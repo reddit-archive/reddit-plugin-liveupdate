@@ -1,15 +1,29 @@
+import sys
+
 from pylons.i18n import N_
 
 from r2.config.routing import not_in_sr
 from r2.lib.configparse import ConfigValue
 from r2.lib.js import (
+    FileSource,
     LocalizedModule,
+    LocaleSpecificSource,
     TemplateFileSource,
     PermissionsDataSource,
 )
 from r2.lib.plugin import Plugin
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
+
+
+class MomentTranslations(LocaleSpecificSource):
+    def get_localized_source(self, lang):
+        # TODO: minify this
+        source = FileSource("lib/moment-langs/%s.js" % lang)
+        if not source.path:
+            print >> sys.stderr, "    WARNING: no moment.js support for %r" % lang
+            return ""
+        return source.get_source()
 
 
 class LiveUpdate(Plugin):
@@ -23,17 +37,31 @@ class LiveUpdate(Plugin):
 
     js = {
         "liveupdate": LocalizedModule("liveupdate.js",
-            "lib/visibility.js",
+            "lib/page-visibility.js",
             "lib/tinycon.js",
+            "lib/moment.js",
             "websocket.js",
-            "liveupdate.js",
-        ),
-        "liveupdate-contributor": LocalizedModule("liveupdate-contributor.js",
-            "liveupdate-contributor.js",
-            TemplateFileSource("liveupdate/edit-buttons.html"),
+
+            "liveupdate/init.js",
+            "liveupdate/activity.js",
+            "liveupdate/embeds.js",
+            "liveupdate/event.js",
+            "liveupdate/favicon.js",
+            "liveupdate/listings.js",
+            "liveupdate/notifications.js",
+            "liveupdate/statusBar.js",
+
+            TemplateFileSource("liveupdate/update.html"),
+            TemplateFileSource("liveupdate/separator.html"),
+            TemplateFileSource("liveupdate/edit-button.html"),
+
             PermissionsDataSource({
                 "liveupdate_contributor": ContributorPermissionSet,
             }),
+
+            localized_appendices=[
+                MomentTranslations(),
+            ],
         ),
     }
 
@@ -69,6 +97,7 @@ class LiveUpdate(Plugin):
 
         from r2.config.templates import api
         from reddit_liveupdate import pages
+        api('liveupdateeventpage', pages.LiveUpdateEventPageJsonTemplate)
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)
 

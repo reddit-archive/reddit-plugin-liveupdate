@@ -20,28 +20,31 @@ from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
 from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
 from r2.lib.strings import strings
-from r2.lib.utils import tup, fuzz_activity
+from r2.lib.utils import tup
 from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
     ThingJsonTemplate,
 )
 
-from reddit_liveupdate.activity import ACTIVITY_FUZZING_THRESHOLD
 from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import pretty_time, pairwise
 
 
 class LiveUpdatePage(Reddit):
     extension_handling = False
-    extra_page_classes = ["liveupdate-event"]
     extra_stylesheets = Reddit.extra_stylesheets + ["liveupdate.less"]
 
     def __init__(self, content, websocket_url=None, **kwargs):
+        timezone = pytz.timezone(c.liveupdate_event.timezone)
+        localized_now = datetime.datetime.now(pytz.UTC).astimezone(timezone)
+        utc_offset = localized_now.utcoffset()
+
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
             "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
             "liveupdate_permissions": c.liveupdate_permissions,
+            "liveupdate_utc_offset": utc_offset.total_seconds() // 60,
             "media_domain": g.media_domain,
         }
 
@@ -93,14 +96,41 @@ class LiveUpdatePage(Reddit):
 
 
 class LiveUpdateEmbed(LiveUpdatePage):
-    extra_page_classes = LiveUpdatePage.extra_page_classes + ["embed"]
+    extra_page_classes = ["embed"]
 
 
-class LiveUpdateEvent(Templated):
+class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
+    _data_attrs_ = ThingJsonTemplate.data_attrs(
+        id="_id",
+        state="state",
+        viewer_count="viewer_count",
+        viewer_count_fuzzed="viewer_count_fuzzed",
+        title="title",
+        description="description",
+        description_html="description_html",
+    )
+
+    def thing_attr(self, thing, attr):
+        if attr == "_fullname":
+            return "LiveUpdateEvent_" + thing._id
+        elif attr == "viewer_count":
+            return thing.active_visitors
+        elif attr == "viewer_count_fuzzed":
+            return thing.active_visitors_fuzzed
+        elif attr == "description_html":
+            return filters.spaceCompress(
+                filters.safemarkdown(thing.description) or "")
+        else:
+            return ThingJsonTemplate.thing_attr(self, thing, attr)
+
+    def kind(self, wrapped):
+        return "LiveUpdateEvent"
+
+
+class LiveUpdateEventPage(Templated):
     def __init__(self, event, listing, show_sidebar):
         self.event = event
         self.listing = listing
-        self.visitor_count = self._get_active_visitors()
         if show_sidebar:
             self.discussions = LiveUpdateOtherDiscussions()
         self.show_sidebar = show_sidebar
@@ -112,13 +142,6 @@ class LiveUpdateEvent(Templated):
                                    key=lambda e: e.name)
 
         Templated.__init__(self)
-
-    def _get_active_visitors(self):
-        count = self.event.active_visitors
-
-        if count < ACTIVITY_FUZZING_THRESHOLD and not c.user_is_admin:
-            return "~%d" % fuzz_activity(count)
-        return count
 
 
 class LiveUpdateEventConfiguration(Templated):
@@ -216,8 +239,8 @@ class LinkBackToLiveUpdate(Templated):
     pass
 
 
-class LiveUpdateEventJsonTemplate(JsonTemplate):
-    def render(self, thing=None, *a, **kw):
+class LiveUpdateEventPageJsonTemplate(JsonTemplate):
+    def render(self, thing=None, *a, **kwargs):
         return ObjectTemplate(thing.listing.render() if thing else {})
 
 
@@ -315,28 +338,21 @@ class LiveUpdateOtherDiscussions(Templated):
 
 
 class LiveUpdateSeparator(Templated):
-    def __init__(self, date):
-        self.date = date.replace(minute=0, second=0, microsecond=0)
-        self.date_str = pretty_time(self.date)
+    def __init__(self, older):
+        self.date = older.replace(minute=0, second=0, microsecond=0)
+        self.date_str = pretty_time(self.date, allow_relative=False)
         Templated.__init__(self)
 
 
 class LiveUpdateListing(Listing):
-    def __init__(self, builder):
-        self.current_time = datetime.datetime.now(g.tz)
-        self.current_time_str = pretty_time(self.current_time)
-
-        Listing.__init__(self, builder)
-
     def things_with_separators(self):
-        items = [self.things[0]]
+        if self.things:
+            yield self.things[0]
 
-        for prev, update in pairwise(self.things):
-            if update._date.hour != prev._date.hour:
-                items.append(LiveUpdateSeparator(prev._date))
-            items.append(update)
-
-        return items
+        for newer, older in pairwise(self.things):
+            if newer._date.hour != older._date.hour:
+                yield LiveUpdateSeparator(older._date)
+            yield older
 
 
 class LiveUpdateMediaEmbedBody(MediaEmbedBody):
@@ -350,4 +366,4 @@ def liveupdate_add_props(user, wrapped):
     for item in wrapped:
         item.author = LiveUpdateAccount(accounts[item.author_id])
 
-        item.date_str = pretty_time(item._date, include_timezone=False)
+        item.date_str = pretty_time(item._date)

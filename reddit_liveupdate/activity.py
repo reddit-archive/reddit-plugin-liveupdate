@@ -29,12 +29,6 @@ def update_activity():
                 return
 
         try:
-            LiveUpdateEvent.update_activity(event_id, count)
-        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
-            g.log.warning("Failed to update event activity for %r: %s",
-                          event_id, e)
-
-        try:
             LiveUpdateActivityHistoryByEvent.record_activity(event_id, count)
         except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
             g.log.warning("Failed to update activity history for %r: %s",
@@ -44,6 +38,12 @@ def update_activity():
         if count < ACTIVITY_FUZZING_THRESHOLD:
             count = utils.fuzz_activity(count)
             is_fuzzed = True
+
+        try:
+            LiveUpdateEvent.update_activity(event_id, count, is_fuzzed)
+        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
+            g.log.warning("Failed to update event activity for %r: %s",
+                          event_id, e)
 
         websockets.send_broadcast(
             "/live/" + event_id,

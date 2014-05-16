@@ -4,6 +4,7 @@ import os
 from pylons import g, c, request, response
 from pylons.i18n import _
 
+from r2.config.extensions import is_api
 from r2.controllers import add_controller
 from r2.controllers.reddit_base import (
     MinimalController,
@@ -30,7 +31,7 @@ from r2.lib.validator import (
 from r2.models import QueryBuilder, Account, LinkListing, SimpleBuilder
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
-from r2.lib.pages import PaneStack
+from r2.lib.pages import PaneStack, Wrapped
 
 from reddit_liveupdate import pages
 from reddit_liveupdate.media_embeds import (
@@ -201,10 +202,21 @@ class LiveUpdateController(RedditController):
                                     reverse=reverse, num=num,
                                     count=count)
         listing = pages.LiveUpdateListing(builder)
-        content = pages.LiveUpdateEvent(
+        wrapped_listing = listing.listing()
+        content = pages.LiveUpdateEventPage(
             event=c.liveupdate_event,
-            listing=listing.listing(),
+            listing=wrapped_listing,
             show_sidebar=not is_embed,
+        )
+
+        c.js_preload.set_wrapped(
+            "/live/" + c.liveupdate_event._id + "/about.json",
+            Wrapped(c.liveupdate_event),
+        )
+
+        c.js_preload.set_wrapped(
+            "/live/" + c.liveupdate_event._id + ".json",
+            wrapped_listing,
         )
 
         # don't generate a url unless this is the main page of an event
@@ -228,8 +240,14 @@ class LiveUpdateController(RedditController):
             return pages.LiveUpdateEmbed(
                 content=content,
                 websocket_url=websocket_url,
+                page_classes=['liveupdate-event'],
             ).render()
 
+    def GET_about(self):
+        if not is_api():
+            self.abort404()
+        content = Wrapped(c.liveupdate_event)
+        return pages.LiveUpdatePage(content=content).render()
 
     @base_listing
     def GET_discussions(self, num, after, reverse, count):
@@ -275,7 +293,8 @@ class LiveUpdateController(RedditController):
         if title != c.liveupdate_event.title:
             changes["title"] = title
         if description != c.liveupdate_event.description:
-            changes["description"] = safemarkdown(description, wrap=False)
+            changes["description"] = description
+            changes["description_html"] = safemarkdown(description, wrap=False) or ""
         _broadcast(type="settings", payload=changes)
 
         c.liveupdate_event.title = title
@@ -378,13 +397,8 @@ class LiveUpdateController(RedditController):
         # tell the world about our new update
         builder = LiveUpdateBuilder(None)
         wrapped = builder.wrap_items([update])[0]
-        rendered = wrapped.render(style="html")
-        _broadcast(type="update", payload={
-            "id": str(update._id),
-            "author": c.user.name,
-            "body": text,
-            "rendered": rendered,
-        })
+        rendered = wrapped.render(style="api")
+        _broadcast(type="update", payload=rendered)
 
         # Queue up parsing any embeds
         queue_parse_embeds(c.liveupdate_event, update)

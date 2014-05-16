@@ -9,13 +9,11 @@
 <%namespace file="utils.html" name="utils" />
 <%namespace file="printablebuttons.html" import="ynbutton" />
 
-<tr data-fullname="${thing._fullname}" data-embeds="${json.dumps(thing.embeds)}" class="thing id-${thing._fullname} ${"stricken" if thing.stricken else ""} ${"pending-embed" if thing.embeds else ""}">
-  <th scope="row">
-    <time title="${format_datetime(thing._date, format='long', tzinfo=c.liveupdate_event.timezone, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live live-timestamp">${thing.date_str}</time>
-  </th>
+<li data-fullname="${thing._fullname}" class="liveupdate id-${thing._fullname} ${"stricken" if thing.stricken else ""} ${"pending-embed" if thing.embeds else ""}">
+  <time title="${format_datetime(thing._date, format='long', tzinfo=c.liveupdate_event.timezone, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live-timestamp">${thing.date_str}</time>
 
-  <td class="md">
-    ${utils.md(thing.body)}
+  <div class="body">
+    ${utils.md(thing.body, wrap=True)}
     ${thing.author}
-  </td>
-</tr>
+  </div>
+</li>

@@ -205,7 +205,7 @@ def process_liveupdate_scraper_q():
             return
 
         payload = {
-            "liveupdate_id": d['liveupdate_id'],
+            "liveupdate_id": "LiveUpdate_" + d['liveupdate_id'],
             "media_embeds": liveupdate.embeds
         }
         send_event_broadcast(d['event_id'],

@@ -7,16 +7,17 @@
 <%namespace name="utils" file="utils.html" />
 
 <header>
-<div>
-<h1 id="liveupdate-title">${thing.event.title}</h1>
-</div>
+  <h1 id="liveupdate-title">${thing.event.title}</h1>
 
-% if thing.event.state == "live":
-<div class="status-bar">
-    <p class="state live">${_("live")}</p>
-    <p id="visitor-count"><span class="count">${thing.visitor_count}</span>&nbsp;${_("viewers")}</p>
-</div>
-% endif
+  <div id="liveupdate-statusbar" class="${thing.event.state}">
+    <p class="state">
+    % if thing.event.state == "complete":
+      ${_("no further updates")}
+    % else:
+      ${_("disconnected")}
+    % endif
+    </p>
+  </div>
 </header>
 
 % if c.liveupdate_permissions.allow("update"):
@@ -37,11 +38,11 @@
 % if thing.show_sidebar:
 <aside class="sidebar">
   % if thing.event.description:
-  <section class="md">
+  <section id="liveupdate-description" class="md">
     ${utils.md(thing.event.description)}
   </section>
   % endif
-  <section id="discussions">
+  <section id="discussions" title="${_("threads on reddit linking to this page")}">
     <h1>${_("discussions")}</h1>
     ${thing.discussions}
   </section>

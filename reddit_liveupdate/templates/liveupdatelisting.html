@@ -8,36 +8,11 @@
   <time class="live live-timestamp" datetime="${html_datetime(thing.current_time)}">${thing.current_time_str}</time>
 </%def>
 
-%if thing.things:
-<div class="liveupdate-listing">
-<table>
-  <tbody>
-    % if not thing.prev:
-    <tr class="initial">
-      <td colspan="2">
-        % if c.liveupdate_event.state == "complete":
-        ${unsafe(_("no further updates &mdash; event is over"))}
-        % else:
-        ${unsafe(_("as of&#32;%(when)s" % dict(when=capture(live_timestamp, thing))))}
-        % endif
-      </td>
-    </tr>
-    % endif
-
-    % for item in thing.things_with_separators():
-    ${item}
-    % endfor
-
-    % if not thing.next:
-    <tr class="final">
-      <th>
-        <time datetime="${html_datetime(thing.things[-1]._date)}">${thing.things[-1].date_str}</time>
-      </th>
-      <td>${_("started live updates")}</td>
-    </tr>
-    % endif
-  </tbody>
-</table>
+<ol class="liveupdate-listing">
+  % for item in thing.things_with_separators():
+  ${item}
+  % endfor
+</ol>
 
 % if thing.nextprev and (thing.prev or thing.next):
 <nav class="nextprev">
@@ -53,8 +28,4 @@
   %endif
   </span>
 </nav>
-% endif
-</div>
-% else:
-<p id="noresults" class="error">${_("there doesn't seem to be anything here")}</p>
 % endif
