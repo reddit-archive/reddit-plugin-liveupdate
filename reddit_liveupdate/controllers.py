@@ -51,7 +51,6 @@ from reddit_liveupdate.validators import (
     VLiveUpdateContributorWithPermission,
     VLiveUpdatePermissions,
     VLiveUpdateID,
-    VTimeZone,
 )
 
 
@@ -276,17 +275,13 @@ class LiveUpdateController(RedditController):
         VModhash(),
         title=VLength("title", max_length=120),
         description=VMarkdown("description", empty_error=None),
-        timezone=VTimeZone("timezone"),
     )
-    def POST_edit(self, form, jquery, title, description, timezone):
+    def POST_edit(self, form, jquery, title, description):
         if form.has_errors("title", errors.NO_TEXT,
                                     errors.TOO_LONG):
             return
 
         if form.has_errors("description", errors.TOO_LONG):
-            return
-
-        if form.has_errors("timezone", errors.INVALID_TIMEZONE):
             return
 
         changes = {}
@@ -299,7 +294,6 @@ class LiveUpdateController(RedditController):
 
         c.liveupdate_event.title = title
         c.liveupdate_event.description = description
-        c.liveupdate_event.timezone = timezone.zone
         c.liveupdate_event._commit()
 
         form.set_html(".status", _("saved"))

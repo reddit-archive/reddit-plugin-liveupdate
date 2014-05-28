@@ -1,7 +1,5 @@
 import uuid
 
-import pytz
-
 from pylons import c
 from pylons.controllers.util import abort
 
@@ -48,14 +46,6 @@ class VLiveUpdateContributorWithPermission(Validator):
     def run(self):
         if not c.liveupdate_permissions.allow(self.permission):
             abort(403, "Forbidden")
-
-
-class VTimeZone(Validator):
-    def run(self, timezone_name):
-        try:
-            return pytz.timezone(timezone_name)
-        except pytz.exceptions.UnknownTimeZoneError:
-            self.set_error(errors.INVALID_TIMEZONE)
 
 
 class VLiveUpdatePermissions(VPermissions):

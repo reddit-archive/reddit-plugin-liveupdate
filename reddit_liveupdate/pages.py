@@ -1,8 +1,4 @@
-import collections
-import datetime
 import urllib
-
-import pytz
 
 from pylons import c, g
 from pylons.i18n import _, ungettext
@@ -28,7 +24,7 @@ from r2.lib.jsontemplates import (
 )
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
-from reddit_liveupdate.utils import pretty_time, pairwise
+from reddit_liveupdate.utils import pretty_time
 
 
 class LiveUpdatePage(Reddit):
@@ -36,15 +32,10 @@ class LiveUpdatePage(Reddit):
     extra_stylesheets = Reddit.extra_stylesheets + ["liveupdate.less"]
 
     def __init__(self, content, websocket_url=None, **kwargs):
-        timezone = pytz.timezone(c.liveupdate_event.timezone)
-        localized_now = datetime.datetime.now(pytz.UTC).astimezone(timezone)
-        utc_offset = localized_now.utcoffset()
-
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
             "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
             "liveupdate_permissions": c.liveupdate_permissions,
-            "liveupdate_utc_offset": utc_offset.total_seconds() // 60,
             "media_domain": g.media_domain,
         }
 
@@ -145,18 +136,7 @@ class LiveUpdateEventPage(Templated):
 
 
 class LiveUpdateEventConfiguration(Templated):
-    def __init__(self):
-        self.ungrouped_timezones = []
-        self.grouped_timezones = collections.defaultdict(list)
-
-        for tzname in pytz.common_timezones:
-            if "/" not in tzname:
-                self.ungrouped_timezones.append(tzname)
-            else:
-                region, zone = tzname.split("/", 1)
-                self.grouped_timezones[region].append(zone)
-
-        Templated.__init__(self)
+    pass
 
 
 class LiveUpdateContributorPermissions(ModeratorPermissions):
@@ -337,22 +317,8 @@ class LiveUpdateOtherDiscussions(Templated):
         return wrapped
 
 
-class LiveUpdateSeparator(Templated):
-    def __init__(self, older):
-        self.date = older.replace(minute=0, second=0, microsecond=0)
-        self.date_str = pretty_time(self.date, allow_relative=False)
-        Templated.__init__(self)
-
-
 class LiveUpdateListing(Listing):
-    def things_with_separators(self):
-        if self.things:
-            yield self.things[0]
-
-        for newer, older in pairwise(self.things):
-            if newer._date.hour != older._date.hour:
-                yield LiveUpdateSeparator(older._date)
-            yield older
+    pass
 
 
 class LiveUpdateMediaEmbedBody(MediaEmbedBody):

@@ -1,7 +1,5 @@
 import sys
 
-from pylons.i18n import N_
-
 from r2.config.routing import not_in_sr
 from r2.lib.configparse import ConfigValue
 from r2.lib.js import (
@@ -63,10 +61,6 @@ class LiveUpdate(Plugin):
                 MomentTranslations(),
             ],
         ),
-    }
-
-    errors = {
-        "INVALID_TIMEZONE": N_("that is not a valid timezone"),
     }
 
     def add_routes(self, mc):

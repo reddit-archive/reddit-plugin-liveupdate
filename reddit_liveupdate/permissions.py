@@ -17,7 +17,7 @@ class ContributorPermissionSet(PermissionSet):
 
         "settings": {
             "title": N_("settings"),
-            "description": N_("change the title, description, and timezone"),
+            "description": N_("change the title and description"),
         },
 
         "edit": {

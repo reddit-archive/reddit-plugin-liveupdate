@@ -15,32 +15,6 @@
     ${utils.error_field("TOO_LONG", "description")}
   </%utils:line_field>
 
-  <%utils:line_field title="${_('time zone')}" description="${_('which time zone to display updates in')}">
-    <select id="timezone" name="timezone">
-    % for tzname in sorted(thing.ungrouped_timezones):
-    <option value="${tzname}"
-    % if tzname == c.liveupdate_event.timezone:
-    selected
-    % endif
-    >${tzname}</option>
-    % endfor
-
-    % for region in sorted(thing.grouped_timezones):
-    <optgroup label="${region}">
-      % for zone in sorted(thing.grouped_timezones[region]):
-      <option value="${region}/${zone}"
-      % if "%s/%s" % (region, zone) == c.liveupdate_event.timezone:
-      selected
-      % endif
-      >${zone}</option>
-      % endfor
-    </optgroup>
-    % endfor
-    </select>
-
-    ${utils.error_field("INVALID_TIMEZONE", "timezone")}
-  </%utils:line_field>
-
   <div class="save-button">
     <button class="btn" type="button" onclick="return post_pseudo_form('#liveupdate-form', 'live/${c.liveupdate_event._id}/edit')">
       ${_("save settings")}

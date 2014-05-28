@@ -5,8 +5,6 @@
 
   var parseTimestamp = function(timestamp) {
     return moment(timestamp)
-      .utc()
-      .zone(-r.config.liveupdate_utc_offset)
   }
 
   var LiveUpdateTimeText = function() {
@@ -155,6 +153,14 @@
       this.$el.addClass('pending-embed')
     },
 
+    renderFullTimestamp: function(timestamp) {
+      if (timestamp === undefined) {
+        timestamp = parseTimestamp(this.model.get('date'))
+      }
+      this.$el.find('time').attr('title', timestamp.format('LLL Z'))
+      return this
+    },
+
     render: function() {
       var time = parseTimestamp(this.model.get('date'))
 
@@ -164,11 +170,11 @@
           body: this.model.get('body'),
           authorName: this.model.get('author'),
           isoDate: time.toISOString(),
-          fullDate: time.format('LLL Z'),
         }))
 
       this
         .addEditButtonsIfAllowed()
+        .renderFullTimestamp()
         .onStrickenChange()
 
       if (this.model.get('embeds')) {
@@ -223,14 +229,29 @@
     },
 
     onReset: function() {
+      var newerUpdate
       this.model.each(function(update) {
         var $updateEl = this.$el.find('.id-' + update.id)
-        var view = new LiveUpdateView({
+        var view
+        var separator
+
+        view = new LiveUpdateView({
           el: $updateEl,
           model: update,
           permissions: this.permissions,
         })
-        view.addEditButtonsIfAllowed()
+        view
+          .addEditButtonsIfAllowed()
+          .renderFullTimestamp()
+
+        if (newerUpdate) {
+          separator = this.makeSeparator(update, newerUpdate)
+          if (separator) {
+            $updateEl.before(separator)
+          }
+        }
+        newerUpdate = update
+
         this.views[update.id] = view
       }, this)
 
