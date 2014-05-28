@@ -285,7 +285,7 @@
       var $el
 
       if (olderDate.hour() !== newerDate.hour()) {
-        separatorDate = olderDate
+        separatorDate = newerDate
           .minutes(0)
           .seconds(0)
           .milliseconds(0)
