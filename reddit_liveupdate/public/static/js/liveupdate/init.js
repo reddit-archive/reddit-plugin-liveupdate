@@ -22,7 +22,7 @@
 
   exports.LiveUpdateApp = function() {
     var $header = $('.content > header')
-    var $options
+    var $options = $('<div id="liveupdate-options">')
 
     this.permissions = new PermissionSet(r.config.liveupdate_permissions)
 
@@ -95,6 +95,17 @@
         },
       }, this)
 
+      if ('Notification' in window && !$('body').hasClass('embed')) {
+        this.desktopNotifier = new r.liveupdate.notifications.DesktopNotifier({
+          model: this.listing,
+        })
+        this.desktopNotifier.render()
+        $('<label>')
+          .text(r._('popup notifications'))
+          .prepend(this.desktopNotifier.$el)
+          .appendTo($options)
+      }
+
       this.websocket.start()
     }
 
@@ -103,17 +114,6 @@
       model: this.listing,
     })
 
-    $options = $('<div id="liveupdate-options">')
-    if ('Notification' in window && !$('body').hasClass('embed')) {
-      this.desktopNotifier = new r.liveupdate.notifications.DesktopNotifier({
-        model: this.listing,
-      })
-      this.desktopNotifier.render()
-      $('<label>')
-        .text(r._('popup notifications'))
-        .prepend(this.desktopNotifier.$el)
-        .appendTo($options)
-    }
     $options.insertAfter($header)
   }
 }(r, Backbone, jQuery, _)
