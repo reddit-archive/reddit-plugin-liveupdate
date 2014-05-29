@@ -43,7 +43,8 @@
         var $link = $el.find('a[href="' + embed.url + '"]')
         var embedUri = this._embedBase + '/' + updateId + '/' + embedIndex
         var iframe = $('<iframe>').attr({
-          'class': 'embedFrame embed-' + embedIndex,
+          'class': 'embedFrame',
+          'id': 'embed-' + updateId + '-' + embedIndex,
           'src': embedUri,
           'width': embed.width,
           'height': embed.height || 200,
@@ -66,8 +67,7 @@
       var $embedFrame
 
       if (data.action === 'dimensionsChange') {
-        // Yuck. A good reason to give embeds unique IDs.
-        $('.id-LiveUpdate_' + data.updateId + ' .embed-' + data.embedIndex)
+        $('#embed-LiveUpdate_' + data.updateId + '-' + data.embedIndex)
           .attr({
             'width': Math.min(data.width, 480),
             'height': data.height,
