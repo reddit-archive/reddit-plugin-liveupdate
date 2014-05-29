@@ -169,10 +169,12 @@ class LiveUpdateController(RedditController):
             c.liveupdate_permissions = \
                     c.liveupdate_event.get_permissions(c.user)
 
-            # revoke "update" permission from everyone after closing
+            # revoke some permissions from everyone after closing
             if c.liveupdate_event.state != "live":
-                c.liveupdate_permissions = \
-                        c.liveupdate_permissions.without("update")
+                c.liveupdate_permissions = (c.liveupdate_permissions
+                    .without("update")
+                    .without("close")
+                )
 
             if c.user_is_admin:
                 c.liveupdate_permissions = ContributorPermissionSet.SUPERUSER
@@ -434,6 +436,18 @@ class LiveUpdateController(RedditController):
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
         _broadcast(type="strike", payload=update._fullname)
+
+    @validatedForm(
+        VLiveUpdateContributorWithPermission("close"),
+        VModhash(),
+    )
+    def POST_close_stream(self, form, jquery):
+        c.liveupdate_event.state = "complete"
+        c.liveupdate_event._commit()
+
+        _broadcast(type="complete", payload={})
+
+        form.refresh()
 
 
 @add_controller

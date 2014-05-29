@@ -93,6 +93,11 @@
           model.set('embeds', data.media_embeds)
           this.embedViewer.restart()
         },
+        'message:complete': function() {
+          this.event.set('state', 'complete')
+          $options.remove()
+          $('#new-update-form').remove()
+        },
       }, this)
 
       if ('Notification' in window && !$('body').hasClass('embed')) {
