@@ -27,8 +27,10 @@ from r2.lib.validator import (
     VMarkdown,
     VModhash,
     VInt,
+    VUser,
 )
 from r2.models import QueryBuilder, Account, LinkListing, SimpleBuilder
+from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 from r2.lib.pages import PaneStack, Wrapped
@@ -39,9 +41,11 @@ from reddit_liveupdate.media_embeds import (
     queue_parse_embeds,
 )
 from reddit_liveupdate.models import (
+    InviteNotFoundError,
     LiveUpdate,
     LiveUpdateEvent,
     LiveUpdateStream,
+    LiveUpdateContributorInvitesByEvent,
     ActiveVisitorsByLiveUpdateEvent,
 )
 from reddit_liveupdate.permissions import ContributorPermissionSet
@@ -52,6 +56,17 @@ from reddit_liveupdate.validators import (
     VLiveUpdatePermissions,
     VLiveUpdateID,
 )
+
+
+INVITE_MESSAGE = """\
+**oh my! you are invited to become a contributor to [%(title)s](%(url)s)**.
+
+*to accept* visit the [contributors page for the stream](%(url)s/contributors)
+and click "accept".
+
+*otherwise,* if you did not expect to receive this, you can simply ignore this
+invitation or report it.
+"""
 
 
 def _broadcast(type, payload):
@@ -82,11 +97,10 @@ class LiveUpdateContributor(object):
 
 
 class LiveUpdateContributorBuilder(SimpleBuilder):
-    def __init__(self, event, editable):
+    def __init__(self, event, perms_by_contributor, editable):
         self.event = event
         self.editable = editable
 
-        perms_by_contributor = event.contributors
         contributor_accounts = Account._byID(
             perms_by_contributor.keys(), data=True)
         contributors = [
@@ -118,6 +132,15 @@ class LiveUpdateContributorBuilder(SimpleBuilder):
         for item in items:
             wrapped.append(self.wrap_item(item))
         return wrapped
+
+
+class LiveUpdateInvitedContributorBuilder(LiveUpdateContributorBuilder):
+    def wrap_item(self, item):
+        return pages.InvitedContributorTableItem(
+            item,
+            self.event,
+            editable=self.editable,
+        )
 
 
 @add_controller
@@ -304,16 +327,34 @@ class LiveUpdateController(RedditController):
     # TODO: pass listing params on
     def GET_contributors(self):
         editable = c.liveupdate_permissions.allow("manage")
-        builder = LiveUpdateContributorBuilder(c.liveupdate_event, editable)
-        listing = pages.ContributorListing(
-            c.liveupdate_event,
-            builder,
-            editable=editable,
-        ).listing()
 
-        pane_stack = PaneStack([pages.LinkBackToLiveUpdate(), listing])
+        content = [pages.LinkBackToLiveUpdate()]
+
+        contributors = c.liveupdate_event.contributors
+        invites = LiveUpdateContributorInvitesByEvent.get_all(c.liveupdate_event)
+
+        contributor_builder = LiveUpdateContributorBuilder(
+            c.liveupdate_event, contributors, editable)
+        contributor_listing = pages.LiveUpdateContributorListing(
+            c.liveupdate_event,
+            contributor_builder,
+            has_invite=c.user._id in invites,
+            is_contributor=c.user._id in contributors,
+        ).listing()
+        content.append(contributor_listing)
+
+        if editable:
+            invite_builder = LiveUpdateInvitedContributorBuilder(
+                c.liveupdate_event, invites, editable)
+            invite_listing = pages.LiveUpdateInvitedContributorListing(
+                c.liveupdate_event,
+                invite_builder,
+                editable=editable,
+            ).listing()
+            content.append(invite_listing)
+
         return pages.LiveUpdatePage(
-            content=pane_stack,
+            content=PaneStack(content),
         ).render()
 
     @validatedForm(
@@ -322,7 +363,7 @@ class LiveUpdateController(RedditController):
         user=VExistingUname("name"),
         type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
-    def POST_add_contributor(self, form, jquery, user, type_and_perms):
+    def POST_invite_contributor(self, form, jquery, user, type_and_perms):
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
@@ -332,16 +373,72 @@ class LiveUpdateController(RedditController):
             return
 
         type, permissions = type_and_perms
-        c.liveupdate_event.add_contributor(user, permissions)
 
-        # TODO: send PM to new contributor
+        invites = LiveUpdateContributorInvitesByEvent.get_all(c.liveupdate_event)
+        if user._id in invites or user._id in c.liveupdate_event.contributors:
+            c.errors.add(errors.LIVEUPDATE_ALREADY_CONTRIBUTOR, field="name")
+            form.has_errors("name", errors.LIVEUPDATE_ALREADY_CONTRIBUTOR)
+            return
+
+        if len(invites) >= g.liveupdate_invite_quota:
+            c.errors.add(errors.LIVEUPDATE_TOO_MANY_INVITES, field="name")
+            form.has_errors("name", errors.LIVEUPDATE_TOO_MANY_INVITES)
+            return
+
+        LiveUpdateContributorInvitesByEvent.create(
+            c.liveupdate_event, user, permissions)
+
+        # TODO: make this i18n-friendly when we have such a system for PMs
+        send_system_message(
+            user,
+            subject="invitation to contribute to " + c.liveupdate_event.title,
+            body=INVITE_MESSAGE % {
+                "title": c.liveupdate_event.title,
+                "url": "/live/" + c.liveupdate_event._id,
+            },
+        )
 
         # add the user to the table
         contributor = LiveUpdateContributor(user, permissions)
-        user_row = pages.ContributorTableItem(
+        user_row = pages.InvitedContributorTableItem(
             contributor, c.liveupdate_event, editable=True)
-        jquery(".liveupdate_contributor-table").show(
+        jquery(".liveupdate_contributor_invite-table").show(
             ).find("table").insert_table_rows(user_row)
+
+    @validatedForm(
+        VUser(),
+        VModhash(),
+    )
+    def POST_leave_contributor(self, form, jquery):
+        c.liveupdate_event.remove_contributor(c.user)
+
+    @validatedForm(
+        VLiveUpdateContributorWithPermission("manage"),
+        VModhash(),
+        user=VByName("id", thing_cls=Account),
+    )
+    def POST_rm_contributor_invite(self, form, jquery, user):
+        LiveUpdateContributorInvitesByEvent.remove(
+            c.liveupdate_event, user)
+
+    @validatedForm(
+        VUser(),
+        VModhash(),
+    )
+    def POST_accept_contributor_invite(self, form, jquery):
+        try:
+            permissions = LiveUpdateContributorInvitesByEvent.get(
+                c.liveupdate_event, c.user)
+        except InviteNotFoundError:
+            c.errors.add(errors.LIVEUPDATE_NO_INVITE_FOUND)
+            form.set_error(errors.LIVEUPDATE_NO_INVITE_FOUND, None)
+            return
+
+        LiveUpdateContributorInvitesByEvent.remove(
+            c.liveupdate_event, c.user)
+
+        c.liveupdate_event.add_contributor(c.user, permissions)
+        jquery.refresh()
 
     @validatedForm(
         VLiveUpdateContributorWithPermission("manage"),
@@ -359,7 +456,11 @@ class LiveUpdateController(RedditController):
             return
 
         type, permissions = type_and_perms
-        c.liveupdate_event.update_contributor_permissions(user, permissions)
+        if type == "liveupdate_contributor":
+            c.liveupdate_event.update_contributor_permissions(user, permissions)
+        elif type == "liveupdate_contributor_invite":
+            LiveUpdateContributorInvitesByEvent.update_invite_permissions(
+                c.liveupdate_event, user, permissions)
 
         row = form.closest("tr")
         editor = row.find(".permissions").data("PermissionEditor")

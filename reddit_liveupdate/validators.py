@@ -51,4 +51,5 @@ class VLiveUpdateContributorWithPermission(Validator):
 class VLiveUpdatePermissions(VPermissions):
     types = {
         "liveupdate_contributor": ContributorPermissionSet,
+        "liveupdate_contributor_invite": ContributorPermissionSet,
     }

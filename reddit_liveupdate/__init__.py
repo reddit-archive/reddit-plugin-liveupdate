@@ -1,5 +1,7 @@
 import sys
 
+from pylons.i18n import N_
+
 from r2.config.routing import not_in_sr
 from r2.lib.configparse import ConfigValue
 from r2.lib.js import (
@@ -27,7 +29,20 @@ class MomentTranslations(LocaleSpecificSource):
 class LiveUpdate(Plugin):
     needs_static_build = True
 
+    errors = {
+        "LIVEUPDATE_NO_INVITE_FOUND":
+            N_("there is no pending invite for that stream"),
+        "LIVEUPDATE_TOO_MANY_INVITES":
+            N_("there are too many pending invites outstanding"),
+        "LIVEUPDATE_ALREADY_CONTRIBUTOR":
+            N_("that user is already a contributor"),
+    }
+
     config = {
+        ConfigValue.int: [
+            "liveupdate_invite_quota",
+        ],
+
         ConfigValue.str: [
             "liveupdate_pixel_domain",
         ],
@@ -55,6 +70,7 @@ class LiveUpdate(Plugin):
 
             PermissionsDataSource({
                 "liveupdate_contributor": ContributorPermissionSet,
+                "liveupdate_contributor_invite": ContributorPermissionSet,
             }),
 
             localized_appendices=[

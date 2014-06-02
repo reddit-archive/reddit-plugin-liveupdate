@@ -1,0 +1,35 @@
+<%namespace file="printablebuttons.html" import="ynbutton" />
+<%namespace file="userlisting.html" import="add_form, listing" />
+
+<div class="${thing._class} usertable">
+  % if thing.is_contributor:
+    ${ynbutton(
+      op="live/%s/leave_contributor" % c.liveupdate_event._id,
+      title=_("leave"),
+      executed=_("you are no longer a contributor"),
+      question=_("stop being a contributor?"),
+      format=_("you are a contributor to this stream. %(action)s"),
+      format_arg="action",
+      _class=thing.type + " remove-self",
+      hidden_data=dict(
+        id=c.user._fullname,
+        type=thing.type,
+        container=thing.container_name,
+      ),
+    )}
+  %endif
+
+  %if thing.has_invite:
+    ${ynbutton(
+      op="live/%s/accept_contributor_invite" % c.liveupdate_event._id,
+      title=_("accept"),
+      executed=_("you are now a contributor. welcome to the team!"),
+      question=_("become a contributor to this stream?"),
+      format=_("you are invited to become a contributor. %(action)s"),
+      format_arg="action",
+      _class=thing.type + " accept-invite",
+    )}
+  %endif
+
+  ${listing()}
+</div>

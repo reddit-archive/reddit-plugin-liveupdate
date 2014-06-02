@@ -216,3 +216,49 @@ class LiveUpdateActivityHistoryByEvent(tdb_cassandra.View):
     @classmethod
     def record_activity(cls, event_id, activity_count):
         cls._set_values(event_id, {uuid.uuid1(): activity_count})
+
+
+class InviteNotFoundError(Exception):
+    pass
+
+
+class LiveUpdateContributorInvitesByEvent(tdb_cassandra.View):
+    _use_db = True
+    _compare_with = "AsciiType"
+    _value_type = "str"
+    _read_consistency_level = tdb_cassandra.CL.QUORUM
+    _write_consistency_level = tdb_cassandra.CL.QUORUM
+    _extra_schema_creation_args = {
+        "key_validation_class": "AsciiType",
+    }
+
+    @classmethod
+    def create(cls, event, user, permissions):
+        cls._set_values(event._id, {user._id36: permissions.dumps()})
+
+    @classmethod
+    def update_invite_permissions(cls, event, user, permissions):
+        cls.create(event, user, permissions)
+
+    @classmethod
+    def get(cls, event, user):
+        try:
+            row = cls._byID(event._id, properties=[user._id36])
+            value = row[user._id36]
+        except (tdb_cassandra.NotFound, KeyError):
+            raise InviteNotFoundError
+        return ContributorPermissionSet.loads(value)
+
+    @classmethod
+    def get_all(cls, event):
+        try:
+            invites = cls._byID(event._id)._values()
+        except tdb_cassandra.NotFound:
+            return {}
+        else:
+            return {int(k, 36): ContributorPermissionSet.loads(v)
+                    for k, v in invites.iteritems()}
+
+    @classmethod
+    def remove(cls, event, user):
+        cls._remove(event._id, [user._id36])
