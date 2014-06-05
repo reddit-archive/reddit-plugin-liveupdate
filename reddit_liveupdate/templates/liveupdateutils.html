@@ -1,0 +1,16 @@
+<%def name="nextprev(listing)">
+% if listing.nextprev and (listing.prev or listing.next):
+<nav class="nextprev">
+  ${_("view more:")}&#32;
+  %if listing.prev:
+    <a href="${listing.prev}" rel="nofollow prev">&lsaquo; ${_("prev")}</a>
+  %endif
+  %if listing.prev and listing.next:
+    <span class="separator"></span>
+  %endif
+  %if listing.next:
+    <a href="${listing.next}" rel="nofollow next">${_("next")} &rsaquo;</a>
+  %endif
+</nav>
+% endif
+</%def>

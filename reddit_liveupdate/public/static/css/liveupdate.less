@@ -409,6 +409,73 @@ body.liveupdate-event{
     }
 }
 
+#report {
+    padding-top: 10px;
+
+    .report-button {
+        color: #666;
+        font-size: 11px;
+
+        span {
+            padding-left: 20px;
+            line-height: 14px;
+            background: transparent data-uri('../reddit_reported.png') no-repeat;
+        }
+    }
+
+    form {
+        display: none;
+        padding: 1em;
+        background-color: #f8cece;
+        font-size: 13px;
+
+        ol {
+            margin: 1em 0;
+        }
+
+        label {
+            vertical-align: top;
+
+            input {
+                vertical-align: bottom;
+            }
+        }
+    }
+
+    .already-reported {
+        font-size: 11px;
+        color: #800;
+    }
+
+    .unban, .unban button:first-child {
+        float: left;
+        margin: 0 1em 0 0;
+        min-width: 5em;
+    }
+}
+
+#report-listing {
+    font-size: 13px;
+
+    th {
+        padding-right: 1em;
+        min-width: 5em;
+    }
+
+    .contributors {
+        padding-right: 2em;
+    }
+
+    tr:nth-child(even) {
+        background: #eee;
+    }
+
+    button {
+        font-size: 12px;
+        min-width: 5em;
+    }
+}
+
 @media all and (max-width: 700px) {
     body{
         background-color: #fff;

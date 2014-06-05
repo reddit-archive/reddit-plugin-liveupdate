@@ -120,6 +120,8 @@
     })
 
     $options.insertAfter($header)
+
+    this.reportForm = new r.liveupdate.report.ReportForm()
   }
 }(r, Backbone, jQuery, _)
 

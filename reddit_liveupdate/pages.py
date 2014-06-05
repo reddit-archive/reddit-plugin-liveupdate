@@ -1,7 +1,8 @@
+import collections
 import urllib
 
 from pylons import c, g
-from pylons.i18n import _, ungettext
+from pylons.i18n import _, ungettext, N_
 
 from r2.lib import filters
 from r2.lib.pages import (
@@ -131,8 +132,17 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         return "LiveUpdateEvent"
 
 
+REPORT_TYPES = collections.OrderedDict((
+    ("spam", N_("spam")),
+    ("vote-manipulation", N_("vote manipulation")),
+    ("personal-information", N_("personal information")),
+    ("sexualizing-minors", N_("sexualizing minors")),
+    ("site-breaking", N_("breaking reddit")),
+))
+
+
 class LiveUpdateEventApp(Templated):
-    def __init__(self, event, listing, show_sidebar):
+    def __init__(self, event, listing, show_sidebar, report_type):
         self.event = event
         self.listing = listing
         if show_sidebar:
@@ -144,6 +154,9 @@ class LiveUpdateEventApp(Templated):
         self.contributors = sorted((LiveUpdateAccount(e)
                                    for e in contributor_accounts),
                                    key=lambda e: e.name)
+
+        self.report_types = REPORT_TYPES
+        self.report_type = report_type
 
         Templated.__init__(self)
 
@@ -364,8 +377,21 @@ class LiveUpdateListing(Listing):
     pass
 
 
+class LiveUpdateReportedEventListing(Listing):
+    def __init__(self, *args, **kwargs):
+        self.report_types = REPORT_TYPES
+        Listing.__init__(self, *args, **kwargs)
+
+
 class LiveUpdateMediaEmbedBody(MediaEmbedBody):
     pass
+
+
+class LiveUpdateReportedEventRow(Wrapped):
+    @property
+    def report_counts(self):
+        for report_type in REPORT_TYPES:
+            yield self.reports_by_type[report_type]
 
 
 def liveupdate_add_props(user, wrapped):

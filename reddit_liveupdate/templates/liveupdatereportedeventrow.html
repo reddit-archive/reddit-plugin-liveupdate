@@ -1,0 +1,15 @@
+<%namespace file="utils.html" name="utils" />
+
+<tr data-event="${thing._id}">
+  <th scope="row"><a href="/live/${thing._id}">${thing.title}</a></th>
+  <td class="contributors"><a href="/live/${thing._id}/contributors">${_("contributors")}</a></td>
+
+  % for count in thing.report_counts:
+  <td>${count}</td>
+  % endfor
+
+  <td>
+    <button class="pretty-button positive" data-action="approve">${_("approve")}</button>
+    <button class="pretty-button negative" data-action="ban">${_("ban")}</button>
+  </td>
+</tr>

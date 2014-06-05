@@ -11,6 +11,17 @@ from reddit_liveupdate import models
 from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
+class VLiveUpdateEvent(Validator):
+    def run(self, id):
+        if not id:
+            return None
+
+        try:
+            return models.LiveUpdateEvent._byID(id)
+        except tdb_cassandra.NotFound:
+            return None
+
+
 class VLiveUpdateID(Validator):
     def run(self, fullname):
         if not fullname or not fullname.startswith("LiveUpdate_"):

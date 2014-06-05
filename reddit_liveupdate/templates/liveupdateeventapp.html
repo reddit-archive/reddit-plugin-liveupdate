@@ -60,6 +60,36 @@
     % endif
   </section>
 
+  % if c.user_is_loggedin:
+    <section id="report">
+    % if c.user_is_admin:
+      % if thing.event.banned:
+        <button class="admin unban" data-action="approve">${_("unban")}</button>
+        <p class="already-reported">${_("banned by: %(user)s") % dict(user=thing.event.banned_by)}</p>
+      % else:
+        <button class="admin" data-action="ban">${_("ban")}</button>
+      % endif
+    % elif not thing.report_type:
+      <button class="report-button"><span>${_("report a rule violation")}</span></button>
+
+      <form>
+        ${utils.text_with_links(_("uh oh! how does this stream break %(reddits_rules)s?"),
+          reddits_rules=dict(link_text=_("reddit's rules"), path="/rules", target="_blank"))}
+
+        <ol>
+          % for key, description in thing.report_types.iteritems():
+          <li><label><input type="radio" name="violated-rule" class="report-type" value="${key}">${_(description)}</label></li>
+          % endfor
+        </ol>
+
+        <button type="submit" disabled>${_("report")}</button>
+        <button class="cancel">${_("oops, never mind")}</button>
+      </form>
+    % else:
+      <p class="already-reported">${_("you reported this stream for: %(violation)s") % dict(violation=_(thing.report_types[thing.report_type]))}</p>
+    % endif
+    </section>
+  % endif
 </aside>
 % endif
 

@@ -4,6 +4,8 @@
 
 %>
 
+<%namespace file="liveupdateutils.html" import="nextprev" />
+
 <%def name="live_timestamp(thing)">
   <time class="live live-timestamp" datetime="${html_datetime(thing.current_time)}">${thing.current_time_str}</time>
 </%def>
@@ -14,18 +16,4 @@
   % endfor
 </ol>
 
-% if thing.nextprev and (thing.prev or thing.next):
-<nav class="nextprev">
-  ${_("view more:")}&#32;
-  %if thing.prev:
-    <a href="${thing.prev}" rel="nofollow prev">&lsaquo; ${_("prev")}</a>
-  %endif
-  %if thing.prev and thing.next:
-    <span class="separator"></span>
-  %endif
-  %if thing.next:
-    <a href="${thing.next}" rel="nofollow next">${_("next")} &rsaquo;</a>
-  %endif
-  </span>
-</nav>
-% endif
+${nextprev(thing)}

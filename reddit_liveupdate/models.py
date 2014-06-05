@@ -10,6 +10,7 @@ from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
 
 from r2.lib import utils
 from r2.lib.db import tdb_cassandra
+from r2.models import query_cache
 
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
@@ -27,6 +28,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     )
     _bool_props = (
         "active_visitors_fuzzed",
+        "banned",
     )
     _defaults = {
         "description": "",
@@ -34,6 +36,8 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         "state": "live",
         "active_visitors": 0,
         "active_visitors_fuzzed": True,
+        "banned": False,
+        "banned_by": "(unknown)",
     }
 
     @classmethod
@@ -57,6 +61,11 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
 
     @property
     def _fullname(self):
+        return self._id
+
+    @property
+    def _id36(self):
+        # this is a bit of a hack but lets us use events in denormalizedrels
         return self._id
 
     @property
@@ -262,3 +271,44 @@ class LiveUpdateContributorInvitesByEvent(tdb_cassandra.View):
     @classmethod
     def remove(cls, event, user):
         cls._remove(event._id, [user._id36])
+
+
+class LiveUpdateReportsByAccount(tdb_cassandra.DenormalizedRelation):
+    _use_db = True
+    _last_modified_name = "LiveUpdateReport"
+    _views = []
+    _ttl = datetime.timedelta(hours=12)
+
+    @classmethod
+    def value_for(cls, thing1, thing2, type):
+        return type
+
+    @classmethod
+    def get_report(cls, account, event):
+        reports = cls.fast_query(account, [event])
+        return reports.get((account, event))
+
+
+@tdb_cassandra.view_of(LiveUpdateReportsByAccount)
+class LiveUpdateReportsByEvent(tdb_cassandra.View):
+    _use_db = True
+    _compare_with = "AsciiType"
+    _ttl = datetime.timedelta(hours=48)
+    _extra_schema_creation_args = {
+        "key_validation_class": "AsciiType",
+        "default_validation_class": "AsciiType",
+    }
+
+    @classmethod
+    def create(cls, thing1, thing2s, type):
+        assert len(thing2s) == 1
+        thing2 = thing2s[0]
+        cls._set_values(thing2._id, {thing1._id36: type})
+
+    @classmethod
+    def destroy(cls, thing1, thing2s, type):
+        raise NotImplementedError
+
+
+class LiveUpdateQueryCache(query_cache._BaseQueryCache):
+    _use_db = True

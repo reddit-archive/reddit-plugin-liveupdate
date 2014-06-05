@@ -63,10 +63,12 @@ class LiveUpdate(Plugin):
             "liveupdate/listings.js",
             "liveupdate/notifications.js",
             "liveupdate/statusBar.js",
+            "liveupdate/report.js",
 
             TemplateFileSource("liveupdate/update.html"),
             TemplateFileSource("liveupdate/separator.html"),
             TemplateFileSource("liveupdate/edit-button.html"),
+            TemplateFileSource("liveupdate/reported.html"),
 
             PermissionsDataSource({
                 "liveupdate_contributor": ContributorPermissionSet,
@@ -80,6 +82,13 @@ class LiveUpdate(Plugin):
     }
 
     def add_routes(self, mc):
+        mc(
+            "/live/:action",
+            controller="liveupdateevents",
+            conditions={"function": not_in_sr},
+            requirements={"action": "reports"},
+        )
+
         mc("/live/:event", controller="liveupdate", action="listing",
            conditions={"function": not_in_sr}, is_embed=False)
 
@@ -102,6 +111,7 @@ class LiveUpdate(Plugin):
     def load_controllers(self):
         from reddit_liveupdate.controllers import (
             LiveUpdateController,
+            LiveUpdateEventsController,
             LiveUpdatePixelController,
         )
 
@@ -109,6 +119,7 @@ class LiveUpdate(Plugin):
         from reddit_liveupdate import pages
         api('liveupdateeventapp', pages.LiveUpdateEventAppJsonTemplate)
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
+        api('liveupdatereportedeventrow', pages.LiveUpdateEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)
 
         from reddit_liveupdate import scraper

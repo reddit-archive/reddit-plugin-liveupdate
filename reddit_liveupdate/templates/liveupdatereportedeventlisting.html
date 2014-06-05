@@ -1,0 +1,45 @@
+<%namespace file="liveupdateutils.html" import="nextprev" />
+
+<table id="report-listing">
+  <thead>
+    <tr>
+      ## use up the columns we don't care to name
+      <td></td>
+      <td></td>
+
+      % for name in thing.report_types.itervalues():
+      <th scope="col">${_(name)}</th>
+      % endfor
+
+      <td></td>
+    </tr>
+  </thead>
+  <tbody>
+    % for row in thing.things:
+    ${row}
+    % endfor
+  </tbody>
+</table>
+
+${nextprev(thing)}
+
+<script>
+$('#report-listing button').on('click', function(ev) {
+  var $button = $(ev.target);
+  var action = $button.data('action');
+  var eventId = $button.closest('tr').data('event');
+
+  $button.siblings('button')
+    .prop('disabled', false)
+    .removeClass('pressed');
+
+  $button
+    .prop('disabled', true)
+    .addClass('pressed');
+
+  r.ajax({
+    type: 'POST',
+    url: '/api/live/' + eventId + '/' + action,
+  });
+})
+</script>
