@@ -301,6 +301,9 @@ class LiveUpdateOtherDiscussions(Templated):
         for link in links:
             w = Wrapped(link)
 
+            if w._spam or w._deleted:
+                continue
+
             w.subreddit = subreddits[link.sr_id]
 
             # ideally we'd check if the user can see the subreddit, but by
