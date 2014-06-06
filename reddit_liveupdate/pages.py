@@ -304,6 +304,9 @@ class LiveUpdateOtherDiscussions(Templated):
             if w._spam or w._deleted:
                 continue
 
+            if not getattr(w, "allow_liveupdate", True):
+                continue
+
             w.subreddit = subreddits[link.sr_id]
 
             # ideally we'd check if the user can see the subreddit, but by
