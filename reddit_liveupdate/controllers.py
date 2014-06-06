@@ -227,7 +227,7 @@ class LiveUpdateController(RedditController):
                                     count=count)
         listing = pages.LiveUpdateListing(builder)
         wrapped_listing = listing.listing()
-        content = pages.LiveUpdateEventPage(
+        content = pages.LiveUpdateEventApp(
             event=c.liveupdate_event,
             listing=wrapped_listing,
             show_sidebar=not is_embed,
@@ -250,7 +250,7 @@ class LiveUpdateController(RedditController):
                 "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
 
         if not is_embed:
-            return pages.LiveUpdatePage(
+            return pages.LiveUpdateEventPage(
                 content=content,
                 websocket_url=websocket_url,
                 page_classes=['liveupdate-event'],
@@ -261,7 +261,7 @@ class LiveUpdateController(RedditController):
                 abort(404)
             c.allow_framing = True
 
-            return pages.LiveUpdateEmbed(
+            return pages.LiveUpdateEventEmbed(
                 content=content,
                 websocket_url=websocket_url,
                 page_classes=['liveupdate-event'],
@@ -271,7 +271,7 @@ class LiveUpdateController(RedditController):
         if not is_api():
             self.abort404()
         content = Wrapped(c.liveupdate_event)
-        return pages.LiveUpdatePage(content=content).render()
+        return pages.LiveUpdateEventPage(content=content).render()
 
     @base_listing
     def GET_discussions(self, num, after, reverse, count):
@@ -283,7 +283,7 @@ class LiveUpdateController(RedditController):
             count=count,
         )
         listing = LinkListing(builder).listing()
-        return pages.LiveUpdatePage(
+        return pages.LiveUpdateEventPage(
             content=listing,
         ).render()
 
@@ -291,7 +291,7 @@ class LiveUpdateController(RedditController):
         VLiveUpdateContributorWithPermission("settings"),
     )
     def GET_edit(self):
-        return pages.LiveUpdatePage(
+        return pages.LiveUpdateEventPage(
             content=pages.LiveUpdateEventConfiguration(),
         ).render()
 
@@ -353,7 +353,7 @@ class LiveUpdateController(RedditController):
             ).listing()
             content.append(invite_listing)
 
-        return pages.LiveUpdatePage(
+        return pages.LiveUpdateEventPage(
             content=PaneStack(content),
         ).render()
 

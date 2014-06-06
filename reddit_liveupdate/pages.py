@@ -28,8 +28,22 @@ from reddit_liveupdate.utils import pretty_time
 
 
 class LiveUpdatePage(Reddit):
-    extension_handling = False
     extra_stylesheets = Reddit.extra_stylesheets + ["liveupdate.less"]
+
+    def __init__(self, title, content, **kwargs):
+        Reddit.__init__(self,
+            title=title,
+            show_sidebar=False,
+            content=content,
+            **kwargs
+        )
+
+    def build_toolbars(self):
+        return []
+
+
+class LiveUpdateEventPage(LiveUpdatePage):
+    extension_handling = False
 
     def __init__(self, content, websocket_url=None, **kwargs):
         extra_js_config = {
@@ -46,9 +60,8 @@ class LiveUpdatePage(Reddit):
         if c.liveupdate_event.state == "live":
             title = _("[live]") + " " + title
 
-        Reddit.__init__(self,
+        LiveUpdatePage.__init__(self,
             title=title,
-            show_sidebar=False,
             content=content,
             extra_js_config=extra_js_config,
             **kwargs
@@ -86,7 +99,7 @@ class LiveUpdatePage(Reddit):
         return toolbars
 
 
-class LiveUpdateEmbed(LiveUpdatePage):
+class LiveUpdateEventEmbed(LiveUpdatePage):
     extra_page_classes = ["embed"]
 
 
@@ -118,7 +131,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         return "LiveUpdateEvent"
 
 
-class LiveUpdateEventPage(Templated):
+class LiveUpdateEventApp(Templated):
     def __init__(self, event, listing, show_sidebar):
         self.event = event
         self.listing = listing
@@ -243,7 +256,7 @@ class LinkBackToLiveUpdate(Templated):
     pass
 
 
-class LiveUpdateEventPageJsonTemplate(JsonTemplate):
+class LiveUpdateEventAppJsonTemplate(JsonTemplate):
     def render(self, thing=None, *a, **kwargs):
         return ObjectTemplate(thing.listing.render() if thing else {})
 

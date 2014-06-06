@@ -107,7 +107,7 @@ class LiveUpdate(Plugin):
 
         from r2.config.templates import api
         from reddit_liveupdate import pages
-        api('liveupdateeventpage', pages.LiveUpdateEventPageJsonTemplate)
+        api('liveupdateeventapp', pages.LiveUpdateEventAppJsonTemplate)
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)
 
