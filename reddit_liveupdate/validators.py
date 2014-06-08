@@ -3,7 +3,7 @@ import uuid
 from pylons import c
 from pylons.controllers.util import abort
 
-from r2.lib.validator import Validator, VPermissions
+from r2.lib.validator import Validator, VPermissions, VLength, VMarkdown
 from r2.lib.db import tdb_cassandra
 from r2.lib.errors import errors
 
@@ -64,3 +64,20 @@ class VLiveUpdatePermissions(VPermissions):
         "liveupdate_contributor": ContributorPermissionSet,
         "liveupdate_contributor_invite": ContributorPermissionSet,
     }
+
+
+EVENT_CONFIGURATION_VALIDATORS = {
+    "title": VLength("title", max_length=120),
+    "description": VMarkdown("description", empty_error=None),
+}
+
+
+def is_event_configuration_valid(form):
+    if form.has_errors("title", errors.NO_TEXT,
+                                errors.TOO_LONG):
+        return False
+
+    if form.has_errors("description", errors.TOO_LONG):
+        return False
+
+    return True

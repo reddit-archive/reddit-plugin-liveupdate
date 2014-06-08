@@ -86,7 +86,14 @@ class LiveUpdate(Plugin):
             "/live/:action",
             controller="liveupdateevents",
             conditions={"function": not_in_sr},
-            requirements={"action": "reports"},
+            requirements={"action": "create|reports"},
+        )
+
+        mc(
+            "/api/live/:action",
+            controller="liveupdateevents",
+            conditions={"function": not_in_sr},
+            requirements={"action": "create"},
         )
 
         mc("/live/:event", controller="liveupdate", action="listing",

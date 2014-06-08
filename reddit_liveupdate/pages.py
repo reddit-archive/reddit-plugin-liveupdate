@@ -402,3 +402,7 @@ def liveupdate_add_props(user, wrapped):
         item.author = LiveUpdateAccount(accounts[item.author_id])
 
         item.date_str = pretty_time(item._date)
+
+
+class LiveUpdateCreate(Templated):
+    pass

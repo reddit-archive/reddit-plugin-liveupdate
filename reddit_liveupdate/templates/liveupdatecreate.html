@@ -1,0 +1,10 @@
+<%namespace name="utils" file="utils.html"/>
+<%namespace file="liveupdateutils.html" name="liveupdate_utils" />
+
+<%liveupdate_utils:configuration_form endpoint="live/create">
+  <%utils:line_field title="${_('first contributor')}">
+    <input type="text" name="user" class="text">
+    ${utils.error_field("NO_USER", "user")}
+    ${utils.error_field("USER_DOESNT_EXIST", "user")}
+  </%utils:line_field>
+</%liveupdate_utils:configuration_form>
