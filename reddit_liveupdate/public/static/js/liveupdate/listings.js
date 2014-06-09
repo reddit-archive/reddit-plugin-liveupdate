@@ -300,6 +300,10 @@
     },
 
     makeSeparator: function(olderUpdate, newerUpdate) {
+      if (!olderUpdate || !newerUpdate) {
+        return
+      }
+
       var olderDate = parseTimestamp(olderUpdate.get('date'))
       var newerDate = parseTimestamp(newerUpdate.get('date'))
       var separatorDate
