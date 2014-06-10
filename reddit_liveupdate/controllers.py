@@ -380,8 +380,8 @@ class LiveUpdateController(RedditController):
         contributor_listing = pages.LiveUpdateContributorListing(
             c.liveupdate_event,
             contributor_builder,
-            has_invite=c.user._id in invites,
-            is_contributor=c.user._id in contributors,
+            has_invite=c.user_is_loggedin and c.user._id in invites,
+            is_contributor=c.user_is_loggedin and c.user._id in contributors,
         ).listing()
         content.append(contributor_listing)
 
