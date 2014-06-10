@@ -100,7 +100,7 @@ class LiveUpdateEventPage(LiveUpdatePage):
         return toolbars
 
 
-class LiveUpdateEventEmbed(LiveUpdatePage):
+class LiveUpdateEventEmbed(LiveUpdateEventPage):
     extra_page_classes = ["embed"]
 
 
