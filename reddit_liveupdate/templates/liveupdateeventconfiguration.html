@@ -1,7 +1,7 @@
 <%namespace name="utils" file="utils.html"/>
 <%namespace name="liveupdate_utils" file="liveupdateutils.html" />
 
-<%liveupdate_utils:configuration_form endpoint="live/${c.liveupdate_event._id}/edit" thing="${c.liveupdate_event}" />
+<%liveupdate_utils:configuration_form button_name="${_('save settings')}" endpoint="live/${c.liveupdate_event._id}/edit" thing="${c.liveupdate_event}" />
 
 % if c.liveupdate_permissions.allow("close"):
 <%utils:line_field title="${_('close the stream')}" css_class="danger-zone">

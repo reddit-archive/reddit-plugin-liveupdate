@@ -20,7 +20,7 @@
 % endif
 </%def>
 
-<%def name="configuration_form(endpoint, thing=None)">
+<%def name="configuration_form(endpoint, button_name, thing=None)">
 <div id="liveupdate-form" class="pretty-form">
   <%utils:line_field title="${_('title')}">
     <input type="text" name="title" id="title" class="text" value="${getattr(thing, 'title', '')}">
@@ -37,7 +37,7 @@
 
   <div class="save-button">
     <button class="btn" type="button" onclick="return post_pseudo_form('#liveupdate-form', '${endpoint}')">
-      ${_("save settings")}
+      ${button_name}
     </button>
     &#32;
     <span class="status error"></span>
