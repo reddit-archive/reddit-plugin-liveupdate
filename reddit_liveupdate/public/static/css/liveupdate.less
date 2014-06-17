@@ -15,6 +15,26 @@ body {
 @keyframes blink { .blink-animation(); }
 @-webkit-keyframes blink { .blink-animation(); }
 
+@liveupdate-width: 1000px;
+.content {
+    margin: 0px auto;
+    max-width: @liveupdate-width;
+    border: 1px solid #ebebeb;
+    border-top: none;
+    border-bottom-right-radius: 7px;
+    border-bottom-left-radius: 7px;
+    padding: 10px 20px;
+    background-color: #fff;
+    min-height: 20em;
+}
+
+#header-bottom-left .tabmenu {
+    display: block;
+    max-width: 1000px;
+    margin: 0 auto;
+    margin-top: -17px;
+}
+
 body.liveupdate-event{
     @sidebar-width: 300px;
     @time-col-width: 140px;
@@ -23,17 +43,6 @@ body.liveupdate-event{
     @header-width: @listing-width - @time-col-width;
 
     @transition-time: .3s;
-
-    .content {
-        margin: 0px auto;
-        max-width: 1000px;
-        border: 1px solid #ebebeb;
-        border-top: none;
-        border-bottom-right-radius: 7px;
-        border-bottom-left-radius: 7px;
-        padding: 10px 20px;
-        background-color: #fff;
-    }
 
     .content > header {
         overflow: auto;
@@ -629,11 +638,6 @@ body.liveupdate-event{
         display:none;
     }
     //////////
-}
-
-//Make menu tabs neat when intersecting page borders
-.tabmenu li.selected a {
-    border-bottom: none;
 }
 
 .liveupdatelinkback {
