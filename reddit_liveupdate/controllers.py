@@ -20,6 +20,7 @@ from r2.lib.validator import (
     validate,
     validatedForm,
     VAdmin,
+    VEmployee,
     VBoolean,
     VByName,
     VCount,
@@ -35,6 +36,7 @@ from r2.models import (
     Account,
     IDBuilder,
     LinkListing,
+    Listing,
     NotFound,
     QueryBuilder,
     SimpleBuilder,
@@ -84,7 +86,7 @@ invitation or report it.
 """
 REPORTED_MESSAGE = """\
 The live update stream [%(title)s](%(url)s) was just reported for %(reason)s.
-Please see the [reports page](/live/reports) for more information.
+Please see the [reports page](/live/reported) for more information.
 """
 CREATION_MESSAGE = """\
 hello! a live update stream has been created for you.
@@ -588,6 +590,8 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event.state = "complete"
         c.liveupdate_event._commit()
 
+        queries.complete_event(c.liveupdate_event)
+
         _broadcast(type="complete", payload={})
 
         form.refresh()
@@ -681,10 +685,61 @@ class LiveUpdateReportedEventBuilder(LiveUpdateEventBuilder):
 @add_controller
 class LiveUpdateEventsController(RedditController):
     @validate(
+        VEmployee(),
+        num=VLimit("limit", default=25, max_limit=100),
+        after=VLiveUpdateEvent("after"),
+        before=VLiveUpdateEvent("before"),
+        count=VCount("count"),
+    )
+    def GET_listing(self, filter, num, after, before, count):
+        reverse = False
+        if before:
+            after = before
+            reverse = True
+
+        builder_cls = LiveUpdateEventBuilder
+        wrapper = Wrapped
+        listing_cls = Listing
+
+        if filter == "open":
+            title = _("live threads")
+            query = queries.get_live_events("new", "all")
+        elif filter == "closed":
+            title = _("closed threads")
+            query = queries.get_complete_events("new", "all")
+        elif filter == "reported":
+            if not c.user_is_admin:
+                self.abort403()
+
+            title = _("reported threads")
+            query = queries.get_reported_events()
+            builder_cls = LiveUpdateReportedEventBuilder
+            wrapper = pages.LiveUpdateReportedEventRow
+            listing_cls = pages.LiveUpdateReportedEventListing
+        else:
+            self.abort404()
+
+        builder = builder_cls(
+            query,
+            num=num,
+            after=after,
+            reverse=reverse,
+            count=count,
+            wrap=wrapper,
+        )
+
+        listing = listing_cls(builder)
+
+        return pages.LiveUpdateMetaPage(
+            title=title,
+            content=listing.listing(),
+        ).render()
+
+    @validate(
         VAdmin(),
     )
     def GET_create(self):
-        return pages.LiveUpdatePage(
+        return pages.LiveUpdateMetaPage(
             title=_("create live update stream"),
             content=pages.LiveUpdateCreate(),
         ).render()
@@ -706,6 +761,7 @@ class LiveUpdateEventsController(RedditController):
 
         event = LiveUpdateEvent.new(id=None, title=title)
         event.add_contributor(user, ContributorPermissionSet.SUPERUSER)
+        queries.create_event(event)
 
         url = "/live/" + event._id
 
@@ -718,34 +774,6 @@ class LiveUpdateEventsController(RedditController):
         )
 
         form.redirect(url)
-
-    @validate(
-        VAdmin(),
-        num=VLimit("limit", default=25, max_limit=100),
-        after=VLiveUpdateEvent("after"),
-        before=VLiveUpdateEvent("before"),
-        count=VCount("count"),
-    )
-    def GET_reports(self, num, after, before, count):
-        reverse = False
-        if before:
-            after = before
-            reverse = True
-
-        query = queries.get_reported_events()
-        builder = LiveUpdateReportedEventBuilder(
-            query,
-            num=num,
-            after=after,
-            reverse=reverse,
-            count=count,
-            wrap=pages.LiveUpdateReportedEventRow,
-        )
-        listing = pages.LiveUpdateReportedEventListing(builder)
-        return pages.LiveUpdatePage(
-            title=_("reported events"),
-            content=listing.listing(),
-        ).render()
 
 
 @add_controller

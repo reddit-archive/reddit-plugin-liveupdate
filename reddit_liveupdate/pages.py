@@ -43,6 +43,41 @@ class LiveUpdatePage(Reddit):
         return []
 
 
+class LiveUpdateMetaPage(LiveUpdatePage):
+    def build_toolbars(self):
+        if c.user_is_loggedin and c.user.employee:
+            tabs = [
+                NavButton(
+                    _("live updates"),
+                    "/",
+                ),
+                NavButton(
+                    _("closed"),
+                    "/closed",
+                ),
+            ]
+
+            if c.user_is_admin:
+                tabs.extend([
+                    NavButton(
+                        _("reported"),
+                        "/reported",
+                    ),
+                    NavButton(
+                        _("create"),
+                        "/create",
+                    ),
+                ])
+
+            return [NavMenu(
+                tabs,
+                base_path="/live/",
+                type="tabmenu",
+            )]
+        else:
+            return []
+
+
 class LiveUpdateEventPage(LiveUpdatePage):
     extension_handling = False
 

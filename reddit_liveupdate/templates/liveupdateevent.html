@@ -1,0 +1,14 @@
+<%namespace file="utils.html" name="utils" />
+
+<div class="liveupdate-event">
+  <div class="title">
+    <a href="/live/${thing._id}">${thing.title}</a>
+  </div>
+  <div class="tagline">
+    % if thing.state == "live":
+      <span class="state">${_("live")}</span>
+    % endif
+
+    ${utils.thing_timestamp(thing, live=True, include_tense=True)}
+  </div>
+</div>
