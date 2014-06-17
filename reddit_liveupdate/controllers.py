@@ -300,7 +300,7 @@ class LiveUpdateController(RedditController):
             return pages.LiveUpdateEventPage(
                 content=content,
                 websocket_url=websocket_url,
-                page_classes=['liveupdate-event'],
+                page_classes=['liveupdate-app'],
             ).render()
         else:
             # ensure we're off the cookie domain before allowing embedding
@@ -311,7 +311,7 @@ class LiveUpdateController(RedditController):
             return pages.LiveUpdateEventEmbed(
                 content=content,
                 websocket_url=websocket_url,
-                page_classes=['liveupdate-event'],
+                page_classes=['liveupdate-app'],
             ).render()
 
     def GET_about(self):

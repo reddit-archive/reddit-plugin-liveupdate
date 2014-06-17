@@ -129,7 +129,7 @@
 $(function() {
   'use strict'
 
-  if ($('body').hasClass('liveupdate-event')) {
+  if ($('body').hasClass('liveupdate-app')) {
     r.liveupdate.app = new r.liveupdate.LiveUpdateApp()
   }
 })
