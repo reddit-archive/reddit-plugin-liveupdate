@@ -1,4 +1,3 @@
-import base64
 import datetime
 import json
 import uuid
@@ -12,7 +11,7 @@ from r2.lib import utils
 from r2.lib.db import tdb_cassandra
 from r2.models import query_cache
 
-
+from reddit_liveupdate.contrib import simpleflake
 from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
@@ -78,7 +77,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     @classmethod
     def new(cls, id, title, **properties):
         if not id:
-            id = base64.b32encode(uuid.uuid1().bytes).rstrip("=").lower()
+            id = utils.to36(simpleflake.simpleflake())
         event = cls(id, title=title, **properties)
         event._commit()
         return event
