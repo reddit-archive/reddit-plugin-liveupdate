@@ -324,8 +324,15 @@
     },
 
     onRemove: function(update) {
-      // TODO: merge/delete orphaned separators
-      this.views[update.id].remove()
+      var view = this.views[update.id]
+
+      // remove orphaned separators
+      view.$el
+        .nextUntil('.liveupdate')
+        .remove()
+
+      // remove self
+      view.remove()
       delete this.views[update.id]
     },
 
