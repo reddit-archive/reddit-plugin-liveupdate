@@ -441,3 +441,9 @@ def liveupdate_add_props(user, wrapped):
 
 class LiveUpdateCreate(Templated):
     pass
+
+
+class EmbedlyCard(Templated):
+    def __init__(self, url):
+        self.url = url
+        Templated.__init__(self)
