@@ -40,7 +40,12 @@
       $el.removeClass('pending-embed')
 
       _.each(embeds, function(embed, embedIndex) {
-        var $link = $el.find('a[href="' + embed.url + '"]')
+        var $placeholder = $el
+          .find('p')
+          .has('a[href="' + embed.url + '"]')
+          .filter(function() {
+            return $(this).contents().length === 1
+          })
         var embedUri = this._embedBase + '/' + updateId + '/' + embedIndex
         var iframe = $('<iframe>').attr({
           'class': 'embedFrame',
@@ -51,8 +56,8 @@
           'scrolling': 'no',
           'frameborder': 0,
         })
-        r.debug('Rendering embed for link: ', $link)
-        $link.replaceWith(iframe)
+        r.debug('Rendering embed for link: ', embed.url)
+        $placeholder.replaceWith(iframe)
       }, this)
     },
 
