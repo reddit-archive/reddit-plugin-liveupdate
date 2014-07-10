@@ -28,6 +28,7 @@ from r2.lib.validator import (
     VLimit,
     VMarkdown,
     VModhash,
+    VRatelimit,
     VOneOf,
     VInt,
     VUser,
@@ -87,18 +88,6 @@ invitation or report it.
 REPORTED_MESSAGE = """\
 The live update stream [%(title)s](%(url)s) was just reported for %(reason)s.
 Please see the [reports page](/live/reported) for more information.
-"""
-CREATION_MESSAGE = """\
-hello! a live update stream has been created for you.
-
-* you can make updates from [the update page](%(base_url)s)
-* make sure to customize the title and sidebar on [the settings
-  page](%(base_url)s/edit)
-* invite others to help on [the contributors page](%(base_url)s/contributors)
-
-all of these links can be found in the tab bar at the top of each page.
-
-good luck!
 """
 
 
@@ -684,6 +673,13 @@ class LiveUpdateReportedEventBuilder(LiveUpdateEventBuilder):
 
 @add_controller
 class LiveUpdateEventsController(RedditController):
+    def GET_home(self):
+        return pages.LiveUpdateMetaPage(
+            title=_("reddit live"),
+            content=pages.LiveUpdateHome(),
+            page_classes=["liveupdate-home"],
+        ).render()
+
     @validate(
         VEmployee(),
         num=VLimit("limit", default=25, max_limit=100),
@@ -736,7 +732,7 @@ class LiveUpdateEventsController(RedditController):
         ).render()
 
     @validate(
-        VAdmin(),
+        VUser(),
     )
     def GET_create(self):
         return pages.LiveUpdateMetaPage(
@@ -745,35 +741,25 @@ class LiveUpdateEventsController(RedditController):
         ).render()
 
     @validatedForm(
-        VAdmin(),
+        VUser(),
         VModhash(),
-        user=VExistingUname("user"),
+        VRatelimit(rate_user=True, prefix="liveupdate_create_"),
         **EVENT_CONFIGURATION_VALIDATORS
     )
-    def POST_create(self, form, jquery, title, description, user):
+    def POST_create(self, form, jquery, title, description):
         if not is_event_configuration_valid(form):
             return
 
-        if form.has_errors("user",
-                           errors.USER_DOESNT_EXIST,
-                           errors.NO_USER):
+        if form.has_errors("ratelimit", errors.RATELIMIT):
             return
+        VRatelimit.ratelimit(
+            rate_user=True, prefix="liveupdate_create_", seconds=60)
 
         event = LiveUpdateEvent.new(id=None, title=title)
-        event.add_contributor(user, ContributorPermissionSet.SUPERUSER)
+        event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
 
-        url = "/live/" + event._id
-
-        send_system_message(
-            user,
-            subject="new live update stream",
-            body=CREATION_MESSAGE % {
-                "base_url": url,
-            },
-        )
-
-        form.redirect(url)
+        form.redirect("/live/" + event._id)
 
 
 @add_controller

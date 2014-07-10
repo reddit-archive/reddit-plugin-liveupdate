@@ -48,8 +48,12 @@ class LiveUpdateMetaPage(LiveUpdatePage):
         if c.user_is_loggedin and c.user.employee:
             tabs = [
                 NavButton(
-                    _("live updates"),
+                    _("reddit live"),
                     "/",
+                ),
+                NavButton(
+                    _("live"),
+                    "/open",
                 ),
                 NavButton(
                     _("closed"),
@@ -62,10 +66,6 @@ class LiveUpdateMetaPage(LiveUpdatePage):
                     NavButton(
                         _("reported"),
                         "/reported",
-                    ),
-                    NavButton(
-                        _("create"),
-                        "/create",
                     ),
                 ])
 
@@ -447,3 +447,7 @@ class EmbedlyCard(Templated):
     def __init__(self, url):
         self.url = url
         Templated.__init__(self)
+
+
+class LiveUpdateHome(Templated):
+    pass

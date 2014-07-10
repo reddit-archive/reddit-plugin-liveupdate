@@ -1,10 +1,8 @@
 <%namespace name="utils" file="utils.html"/>
 <%namespace file="liveupdateutils.html" name="liveupdate_utils" />
 
+<h1>${_("create a new live thread")}</h1>
+
 <%liveupdate_utils:configuration_form button_name="${_('create')}" endpoint="live/create">
-  <%utils:line_field title="${_('first contributor')}">
-    <input type="text" name="user" class="text">
-    ${utils.error_field("NO_USER", "user")}
-    ${utils.error_field("USER_DOESNT_EXIST", "user")}
-  </%utils:line_field>
+  <p>${_("don't worry, you'll be able to change these later")}</p>
 </%liveupdate_utils:configuration_form>

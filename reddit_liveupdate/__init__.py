@@ -83,6 +83,13 @@ class LiveUpdate(Plugin):
 
     def add_routes(self, mc):
         mc(
+            "/live",
+            controller="liveupdateevents",
+            action="home",
+            conditions={"function": not_in_sr},
+        )
+
+        mc(
             "/live/create",
             controller="liveupdateevents",
             action="create",
@@ -92,10 +99,9 @@ class LiveUpdate(Plugin):
         mc(
             "/live/:filter",
             action="listing",
-            filter="open",
             controller="liveupdateevents",
             conditions={"function": not_in_sr},
-            requirements={"filter": "closed|reported"},
+            requirements={"filter": "open|closed|reported"},
         )
 
         mc(
