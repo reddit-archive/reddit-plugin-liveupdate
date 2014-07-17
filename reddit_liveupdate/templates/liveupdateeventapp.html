@@ -42,7 +42,7 @@
     ${utils.md(thing.event.description)}
   </section>
   % endif
-  <section id="discussions" title="${_("threads on reddit linking to this page")}">
+  <section id="discussions" title="${_("comment threads on reddit linking to this page")}">
     <h1>${_("discussions")}</h1>
     ${thing.discussions}
   </section>
@@ -73,7 +73,7 @@
       <button class="report-button"><span>${_("report a rule violation")}</span></button>
 
       <form>
-        ${utils.text_with_links(_("uh oh! how does this stream break %(reddits_rules)s?"),
+        ${utils.text_with_links(_("uh oh! how does this live thread break %(reddits_rules)s?"),
           reddits_rules=dict(link_text=_("reddit's rules"), path="/rules", target="_blank"))}
 
         <ol>
@@ -86,7 +86,7 @@
         <button class="cancel">${_("oops, never mind")}</button>
       </form>
     % else:
-      <p class="already-reported">${_("you reported this stream for: %(violation)s") % dict(violation=_(thing.report_types[thing.report_type]))}</p>
+      <p class="already-reported">${_("you reported this live thread for: %(violation)s") % dict(violation=_(thing.report_types[thing.report_type]))}</p>
     % endif
     </section>
   % endif

@@ -4,10 +4,10 @@
 <%liveupdate_utils:configuration_form button_name="${_('save settings')}" endpoint="live/${c.liveupdate_event._id}/edit" thing="${c.liveupdate_event}" />
 
 % if c.liveupdate_permissions.allow("close"):
-<%utils:line_field title="${_('close the stream')}" css_class="danger-zone">
-  <p>${_("this will mark the stream as complete and prevent further updates from being added. it cannot be undone.")}</p>
+<%utils:line_field title="${_('close the live thread')}" css_class="danger-zone">
+  <p>${_("this will mark the thread as complete and prevent further updates from being added. it cannot be undone.")}</p>
   <button class="btn" type="button" onclick="">
-    ${_("close stream permanently")}
+    ${_("close thread permanently")}
   </button>
 </%utils:line_field>
 
@@ -16,7 +16,7 @@ $(function() {
   var $el = $('.danger-zone button');
   var confirmer = new r.ui.ConfirmButton({el: $el});
   $el.on('confirm', function() {
-    $.request('live/${c.liveupdate_event._id}/close_stream')
+    $.request('live/${c.liveupdate_event._id}/close_thread')
   });
 })
 </script>

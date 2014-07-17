@@ -79,15 +79,15 @@ from reddit_liveupdate.validators import (
 INVITE_MESSAGE = """\
 **oh my! you are invited to become a contributor to [%(title)s](%(url)s)**.
 
-*to accept* visit the [contributors page for the stream](%(url)s/contributors)
-and click "accept".
+*to accept* visit the [contributors page for the live
+thread](%(url)s/contributors) and click "accept".
 
 *otherwise,* if you did not expect to receive this, you can simply ignore this
 invitation or report it.
 """
 REPORTED_MESSAGE = """\
-The live update stream [%(title)s](%(url)s) was just reported for %(reason)s.
-Please see the [reports page](/live/reported) for more information.
+The live thread [%(title)s](%(url)s) was just reported for %(reason)s.  Please
+see the [reports page](/live/reported) for more information.
 """
 
 
@@ -212,7 +212,7 @@ class LiveUpdateController(RedditController):
 
         if c.liveupdate_event.banned and not c.user_is_admin:
             error_page = RedditError(
-                title=_("this stream has been banned"),
+                title=_("this thread has been banned"),
                 message="",
                 image="subreddit-banned.png",
             )
@@ -575,7 +575,7 @@ class LiveUpdateController(RedditController):
         VLiveUpdateContributorWithPermission("close"),
         VModhash(),
     )
-    def POST_close_stream(self, form, jquery):
+    def POST_close_thread(self, form, jquery):
         c.liveupdate_event.state = "complete"
         c.liveupdate_event._commit()
 
@@ -616,7 +616,7 @@ class LiveUpdateController(RedditController):
             if not_yet_reported:
                 send_system_message(
                     default_subreddit,
-                    subject="live update stream reported",
+                    subject="live thread reported",
                     body=REPORTED_MESSAGE % {
                         "title": c.liveupdate_event.title,
                         "url": "/live/" + c.liveupdate_event._id,
@@ -736,7 +736,7 @@ class LiveUpdateEventsController(RedditController):
     )
     def GET_create(self):
         return pages.LiveUpdateMetaPage(
-            title=_("create live update stream"),
+            title=_("create live thread"),
             content=pages.LiveUpdateCreate(),
         ).render()
 

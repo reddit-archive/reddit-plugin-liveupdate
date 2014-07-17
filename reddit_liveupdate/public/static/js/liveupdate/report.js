@@ -57,7 +57,7 @@
         },
       }).then(function() {
         _this.$el.html(r.templates.make('liveupdate/reported', {
-          text: r._('you reported this stream for: %(violation)s').format({
+          text: r._('you reported this live thread for: %(violation)s').format({
             violation: reportDescription,
           }),
         }))

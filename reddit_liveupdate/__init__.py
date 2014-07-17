@@ -31,7 +31,7 @@ class LiveUpdate(Plugin):
 
     errors = {
         "LIVEUPDATE_NO_INVITE_FOUND":
-            N_("there is no pending invite for that stream"),
+            N_("there is no pending invite for that thread"),
         "LIVEUPDATE_TOO_MANY_INVITES":
             N_("there are too many pending invites outstanding"),
         "LIVEUPDATE_ALREADY_CONTRIBUTOR":

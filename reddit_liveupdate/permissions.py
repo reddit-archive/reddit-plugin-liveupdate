@@ -26,8 +26,8 @@ class ContributorPermissionSet(PermissionSet):
         },
 
         "close": {
-            "title": N_("close stream"),
-            "description": N_("permanently close the stream"),
+            "title": N_("close live thread"),
+            "description": N_("permanently close the live thread"),
         },
     }
 
