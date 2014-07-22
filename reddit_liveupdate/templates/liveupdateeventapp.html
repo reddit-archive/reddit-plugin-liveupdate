@@ -22,7 +22,7 @@
 
 % if c.liveupdate_permissions.allow("update"):
 <div id="new-update-form" class="prettyform">
-  ${UserText(None, text="", editable=True, creating=True, name="body", have_form=False)}
+  ${UserText(None, text="", editable=True, creating=True, name="body", have_form=False, show_embed_help=True)}
 
   <div class="save-button">
     <button class="btn" type="button" onclick="return post_pseudo_form('#new-update-form', 'live/${c.liveupdate_event._id}/update')">
