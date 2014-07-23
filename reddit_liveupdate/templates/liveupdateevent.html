@@ -9,6 +9,8 @@
       <span class="state">${_("live")}</span>
     % endif
 
+    <span class="viewers">${ungettext('%(num)s viewer', '%(num)s viewers', thing.active_visitors) % dict(num=thing.active_visitors)}</span>
+
     ${utils.thing_timestamp(thing, live=True, include_tense=True)}
   </div>
 </div>

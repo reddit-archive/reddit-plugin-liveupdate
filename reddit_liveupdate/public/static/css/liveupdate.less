@@ -682,12 +682,15 @@ body.liveupdate-app {
     }
 
     .tagline {
-        .state {
-            text-transform: uppercase;
+        span {
             margin-right: .5em;
         }
 
-        .state:after {
+        .state {
+            text-transform: uppercase;
+        }
+
+        span:after {
             content: "–";
             margin-left: .5em;
         }
