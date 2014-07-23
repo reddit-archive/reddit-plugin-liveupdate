@@ -210,15 +210,6 @@ class LiveUpdateController(RedditController):
         if not c.liveupdate_event:
             self.abort404()
 
-        if c.liveupdate_event.banned and not c.user_is_admin:
-            error_page = RedditError(
-                title=_("this thread has been banned"),
-                message="",
-                image="subreddit-banned.png",
-            )
-            request.environ["usable_error_content"] = error_page.render()
-            self.abort403()
-
         if c.user_is_loggedin:
             c.liveupdate_permissions = \
                     c.liveupdate_event.get_permissions(c.user)
@@ -234,6 +225,16 @@ class LiveUpdateController(RedditController):
                 c.liveupdate_permissions = ContributorPermissionSet.SUPERUSER
         else:
             c.liveupdate_permissions = ContributorPermissionSet.NONE
+
+        if c.liveupdate_event.banned and not c.liveupdate_permissions:
+            error_page = RedditError(
+                title=_("this thread has been banned"),
+                message="",
+                image="subreddit-banned.png",
+            )
+            request.environ["usable_error_content"] = error_page.render()
+            self.abort403()
+
 
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
@@ -755,7 +756,11 @@ class LiveUpdateEventsController(RedditController):
         VRatelimit.ratelimit(
             rate_user=True, prefix="liveupdate_create_", seconds=60)
 
-        event = LiveUpdateEvent.new(id=None, title=title)
+        event = LiveUpdateEvent.new(
+            id=None,
+            title=title,
+            banned=c.user._spam,
+        )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
 
