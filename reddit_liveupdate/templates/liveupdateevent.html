@@ -11,6 +11,10 @@
 
     <span class="viewers">${ungettext('%(num)s viewer', '%(num)s viewers', thing.active_visitors) % dict(num=thing.active_visitors)}</span>
 
+    % if c.user_is_admin and thing.banned:
+    <span class="banned">${_("banned")}</span>
+    % endif
+
     ${utils.thing_timestamp(thing, live=True, include_tense=True)}
   </div>
 </div>
