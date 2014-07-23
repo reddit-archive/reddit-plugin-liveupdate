@@ -242,7 +242,7 @@ def process_liveupdate_scraper_q():
 
         try:
             liveupdate = parse_embeds(d['event_id'], d['liveupdate_id'])
-        except IOError as e:
+        except Exception as e:
             g.log.warning("Failed to scrape %s::%s: %r",
                 d["event_id"], d["liveupdate_id"], e)
             return
