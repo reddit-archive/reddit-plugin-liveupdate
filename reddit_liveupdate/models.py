@@ -182,11 +182,14 @@ class LiveUpdate(object):
 
         embeds = []
         for media_object in self.media_objects:
-            embeds.append({
-                "url": media_object['oembed']['url'],
-                "width": media_object['oembed']['width'],
-                "height": media_object['oembed']['height'],
-            })
+            try:
+                embeds.append({
+                    "url": media_object['oembed']['url'],
+                    "width": media_object['oembed']['width'],
+                    "height": media_object['oembed']['height'],
+                })
+            except KeyError:
+                pass
         return embeds
 
 
