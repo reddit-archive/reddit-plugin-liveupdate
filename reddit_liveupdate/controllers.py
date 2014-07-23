@@ -12,7 +12,7 @@ from r2.controllers.reddit_base import (
     RedditController,
     base_listing,
 )
-from r2.lib import websockets
+from r2.lib import websockets, hooks
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.filters import safemarkdown
@@ -105,6 +105,8 @@ class LiveUpdateBuilder(QueryBuilder):
         return wrapped
 
     def keep_item(self, item):
+        if item._spam:
+            return c.liveupdate_permissions
         return not item.deleted
 
 
@@ -522,7 +524,11 @@ class LiveUpdateController(RedditController):
         update = LiveUpdate(data={
             "author_id": c.user._id,
             "body": text,
+            "_spam": c.user._spam,
         })
+
+        hooks.get_hook("liveupdate.update").call(update=update)
+
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
         # tell the world about our new update

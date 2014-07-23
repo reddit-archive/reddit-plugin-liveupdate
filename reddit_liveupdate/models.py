@@ -135,6 +135,7 @@ class LiveUpdate(object):
     defaults = {
         "deleted": False,
         "stricken": False,
+        "_spam": False,
         "media_objects": [],
     }
 
