@@ -1,3 +1,38 @@
+"""
+Real-time updates on reddit.
+
+In addition to the standard reddit API, WebSockets play a huge role in reddit
+live. Receiving push notification of changes to the thread via websockets is
+much better than polling the thread repeatedly.
+
+To connect to the websocket server, fetch
+[/live/*thread*/about.json](#GET_live_{thread}_about.json) and get the
+`websocket_url` field.  The websocket URL expires after a period of time; if it
+does, fetch a new one from that endpoint.
+
+Once connected to the socket, a variety of messages can come in. All messages
+will be in text frames containing a JSON object with two keys: `type` and
+`payload`. Live threads can send messages with many `type`s:
+
+* `update` - a new update has been posted in the thread. the `payload` contains
+  the JSON representation of the update.
+* `activity` - periodic update of the viewer counts for the thread.
+* `settings` - the thread's settings have changed. the `payload` is an object
+  with each key being a property of the thread (as in `about.json`) and its new
+  value.
+* `delete` - an update has been deleted (removed from the thread).
+  the `payload` is the ID of the deleted update.
+* `strike` - an update has been stricken (marked incorrect and crossed out).
+  the `payload` is the ID of the stricken update.
+* `embeds_ready` - a previously posted update has been parsed and embedded
+  media is available for it now. the `payload` contains a `liveupdate_id` and
+  list of `embeds` to add to it.
+* `complete` - the thread has been marked complete. no further updates will
+  be sent.
+
+See /r/live for more information.
+
+"""
 import sys
 
 from pylons.i18n import N_
@@ -131,6 +166,13 @@ class LiveUpdate(Plugin):
            controller="liveupdateembed", action="mediaembed")
 
     def load_controllers(self):
+        from r2.controllers.api_docs import api_section, section_info
+        api_section["live"] = "live"
+        section_info["live"] = {
+            "title": "live threads",
+            "description": sys.modules[__name__].__doc__,
+        }
+
         from reddit_liveupdate.controllers import (
             LiveUpdateController,
             LiveUpdateEventsController,
@@ -152,3 +194,13 @@ class LiveUpdate(Plugin):
         queues.declare({
             "liveupdate_scraper_q": MessageQueue(bind_to_self=True),
         })
+
+    source_root_url = "https://github.com/reddit/reddit-plugin-liveupdate/blob/master/reddit_liveupdate/"
+    def get_documented_controllers(self):
+        from reddit_liveupdate.controllers import (
+            LiveUpdateController,
+            LiveUpdateEventsController,
+        )
+
+        yield LiveUpdateController, "/api/live/{thread}"
+        yield LiveUpdateEventsController, ""

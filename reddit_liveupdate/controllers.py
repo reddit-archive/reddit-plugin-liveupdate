@@ -7,10 +7,12 @@ from pylons.i18n import _
 
 from r2.config.extensions import is_api
 from r2.controllers import add_controller
+from r2.controllers.api_docs import api_doc, api_section
 from r2.controllers.reddit_base import (
     MinimalController,
     RedditController,
     base_listing,
+    paginated_listing,
 )
 from r2.lib import hooks
 from r2.lib.base import BaseController, abort
@@ -243,9 +245,20 @@ class LiveUpdateController(RedditController):
         after=VLiveUpdateID("after"),
         before=VLiveUpdateID("before"),
         count=VCount("count"),
-        is_embed=VBoolean("is_embed"),
+        is_embed=VBoolean("is_embed", docs={"is_embed": "(internal use only)"}),
+    )
+    @api_doc(
+        section=api_section.live,
+        uri="/live/{thread}",
+        extensions=["json", "xml"],
+        notes=[paginated_listing.doc_note],
     )
     def GET_listing(self, num, after, before, count, is_embed):
+        """Get a list of updates posted in this thread.
+
+        See also: [/api/live/*thread*/update](#POST_api_live_{thread}_update).
+
+        """
         reverse = False
         if before:
             reverse = True
@@ -300,14 +313,30 @@ class LiveUpdateController(RedditController):
                 page_classes=['liveupdate-app'],
             ).render()
 
+    @api_doc(
+        section=api_section.live,
+        uri="/live/{thread}/about",
+        extensions=["json"],
+    )
     def GET_about(self):
+        """Get some basic information about the live thread.
+
+        See also: [/api/live/*thread*/edit](#POST_api_live_{thread}_edit).
+
+        """
         if not is_api():
             self.abort404()
         content = Wrapped(c.liveupdate_event)
         return pages.LiveUpdateEventPage(content=content).render()
 
     @base_listing
+    @api_doc(
+        section=api_section.live,
+        uri="/live/{thread}/discussions",
+        extensions=["json", "xml"],
+    )
     def GET_discussions(self, num, after, reverse, count):
+        """Get a list of reddit submissions linking to this thread."""
         builder = url_links_builder(
             url="/live/" + c.liveupdate_event._id,
             num=num,
@@ -333,7 +362,17 @@ class LiveUpdateController(RedditController):
         VModhash(),
         **EVENT_CONFIGURATION_VALIDATORS
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_edit(self, form, jquery, title, description):
+        """Configure the thread.
+
+        Requires the `settings` permission for this thread.
+
+        See also: [/live/*thread*/about.json](#GET_live_{thread}_about.json).
+
+        """
         if not is_event_configuration_valid(form):
             return
 
@@ -353,7 +392,20 @@ class LiveUpdateController(RedditController):
         form.refresh()
 
     # TODO: pass listing params on
+    @api_doc(
+        section=api_section.live,
+        uri="/live/{thread}/contributors",
+        extensions=["json"],
+    )
     def GET_contributors(self):
+        """Get a list of users that contribute to this thread.
+
+        See also: [/api/live/*thread*/invite_contributor]
+        (#POST_api_live_{thread}_invite_contributor), and
+        [/api/live/*thread*/rm_contributor]
+        (#POST_api_live_{thread}_rm_contributor).
+
+        """
         editable = c.liveupdate_permissions.allow("manage")
 
         content = [pages.LinkBackToLiveUpdate()]
@@ -391,7 +443,21 @@ class LiveUpdateController(RedditController):
         user=VExistingUname("name"),
         type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_invite_contributor(self, form, jquery, user, type_and_perms):
+        """Invite another user to contribute to the thread.
+
+        Requires the `manage` permission for this thread.  If the recipient
+        accepts the invite, they will be granted the permissions specified.
+
+        See also: [/api/live/*thread*/accept_contributor_invite]
+        (#POST_api_live_{thread}_accept_contributor_invite), and
+        [/api/live/*thread*/rm_contributor_invite]
+        (#POST_api_live_{thread}_rm_contributor_invite).
+
+        """
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
@@ -437,7 +503,18 @@ class LiveUpdateController(RedditController):
         VUser(),
         VModhash(),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_leave_contributor(self, form, jquery):
+        """Abdicate contributorship of the thread.
+
+        See also: [/api/live/*thread*/accept_contributor_invite]
+        (#POST_api_live_{thread}_accept_contributor_invite), and
+        [/api/live/*thread*/invite_contributor]
+        (#POST_api_live_{thread}_invite_contributor).
+
+        """
         c.liveupdate_event.remove_contributor(c.user)
 
     @validatedForm(
@@ -445,7 +522,18 @@ class LiveUpdateController(RedditController):
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_rm_contributor_invite(self, form, jquery, user):
+        """Revoke an outstanding contributor invite.
+
+        Requires the `manage` permission for this thread.
+
+        See also: [/api/live/*thread*/invite_contributor]
+        (#POST_api_live_{thread}_invite_contributor).
+
+        """
         LiveUpdateContributorInvitesByEvent.remove(
             c.liveupdate_event, user)
 
@@ -453,7 +541,16 @@ class LiveUpdateController(RedditController):
         VUser(),
         VModhash(),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_accept_contributor_invite(self, form, jquery):
+        """Accept a pending invitation to contribute to the thread.
+
+        See also: [/api/live/*thread*/leave_contributor]
+        (#POST_api_live_{thread}_leave_contributor).
+
+        """
         try:
             permissions = LiveUpdateContributorInvitesByEvent.get(
                 c.liveupdate_event, c.user)
@@ -474,7 +571,20 @@ class LiveUpdateController(RedditController):
         user=VExistingUname("name"),
         type_and_perms=VLiveUpdatePermissions("type", "permissions"),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_set_contributor_permissions(self, form, jquery, user, type_and_perms):
+        """Change a contributor or contributor invite's permissions.
+
+        Requires the `manage` permission for this thread.
+
+        See also: [/api/live/*thread*/invite_contributor]
+        (#POST_api_live_{thread}_invite_contributor) and
+        [/api/live/*thread*/rm_contributor]
+        (#POST_api_live_{thread}_rm_contributor).
+
+        """
         if form.has_errors("name", errors.USER_DOESNT_EXIST,
                                    errors.NO_USER):
             return
@@ -499,7 +609,18 @@ class LiveUpdateController(RedditController):
         VModhash(),
         user=VByName("id", thing_cls=Account),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_rm_contributor(self, form, jquery, user):
+        """Revoke another user's contributorship.
+
+        Requires the `manage` permission for this thread.
+
+        See also: [/api/live/*thread*/invite_contributor]
+        (#POST_api_live_{thread}_invite_contributor).
+
+        """
         c.liveupdate_event.remove_contributor(user)
 
     @validatedForm(
@@ -507,7 +628,20 @@ class LiveUpdateController(RedditController):
         VModhash(),
         text=VMarkdown("body", max_length=4096),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_update(self, form, jquery, text):
+        """Post an update to the thread.
+
+        Requires the `update` permission for this thread.
+
+        See also: [/api/live/*thread*/strike_update]
+        (#POST_api_live_{thread}_strike_update), and
+        [/api/live/*thread*/delete_update]
+        (#POST_api_live_{thread}_delete_update).
+
+        """
         if form.has_errors("body", errors.NO_TEXT,
                                    errors.TOO_LONG):
             return
@@ -540,7 +674,18 @@ class LiveUpdateController(RedditController):
         VModhash(),
         update=VLiveUpdate("id"),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_delete_update(self, form, jquery, update):
+        """Delete an update from the thread.
+
+        Requires that specified update must have been authored by the user or
+        that you have the `edit` permission for this thread.
+
+        See also: [/api/live/*thread*/update](#POST_api_live_{thread}_update).
+
+        """
         if form.has_errors("id", errors.NO_THING_ID):
             return
 
@@ -557,7 +702,18 @@ class LiveUpdateController(RedditController):
         VModhash(),
         update=VLiveUpdate("id"),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_strike_update(self, form, jquery, update):
+        """Strike (mark incorrect and cross out) the content of an update.
+
+        Requires that specified update must have been authored by the user or
+        that you have the `edit` permission for this thread.
+
+        See also: [/api/live/*thread*/update](#POST_api_live_{thread}_update).
+
+        """
         if form.has_errors("id", errors.NO_THING_ID):
             return
 
@@ -574,7 +730,15 @@ class LiveUpdateController(RedditController):
         VLiveUpdateContributorWithPermission("close"),
         VModhash(),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_close_thread(self, form, jquery):
+        """Permanently close the thread, disallowing future updates.
+
+        Requires the `close` permission for this thread.
+
+        """
         c.liveupdate_event.state = "complete"
         c.liveupdate_event._commit()
 
@@ -589,7 +753,11 @@ class LiveUpdateController(RedditController):
         VModhash(),
         report_type=VOneOf("type", pages.REPORT_TYPES),
     )
+    @api_doc(
+        section=api_section.live,
+    )
     def POST_report(self, form, jquery, report_type):
+        """Report the thread for violating the rules of reddit."""
         if form.has_errors("type", errors.INVALID_OPTION):
             return
 
@@ -745,7 +913,19 @@ class LiveUpdateEventsController(RedditController):
         VRatelimit(rate_user=True, prefix="liveupdate_create_"),
         **EVENT_CONFIGURATION_VALIDATORS
     )
+    @api_doc(
+        section=api_section.live,
+        uri="/api/live/create",
+    )
     def POST_create(self, form, jquery, title, description):
+        """Create a new live thread.
+
+        Once created, the initial settings can be modified with
+        [/api/live/*thread*/edit](#POST_api_live_{thread}_edit) and new updates
+        can be posted with
+        [/api/live/*thread*/update](#POST_api_live_{thread}_update).
+
+        """
         if not is_event_configuration_valid(form):
             return
 

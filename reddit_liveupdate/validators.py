@@ -34,6 +34,11 @@ class VLiveUpdateID(Validator):
         except (ValueError, TypeError):
             return
 
+    def param_docs(self):
+        return {
+            self.param: "the ID of a single update. e.g. `LiveUpdate_ff87068e-a126-11e3-9f93-12313b0b3603`",
+        }
+
 
 class VLiveUpdate(VLiveUpdateID):
     def run(self, fullname):
@@ -64,6 +69,14 @@ class VLiveUpdatePermissions(VPermissions):
         "liveupdate_contributor": ContributorPermissionSet,
         "liveupdate_contributor_invite": ContributorPermissionSet,
     }
+
+    def param_docs(self):
+        return {
+            self.param[0]:
+                "one of (%s)" % ", ".join("`%s`" % s for s in self.types),
+            self.param[1]:
+                "permission description e.g. `+update,+edit,-manage`",
+        }
 
 
 EVENT_CONFIGURATION_VALIDATORS = {
