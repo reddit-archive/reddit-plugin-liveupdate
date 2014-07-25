@@ -315,6 +315,7 @@ class LiveUpdateController(RedditController):
                 page_classes=['liveupdate-app'],
             ).render()
 
+    @require_oauth2_scope("read")
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}/about",
@@ -360,6 +361,7 @@ class LiveUpdateController(RedditController):
             content=pages.LiveUpdateEventConfiguration(),
         ).render()
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("settings"),
         VModhash(),
@@ -395,6 +397,7 @@ class LiveUpdateController(RedditController):
         form.refresh()
 
     # TODO: pass listing params on
+    @require_oauth2_scope("read")
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}/contributors",
@@ -440,6 +443,7 @@ class LiveUpdateController(RedditController):
             content=PaneStack(content),
         ).render()
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
@@ -502,6 +506,7 @@ class LiveUpdateController(RedditController):
         jquery(".liveupdate_contributor_invite-table").show(
             ).find("table").insert_table_rows(user_row)
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VUser(),
         VModhash(),
@@ -520,6 +525,7 @@ class LiveUpdateController(RedditController):
         """
         c.liveupdate_event.remove_contributor(c.user)
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
@@ -540,6 +546,7 @@ class LiveUpdateController(RedditController):
         LiveUpdateContributorInvitesByEvent.remove(
             c.liveupdate_event, user)
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VUser(),
         VModhash(),
@@ -568,6 +575,7 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event.add_contributor(c.user, permissions)
         jquery.refresh()
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
@@ -607,6 +615,7 @@ class LiveUpdateController(RedditController):
         editor = row.find(".permissions").data("PermissionEditor")
         editor.onCommit(permissions.dumps())
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("manage"),
         VModhash(),
@@ -732,6 +741,7 @@ class LiveUpdateController(RedditController):
 
         _broadcast(type="strike", payload=update._fullname)
 
+    @require_oauth2_scope("livemanage")
     @validatedForm(
         VLiveUpdateContributorWithPermission("close"),
         VModhash(),
@@ -754,6 +764,7 @@ class LiveUpdateController(RedditController):
 
         form.refresh()
 
+    @require_oauth2_scope("report")
     @validatedForm(
         VUser(),
         VModhash(),
@@ -913,6 +924,7 @@ class LiveUpdateEventsController(RedditController):
             content=pages.LiveUpdateCreate(),
         ).render()
 
+    @require_oauth2_scope("submit")
     @validatedForm(
         VUser(),
         VModhash(),

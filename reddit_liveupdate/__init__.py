@@ -173,6 +173,15 @@ class LiveUpdate(Plugin):
             "description": sys.modules[__name__].__doc__,
         }
 
+        from r2.models.token import OAuth2Scope
+        OAuth2Scope.scope_info["livemanage"] = {
+            "id": "livemanage",
+            "name": N_("Manage live threads"),
+            "description":
+                N_("Manage settings and contributors of live threads "
+                   "I contribute to."),
+        }
+
         from reddit_liveupdate.controllers import (
             LiveUpdateController,
             LiveUpdateEventsController,
