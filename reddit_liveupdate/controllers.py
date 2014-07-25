@@ -771,6 +771,7 @@ class LiveUpdateEventsController(RedditController):
         queries.create_event(event)
 
         form.redirect("/live/" + event._id)
+        form._send_data(id=event._id)
 
 
 @add_controller
