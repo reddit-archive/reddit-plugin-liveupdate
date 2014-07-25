@@ -4,7 +4,7 @@ import urllib
 from pylons import c, g
 from pylons.i18n import _, ungettext, N_
 
-from r2.lib import filters
+from r2.lib import filters, websockets
 from r2.lib.pages import (
     Reddit,
     UserTableItem,
@@ -81,16 +81,13 @@ class LiveUpdateMetaPage(LiveUpdatePage):
 class LiveUpdateEventPage(LiveUpdatePage):
     extension_handling = False
 
-    def __init__(self, content, websocket_url=None, **kwargs):
+    def __init__(self, content, **kwargs):
         extra_js_config = {
             "liveupdate_event": c.liveupdate_event._id,
             "liveupdate_pixel_domain": g.liveupdate_pixel_domain,
             "liveupdate_permissions": c.liveupdate_permissions,
             "media_domain": g.media_domain,
         }
-
-        if websocket_url:
-            extra_js_config["liveupdate_websocket"] = websocket_url
 
         title = c.liveupdate_event.title
         if c.liveupdate_event.state == "live":
@@ -148,6 +145,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         title="title",
         description="description",
         description_html="description_html",
+        websocket_url="websocket_url",
     )
 
     def thing_attr(self, thing, attr):
@@ -160,6 +158,12 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         elif attr == "description_html":
             return filters.spaceCompress(
                 filters.safemarkdown(thing.description) or "")
+        elif attr == "websocket_url":
+            if thing.state == "live":
+                return websockets.make_url(
+                    "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
+            else:
+                return None
         else:
             return ThingJsonTemplate.thing_attr(self, thing, attr)
 

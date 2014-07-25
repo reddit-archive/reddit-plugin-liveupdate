@@ -12,7 +12,7 @@ from r2.controllers.reddit_base import (
     RedditController,
     base_listing,
 )
-from r2.lib import websockets, hooks
+from r2.lib import hooks
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.filters import safemarkdown
@@ -284,16 +284,9 @@ class LiveUpdateController(RedditController):
             wrapped_listing,
         )
 
-        # don't generate a url unless this is the main page of an event
-        websocket_url = None
-        if c.liveupdate_event.state == "live" and not after and not before:
-            websocket_url = websockets.make_url(
-                "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
-
         if not is_embed:
             return pages.LiveUpdateEventPage(
                 content=content,
-                websocket_url=websocket_url,
                 page_classes=['liveupdate-app'],
             ).render()
         else:
@@ -304,7 +297,6 @@ class LiveUpdateController(RedditController):
 
             return pages.LiveUpdateEventEmbed(
                 content=content,
-                websocket_url=websocket_url,
                 page_classes=['liveupdate-app'],
             ).render()
 

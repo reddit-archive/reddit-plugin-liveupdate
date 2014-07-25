@@ -23,6 +23,7 @@
   exports.LiveUpdateApp = function() {
     var $header = $('.content > header')
     var $options = $('<div id="liveupdate-options">')
+    var websocketUrl
 
     this.permissions = new PermissionSet(r.config.liveupdate_permissions)
 
@@ -49,8 +50,9 @@
     })
     this.embedViewer.start()
 
-    if (r.config.liveupdate_websocket) {
-      this.websocket = new r.WebSocket(r.config.liveupdate_websocket)
+    websocketUrl = this.event.get('websocket_url')
+    if (websocketUrl) {
+      this.websocket = new r.WebSocket(websocketUrl)
 
       this.websocket.on({
         'connecting': function() {
