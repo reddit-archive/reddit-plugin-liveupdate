@@ -955,6 +955,7 @@ class LiveUpdateEventsController(RedditController):
         event = LiveUpdateEvent.new(
             id=None,
             title=title,
+            description=description,
             banned=c.user._spam,
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
