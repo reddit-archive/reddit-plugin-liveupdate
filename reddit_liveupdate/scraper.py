@@ -1,4 +1,7 @@
-from pylons import g
+import urllib
+import urlparse
+
+from pylons import g, c
 
 from r2.lib.hooks import HookRegistrar
 from r2.lib.media import Scraper, MediaEmbed
@@ -7,21 +10,9 @@ from r2.lib.utils import UrlParser
 
 hooks = HookRegistrar()
 _EMBED_TEMPLATE = """
-<!doctype html>
-<html>
-<head>
-<style>
-iframe {{
-    border: 1px solid black;
-}}
-</style>
-</head>
-<body>
-<iframe src="//{domain}/live/{event_id}/embed"
-        width="{width}" height="{height}">
-</iframe>
-</body>
-</html>
+<div class="psuedo-selftext">
+  <iframe src="{url}" height="{height}"></iframe>
+</div>
 """
 
 
@@ -44,20 +35,31 @@ class _LiveUpdateScraper(Scraper):
 
     @classmethod
     def media_embed(cls, media_object):
-        width = 710
         height = 500
 
+        params = {}
+        if c.user.pref_show_stylesheets:
+            params["stylesr"] = c.site.name
+
+        url = urlparse.urlunparse((
+            None,
+            g.domain,
+            "/live/%s/embed" % media_object["event_id"],
+            None,
+            urllib.urlencode(params),
+            None,
+        ))
+
         content = _EMBED_TEMPLATE.format(
-            event_id=media_object["event_id"],
-            domain=g.media_domain,
-            width=width,
+            url=url,
             height=height,
         )
 
         return MediaEmbed(
             height=height,
-            width=width,
+            width=710,
             content=content,
+            sandbox=False,
         )
 
 
