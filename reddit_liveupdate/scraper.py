@@ -43,7 +43,7 @@ class _LiveUpdateScraper(Scraper):
 
         url = urlparse.urlunparse((
             None,
-            g.domain,
+            g.media_domain,
             "/live/%s/embed" % media_object["event_id"],
             None,
             urllib.urlencode(params),
