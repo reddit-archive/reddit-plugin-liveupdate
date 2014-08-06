@@ -35,6 +35,7 @@ from r2.lib.validator import (
     VOneOf,
     VInt,
     VUser,
+    VSRByName,
 )
 from r2.models import (
     Account,
@@ -49,7 +50,7 @@ from r2.models import (
 from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
-from r2.lib.pages import PaneStack, Wrapped, RedditError
+from r2.lib.pages import PaneStack, Wrapped, RedditError, Reddit
 
 from reddit_liveupdate import pages, queries
 from reddit_liveupdate.media_embeds import (
@@ -240,7 +241,6 @@ class LiveUpdateController(RedditController):
             request.environ["usable_error_content"] = error_page.render()
             self.abort403()
 
-
     @require_oauth2_scope("read")
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
@@ -248,6 +248,7 @@ class LiveUpdateController(RedditController):
         before=VLiveUpdateID("before"),
         count=VCount("count"),
         is_embed=VBoolean("is_embed", docs={"is_embed": "(internal use only)"}),
+        style_sr=VSRByName("stylesr"),
     )
     @api_doc(
         section=api_section.live,
@@ -255,7 +256,7 @@ class LiveUpdateController(RedditController):
         extensions=["json", "xml"],
         notes=[paginated_listing.doc_note],
     )
-    def GET_listing(self, num, after, before, count, is_embed):
+    def GET_listing(self, num, after, before, count, is_embed, style_sr):
         """Get a list of updates posted in this thread.
 
         See also: [/api/live/*thread*/update](#POST_api_live_{thread}_update).
@@ -310,10 +311,18 @@ class LiveUpdateController(RedditController):
                 abort(404)
             c.allow_framing = True
 
-            return pages.LiveUpdateEventEmbed(
+            embed_page = pages.LiveUpdateEventEmbed(
                 content=content,
                 page_classes=['liveupdate-app'],
-            ).render()
+            )
+
+            if style_sr and getattr(style_sr, "type", "private") != "private":
+                c.can_apply_styles = True
+                c.allow_styles = True
+                embed_page.subreddit_stylesheet_url = \
+                    Reddit.get_subreddit_stylesheet_url(style_sr)
+
+            return embed_page.render()
 
     @require_oauth2_scope("read")
     @api_doc(
