@@ -38,7 +38,7 @@ class _LiveUpdateScraper(Scraper):
         height = 500
 
         params = {}
-        if c.user.pref_show_stylesheets:
+        if getattr(c.user, "pref_show_stylesheets", True):
             params["stylesr"] = c.site.name
 
         url = urlparse.urlunparse((
