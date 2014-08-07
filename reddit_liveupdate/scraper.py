@@ -38,8 +38,9 @@ class _LiveUpdateScraper(Scraper):
         height = 500
 
         params = {}
-        if getattr(c.user, "pref_show_stylesheets", True):
-            params["stylesr"] = c.site.name
+        if c.site:  # play it safe when in a qproc
+            if getattr(c.user, "pref_show_stylesheets", True):
+                params["stylesr"] = c.site.name
 
         url = urlparse.urlunparse((
             None,
