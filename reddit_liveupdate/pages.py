@@ -17,6 +17,7 @@ from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
 from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
 from r2.lib.strings import strings
+from r2.lib.template_helpers import static
 from r2.lib.utils import tup
 from r2.lib.jsontemplates import (
     JsonTemplate,
@@ -26,6 +27,10 @@ from r2.lib.jsontemplates import (
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import pretty_time
+
+
+def make_event_url(event_id):
+    return add_sr("/live/%s" % event_id, sr_path=False, force_hostname=True)
 
 
 class LiveUpdatePage(Reddit):
@@ -130,6 +135,24 @@ class LiveUpdateEventPage(LiveUpdatePage):
             ))
 
         return toolbars
+
+
+class LiveUpdateEventAppPage(LiveUpdateEventPage):
+    def __init__(self, **kwargs):
+        og_data = {
+            "type": "article",
+            "url": make_event_url(c.liveupdate_event._id),
+            "description": c.liveupdate_event.description or _("real-time updates on reddit"),
+            "image": static("icon.png"),
+            "site_name": g.short_description,
+            "ttl": "600",  # have this stuff re-fetched frequently
+        }
+
+        LiveUpdateEventPage.__init__(
+            self,
+            og_data=og_data,
+            **kwargs
+        )
 
 
 class LiveUpdateEventEmbed(LiveUpdateEventPage):
@@ -363,8 +386,7 @@ class LiveUpdateOtherDiscussions(Templated):
         self.more_links = len(links) > self.max_links
         self.links = links[:self.max_links]
         self.submit_url = "/submit?" + urllib.urlencode({
-            "url": add_sr("/live/" + c.liveupdate_event._id,
-                          sr_path=False, force_hostname=True),
+            "url": make_event_url(c.liveupdate_event._id),
             "title": c.liveupdate_event.title.encode("utf-8"),
         })
 
@@ -373,7 +395,7 @@ class LiveUpdateOtherDiscussions(Templated):
     @classmethod
     @memoize("live_update_discussion_ids", time=60)
     def _get_related_link_ids(cls, event_id):
-        url = add_sr("/live/%s" % event_id, sr_path=False, force_hostname=True)
+        url = make_event_url(c.liveupdate_event._id)
 
         try:
             links = tup(Link._by_url(url, sr=None))

@@ -301,7 +301,7 @@ class LiveUpdateController(RedditController):
         )
 
         if not is_embed:
-            return pages.LiveUpdateEventPage(
+            return pages.LiveUpdateEventAppPage(
                 content=content,
                 page_classes=['liveupdate-app'],
             ).render()
