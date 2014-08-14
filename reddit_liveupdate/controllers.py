@@ -379,7 +379,7 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
     )
-    def POST_edit(self, form, jquery, title, description):
+    def POST_edit(self, form, jquery, title, description, resources):
         """Configure the thread.
 
         Requires the `settings` permission for this thread.
@@ -395,11 +395,15 @@ class LiveUpdateController(RedditController):
             changes["title"] = title
         if description != c.liveupdate_event.description:
             changes["description"] = description
-            changes["description_html"] = safemarkdown(description, wrap=False) or ""
+            changes["description_html"] = safemarkdown(description) or ""
+        if resources != c.liveupdate_event.resources:
+            changes["resources"] = resources
+            changes["resources_html"] = safemarkdown(resources) or ""
         _broadcast(type="settings", payload=changes)
 
         c.liveupdate_event.title = title
         c.liveupdate_event.description = description
+        c.liveupdate_event.resources = resources
         c.liveupdate_event._commit()
 
         form.set_html(".status", _("saved"))
@@ -944,7 +948,7 @@ class LiveUpdateEventsController(RedditController):
         section=api_section.live,
         uri="/api/live/create",
     )
-    def POST_create(self, form, jquery, title, description):
+    def POST_create(self, form, jquery, title, description, resources):
         """Create a new live thread.
 
         Once created, the initial settings can be modified with
@@ -965,6 +969,7 @@ class LiveUpdateEventsController(RedditController):
             id=None,
             title=title,
             description=description,
+            resources=resources,
             banned=c.user._spam,
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)

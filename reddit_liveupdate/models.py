@@ -31,6 +31,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     )
     _defaults = {
         "description": "",
+        "resources": "",
         # one of "live", "complete"
         "state": "live",
         "active_visitors": 0,

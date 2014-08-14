@@ -38,8 +38,14 @@
 % if thing.show_sidebar:
 <aside class="sidebar">
   % if thing.event.description:
-  <section id="liveupdate-description" class="md">
-    ${utils.md(thing.event.description)}
+  <section id="liveupdate-description">
+    ${utils.md(thing.event.description, wrap=True)}
+  </section>
+  % endif
+  % if thing.event.resources:
+  <section id="liveupdate-resources">
+    <h1>${_("resources")}</h1>
+    ${utils.md(thing.event.resources, wrap=True)}
   </section>
   % endif
   <section id="discussions" title="${_("comment threads on reddit linking to this page")}">

@@ -145,6 +145,8 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         title="title",
         description="description",
         description_html="description_html",
+        resources="resources",
+        resources_html="resources_html",
         websocket_url="websocket_url",
     )
 
@@ -158,6 +160,9 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         elif attr == "description_html":
             return filters.spaceCompress(
                 filters.safemarkdown(thing.description) or "")
+        elif attr == "resources_html":
+            return filters.spaceCompress(
+                filters.safemarkdown(thing.resources) or "")
         elif attr == "websocket_url":
             if thing.state == "live":
                 return websockets.make_url(

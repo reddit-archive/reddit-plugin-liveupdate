@@ -81,7 +81,8 @@ class VLiveUpdatePermissions(VPermissions):
 
 EVENT_CONFIGURATION_VALIDATORS = {
     "title": VLength("title", max_length=120),
-    "description": VMarkdown("description", empty_error=None),
+    "description": VMarkdown("description", max_length=120, empty_error=None),
+    "resources": VMarkdown("resources", empty_error=None),
 }
 
 
@@ -91,6 +92,9 @@ def is_event_configuration_valid(form):
         return False
 
     if form.has_errors("description", errors.TOO_LONG):
+        return False
+
+    if form.has_errors("resources", errors.TOO_LONG):
         return False
 
     return True
