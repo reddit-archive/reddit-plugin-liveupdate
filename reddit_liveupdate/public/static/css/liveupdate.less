@@ -188,6 +188,11 @@ body.liveupdate-app {
             text-transform: uppercase;
             vertical-align: bottom;
         }
+
+        &:empty {
+            // get rid of some erroneous padding when there aren't any options
+            display: none;
+        }
     }
 
     .liveupdate-listing {
