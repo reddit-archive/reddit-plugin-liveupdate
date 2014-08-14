@@ -410,6 +410,11 @@ body.liveupdate-app {
             border-top: 1px dotted #999;
         }
 
+        .md {
+            overflow-wrap: break-word;
+            word-wrap: break-word; //support for firefox and IE
+        }
+
         #discussions {
 
             p {
@@ -589,7 +594,7 @@ body.liveupdate-app {
 
             #contributors {
                 li {
-                    display: inline;
+                    display: inline-block;
 
                     &:not(:last-child):after{
                         content: "+";
