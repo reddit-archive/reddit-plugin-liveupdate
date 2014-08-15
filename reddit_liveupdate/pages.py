@@ -139,10 +139,14 @@ class LiveUpdateEventPage(LiveUpdatePage):
 
 class LiveUpdateEventAppPage(LiveUpdateEventPage):
     def __init__(self, **kwargs):
+        description = (c.liveupdate_event.description or
+            _("real-time updates on %(short_description)s") %
+               dict(short_description=g.short_description))
+
         og_data = {
             "type": "article",
             "url": make_event_url(c.liveupdate_event._id),
-            "description": c.liveupdate_event.description or _("real-time updates on reddit"),
+            "description": description,
             "image": static("icon.png"),
             "site_name": g.short_description,
             "ttl": "600",  # have this stuff re-fetched frequently
@@ -151,6 +155,7 @@ class LiveUpdateEventAppPage(LiveUpdateEventPage):
         LiveUpdateEventPage.__init__(
             self,
             og_data=og_data,
+            short_description=description,
             **kwargs
         )
 
