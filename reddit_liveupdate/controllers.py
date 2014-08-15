@@ -395,10 +395,10 @@ class LiveUpdateController(RedditController):
             changes["title"] = title
         if description != c.liveupdate_event.description:
             changes["description"] = description
-            changes["description_html"] = safemarkdown(description) or ""
+            changes["description_html"] = safemarkdown(description, nofollow=True) or ""
         if resources != c.liveupdate_event.resources:
             changes["resources"] = resources
-            changes["resources_html"] = safemarkdown(resources) or ""
+            changes["resources_html"] = safemarkdown(resources, nofollow=True) or ""
         _broadcast(type="settings", payload=changes)
 
         c.liveupdate_event.title = title

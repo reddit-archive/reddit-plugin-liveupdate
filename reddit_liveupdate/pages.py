@@ -187,10 +187,10 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
             return thing.active_visitors_fuzzed
         elif attr == "description_html":
             return filters.spaceCompress(
-                filters.safemarkdown(thing.description) or "")
+                filters.safemarkdown(thing.description, nofollow=True) or "")
         elif attr == "resources_html":
             return filters.spaceCompress(
-                filters.safemarkdown(thing.resources) or "")
+                filters.safemarkdown(thing.resources, nofollow=True) or "")
         elif attr == "websocket_url":
             if thing.state == "live":
                 return websockets.make_url(
@@ -360,7 +360,7 @@ class LiveUpdateJsonTemplate(ThingJsonTemplate):
         if attr == "_id":
             return str(thing._id)
         elif attr == "body_html":
-            return filters.spaceCompress(filters.safemarkdown(thing.body))
+            return filters.spaceCompress(filters.safemarkdown(thing.body, nofollow=True))
         elif attr == "author":
             if not thing.author.deleted:
                 return thing.author.name

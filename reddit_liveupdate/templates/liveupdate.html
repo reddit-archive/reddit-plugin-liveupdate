@@ -16,7 +16,7 @@
   <time title="${format_datetime(thing._date, format='long', tzinfo=pytz.UTC, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live-timestamp">${thing.date_str}</time>
 
   <div class="body">
-    ${utils.md(thing.body, wrap=True)}
+    ${utils.md(thing.body, nofollow=True, wrap=True)}
     ${thing.author}
   </div>
 </li>
