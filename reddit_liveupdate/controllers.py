@@ -1,6 +1,7 @@
 import collections
 import hashlib
 import os
+import uuid
 
 from pylons import g, c, request, response
 from pylons.i18n import _
@@ -323,6 +324,37 @@ class LiveUpdateController(RedditController):
                     Reddit.get_subreddit_stylesheet_url(style_sr)
 
             return embed_page.render()
+
+    def GET_focus(self, target):
+        try:
+            target = uuid.UUID(target)
+        except (TypeError, ValueError):
+            self.abort404()
+
+        try:
+            query = LiveUpdateStream.query_focus(c.liveupdate_event, target)
+        except tdb_cassandra.NotFound:
+            self.abort404()
+
+        builder = LiveUpdateBuilder(
+            query=query, skip=True, reverse=True, num=1, count=0)
+        listing = pages.LiveUpdateListing(builder)
+        wrapped_listing = listing.listing()
+
+        c.js_preload.set_wrapped(
+            "/live/" + c.liveupdate_event._id + ".json",
+            wrapped_listing,
+        )
+
+        content = pages.LiveUpdateFocusApp(
+            event=c.liveupdate_event,
+            listing=wrapped_listing,
+        )
+
+        return pages.LiveUpdateEventFocusPage(
+            content=content,
+            page_classes=["liveupdate-focus"],
+        ).render()
 
     @require_oauth2_scope("read")
     @api_doc(

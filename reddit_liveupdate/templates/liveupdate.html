@@ -13,7 +13,7 @@
 <%namespace file="printablebuttons.html" import="ynbutton" />
 
 <li data-fullname="${thing._fullname}" class="liveupdate id-${thing._fullname} ${"stricken" if thing.stricken else ""} ${"pending-embed" if thing.embeds else ""}">
-  <time title="${format_datetime(thing._date, format='long', tzinfo=pytz.UTC, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live-timestamp">${thing.date_str}</time>
+  <a href="/live/${c.liveupdate_event._id}/updates/${thing._id}" target="_blank"><time title="${format_datetime(thing._date, format='long', tzinfo=pytz.UTC, locale=c.locale)}" datetime="${html_datetime(thing._date)}" class="live-timestamp">${thing.date_str}</time></a>
 
   <div class="body">
     ${utils.md(thing.body, nofollow=True, wrap=True)}

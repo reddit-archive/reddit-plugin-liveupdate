@@ -152,6 +152,13 @@ class LiveUpdate(Plugin):
         mc("/live/:event/embed", controller="liveupdate", action="listing",
            conditions={"function": not_in_sr}, is_embed=True)
 
+        mc(
+            "/live/:event/updates/:target",
+            controller="liveupdate",
+            action="focus",
+            conditions={"function": not_in_sr},
+        )
+
         mc("/live/:event/pixel",
            controller="liveupdatepixel", action="pixel",
            conditions={"function": not_in_sr})

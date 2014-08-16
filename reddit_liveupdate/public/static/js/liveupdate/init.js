@@ -20,22 +20,8 @@
     },
   })
 
-  exports.LiveUpdateApp = function() {
-    var $header = $('.content > header')
-    var $options = $('<div id="liveupdate-options">')
-    var websocketUrl
-
+  var LiveUpdateAppBase = exports.LiveUpdateAppBase = function() {
     this.permissions = new PermissionSet(r.config.liveupdate_permissions)
-
-    this.event = new r.liveupdate.event.LiveUpdateEvent()
-    this.eventView = new r.liveupdate.event.LiveUpdateEventView({
-      model: this.event,
-    })
-    this.statusBarView = new r.liveupdate.statusBar.StatusBarView({
-      model: this.event,
-      el: $('#liveupdate-statusbar'),
-    })
-    this.event.fetch()  // bootstrap from preload
 
     this.listing = new r.liveupdate.listings.LiveUpdateListing()
     this.listingView = new r.liveupdate.listings.LiveUpdateListingView({
@@ -49,6 +35,24 @@
       el: this.listingView.el,
     })
     this.embedViewer.start()
+  }
+
+  exports.LiveUpdateApp = function() {
+    var $header = $('.content > header')
+    var $options = $('<div id="liveupdate-options">')
+    var websocketUrl
+
+    LiveUpdateAppBase.call(this)
+
+    this.event = new r.liveupdate.event.LiveUpdateEvent()
+    this.eventView = new r.liveupdate.event.LiveUpdateEventView({
+      model: this.event,
+    })
+    this.statusBarView = new r.liveupdate.statusBar.StatusBarView({
+      model: this.event,
+      el: $('#liveupdate-statusbar'),
+    })
+    this.event.fetch()  // bootstrap from preload
 
     websocketUrl = this.event.get('websocket_url')
     if (websocketUrl) {
@@ -131,7 +135,11 @@
 $(function() {
   'use strict'
 
-  if ($('body').hasClass('liveupdate-app')) {
+  var $body = $('body')
+
+  if ($body.hasClass('liveupdate-app')) {
     r.liveupdate.app = new r.liveupdate.LiveUpdateApp()
+  } else if ($body.hasClass('liveupdate-focus')) {
+    r.liveupdate.app = new r.liveupdate.LiveUpdateAppBase()
   }
 })

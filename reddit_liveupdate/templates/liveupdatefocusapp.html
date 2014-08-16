@@ -1,0 +1,11 @@
+<%namespace file="utils.html" name="utils" />
+
+<header id="liveupdate-header">
+  <h1 id="liveupdate-title"><a href="/live/${thing.event._id}">${thing.event.title}</a></h1>
+
+  ${utils.md(_("below is a single update from a live thread. [see the rest of the thread](/live/%(event_id)s).") % dict(event_id=thing.event._id), wrap=True)}
+</header>
+
+<hr id="liveupdate-focus-separator">
+
+${thing.listing}

@@ -160,6 +160,11 @@ class LiveUpdateEventAppPage(LiveUpdateEventPage):
         )
 
 
+class LiveUpdateEventFocusPage(LiveUpdateEventPage):
+    def build_toolbars(self):
+        return []
+
+
 class LiveUpdateEventEmbed(LiveUpdateEventPage):
     extra_page_classes = ["embed"]
 
@@ -231,6 +236,10 @@ class LiveUpdateEventApp(Templated):
         self.report_type = report_type
 
         Templated.__init__(self)
+
+
+class LiveUpdateFocusApp(Templated):
+    pass
 
 
 class LiveUpdateEventConfiguration(Templated):

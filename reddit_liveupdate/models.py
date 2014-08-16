@@ -92,6 +92,22 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         thing._commit()
 
 
+class FocusQuery(object):
+    """A query-like object for focused updates."""
+    def __init__(self, items):
+        self.items = items
+        self._rules = []
+
+    def _reverse(self):
+        self.items.reverse()
+
+    def _after(self, id):
+        pass
+
+    def __iter__(self):
+        return iter(self.items)
+
+
 class LiveUpdateStream(tdb_cassandra.View):
     _use_db = True
     _connection_pool = "main"
@@ -129,6 +145,10 @@ class LiveUpdateStream(tdb_cassandra.View):
         # columns = [{colname: colvalue}]
         return [LiveUpdate.from_json(*column.popitem())
                 for column in utils.tup(columns)]
+
+    @classmethod
+    def query_focus(cls, event, id):
+        return FocusQuery([cls.get_update(event, id)])
 
 
 class LiveUpdate(object):

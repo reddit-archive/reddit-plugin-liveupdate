@@ -167,6 +167,8 @@
       this.$el
         .data('fullname', this.model.get('id'))
         .html(r.templates.make('liveupdate/update', {
+          id: this.model.get('id').replace(/^LiveUpdate_/, ''),
+          eventId: r.config.liveupdate_event,
           body: this.model.get('body'),
           authorName: this.model.get('author'),
           isoDate: time.toISOString(),
