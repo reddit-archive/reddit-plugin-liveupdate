@@ -883,7 +883,7 @@ class LiveUpdateEventBuilder(IDBuilder):
         return [self.wrap(item) for item in items]
 
     def keep_item(self, item):
-        return True
+        return c.user_is_admin or not item.banned
 
 
 class LiveUpdateReportedEventBuilder(LiveUpdateEventBuilder):
@@ -954,6 +954,7 @@ class LiveUpdateEventsController(RedditController):
             reverse=reverse,
             count=count,
             wrap=wrapper,
+            skip=True,
         )
 
         listing = listing_cls(builder)
