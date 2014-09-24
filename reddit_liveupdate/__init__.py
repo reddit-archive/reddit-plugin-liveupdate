@@ -136,7 +136,7 @@ class LiveUpdate(Plugin):
             action="listing",
             controller="liveupdateevents",
             conditions={"function": not_in_sr},
-            requirements={"filter": "open|closed|reported"},
+            requirements={"filter": "open|closed|reported|active"},
         )
 
         mc(

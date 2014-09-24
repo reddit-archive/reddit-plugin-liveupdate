@@ -57,6 +57,10 @@ class LiveUpdateMetaPage(LiveUpdatePage):
                     "/",
                 ),
                 NavButton(
+                    _("active"),
+                    "/active",
+                ),
+                NavButton(
                     _("live"),
                     "/open",
                 ),

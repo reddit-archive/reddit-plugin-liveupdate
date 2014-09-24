@@ -14,6 +14,11 @@ from reddit_liveupdate.models import LiveUpdateQueryCache
 
 
 @cached_query(LiveUpdateQueryCache)
+def get_active_events():
+    return FakeQuery(sort=[desc("active_visitors")], precomputed=True)
+
+
+@cached_query(LiveUpdateQueryCache)
 def get_live_events(sort, time):
     assert sort == "new" and time == "all"
     return FakeQuery(sort=[desc("date")])

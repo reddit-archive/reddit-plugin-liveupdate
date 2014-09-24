@@ -90,6 +90,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         thing.active_visitors = activity
         thing.active_visitors_fuzzed = fuzzed
         thing._commit()
+        return thing
 
 
 class FocusQuery(object):

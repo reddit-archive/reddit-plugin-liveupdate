@@ -932,6 +932,9 @@ class LiveUpdateEventsController(RedditController):
         elif filter == "closed":
             title = _("closed threads")
             query = queries.get_complete_events("new", "all")
+        elif filter == "active":
+            title = _("most active threads")
+            query = queries.get_active_events()
         elif filter == "reported":
             if not c.user_is_admin:
                 self.abort403()
