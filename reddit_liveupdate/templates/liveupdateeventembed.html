@@ -1,5 +1,10 @@
 <%inherit file="liveupdatepage.html" />
 
+<%def name="head()">
+  ${parent.head()}
+  <base target="_blank" href="${thing.base_url}">
+</%def>
+
 <%def name="bodyContent()">
 <a name="content"></a>
 <div class="content" role="main">

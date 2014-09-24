@@ -172,6 +172,11 @@ class LiveUpdateEventFocusPage(LiveUpdateEventPage):
 class LiveUpdateEventEmbed(LiveUpdateEventPage):
     extra_page_classes = ["embed"]
 
+    def __init__(self, *args, **kwargs):
+        self.base_url = add_sr(
+            "/live/" + c.liveupdate_event._id, force_hostname=True)
+        super(LiveUpdateEventEmbed, self).__init__(*args, **kwargs)
+
 
 class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
     _data_attrs_ = ThingJsonTemplate.data_attrs(
