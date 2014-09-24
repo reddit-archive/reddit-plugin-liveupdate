@@ -8,6 +8,18 @@
   <%utils:line_field title="${_('resources')}" description="${_('information and links that are useful at any point')}">
     ${UserText(None, text=getattr(c.liveupdate_event, 'resources', ''), editable=True, creating=True, name="resources", have_form=False)}
   </%utils:line_field>
+
+  <%utils:line_field title="${_('other options')}">
+    <label>
+      <input type="checkbox" name="nsfw"
+      % if c.liveupdate_event.nsfw:
+        checked
+      % endif
+        >
+
+      ${_("viewers must be over eighteen years old")}
+    </label>
+  </%utils:line_field>
 </%liveupdate_utils:configuration_form>
 
 % if c.liveupdate_permissions.allow("close"):

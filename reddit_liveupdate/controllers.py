@@ -242,6 +242,9 @@ class LiveUpdateController(RedditController):
             request.environ["usable_error_content"] = error_page.render()
             self.abort403()
 
+        if c.liveupdate_event.nsfw and not c.over18 and c.render_style == "html":
+            return self.intermediate_redirect("/over18", sr_path=False)
+
     @require_oauth2_scope("read")
     @validate(
         num=VLimit("limit", default=25, max_limit=100),
@@ -311,6 +314,15 @@ class LiveUpdateController(RedditController):
             if request.host != g.media_domain:
                 abort(404)
             c.allow_framing = True
+
+            # interstitial redirects and nsfw settings are funky on the media
+            # domain. just disable nsfw embeds.
+            if c.liveupdate_event.nsfw:
+                embed_page = pages.LiveUpdateEventEmbed(
+                    content=pages.LiveUpdateNSFWEmbed(),
+                )
+                request.environ["usable_error_content"] = embed_page.render()
+                abort(403)
 
             embed_page = pages.LiveUpdateEventEmbed(
                 content=content,
@@ -411,7 +423,7 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
     )
-    def POST_edit(self, form, jquery, title, description, resources):
+    def POST_edit(self, form, jquery, title, description, resources, nsfw):
         """Configure the thread.
 
         Requires the `settings` permission for this thread.
@@ -436,6 +448,7 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event.title = title
         c.liveupdate_event.description = description
         c.liveupdate_event.resources = resources
+        c.liveupdate_event.nsfw = nsfw
         c.liveupdate_event._commit()
 
         form.set_html(".status", _("saved"))

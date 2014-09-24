@@ -505,3 +505,7 @@ class EmbedlyCard(Templated):
 
 class LiveUpdateHome(Templated):
     pass
+
+
+class LiveUpdateNSFWEmbed(Templated):
+    pass

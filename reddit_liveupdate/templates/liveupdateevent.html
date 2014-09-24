@@ -9,6 +9,12 @@
       <span class="state">${_("live")}</span>
     % endif
 
+    % if thing.nsfw:
+      <span class="nsfw-stamp">
+        ${utils.nsfw_stamp()}
+      </span>
+    % endif
+
     <span class="viewers">${ungettext('%(num)s viewer', '%(num)s viewers', thing.active_visitors) % dict(num=thing.active_visitors)}</span>
 
     % if c.user_is_admin and thing.banned:

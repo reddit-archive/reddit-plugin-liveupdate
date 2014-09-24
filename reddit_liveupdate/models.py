@@ -38,6 +38,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         "active_visitors_fuzzed": True,
         "banned": False,
         "banned_by": "(unknown)",
+        "nsfw": False,
     }
 
     @classmethod

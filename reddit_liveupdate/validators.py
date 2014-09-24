@@ -3,7 +3,13 @@ import uuid
 from pylons import c
 from pylons.controllers.util import abort
 
-from r2.lib.validator import Validator, VPermissions, VLength, VMarkdown
+from r2.lib.validator import (
+    Validator,
+    VBoolean,
+    VLength,
+    VMarkdown,
+    VPermissions,
+)
 from r2.lib.db import tdb_cassandra
 from r2.lib.errors import errors
 
@@ -83,6 +89,7 @@ EVENT_CONFIGURATION_VALIDATORS = {
     "title": VLength("title", max_length=120),
     "description": VMarkdown("description", max_length=120, empty_error=None),
     "resources": VMarkdown("resources", empty_error=None),
+    "nsfw": VBoolean("nsfw"),
 }
 
 
