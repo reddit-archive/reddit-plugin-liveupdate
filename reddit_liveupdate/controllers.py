@@ -1000,7 +1000,7 @@ class LiveUpdateEventsController(RedditController):
         section=api_section.live,
         uri="/api/live/create",
     )
-    def POST_create(self, form, jquery, title, description, resources):
+    def POST_create(self, form, jquery, title, description, resources, nsfw):
         """Create a new live thread.
 
         Once created, the initial settings can be modified with
@@ -1023,6 +1023,7 @@ class LiveUpdateEventsController(RedditController):
             description=description,
             resources=resources,
             banned=c.user._spam,
+            nsfw=nsfw,
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
