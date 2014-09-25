@@ -242,7 +242,10 @@ class LiveUpdateController(RedditController):
             request.environ["usable_error_content"] = error_page.render()
             self.abort403()
 
-        if c.liveupdate_event.nsfw and not c.over18 and c.render_style == "html":
+        if (c.liveupdate_event.nsfw and
+                not c.over18 and
+                request.host != g.media_domain and  # embeds are special
+                c.render_style == "html"):
             return self.intermediate_redirect("/over18", sr_path=False)
 
     @require_oauth2_scope("read")
