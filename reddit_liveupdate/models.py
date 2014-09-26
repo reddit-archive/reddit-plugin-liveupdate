@@ -28,6 +28,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
     _bool_props = (
         "active_visitors_fuzzed",
         "banned",
+        "nsfw",
     )
     _defaults = {
         "description": "",
