@@ -7,7 +7,7 @@ from r2.lib.validator import (
     Validator,
     VBoolean,
     VLength,
-    VMarkdown,
+    VMarkdownLength,
     VPermissions,
 )
 from r2.lib.db import tdb_cassandra
@@ -87,8 +87,8 @@ class VLiveUpdatePermissions(VPermissions):
 
 EVENT_CONFIGURATION_VALIDATORS = {
     "title": VLength("title", max_length=120),
-    "description": VMarkdown("description", max_length=120, empty_error=None),
-    "resources": VMarkdown("resources", empty_error=None),
+    "description": VMarkdownLength("description", max_length=120, empty_error=None),
+    "resources": VMarkdownLength("resources", max_length=10000, empty_error=None),
     "nsfw": VBoolean("nsfw"),
 }
 

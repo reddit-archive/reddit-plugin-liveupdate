@@ -30,7 +30,7 @@ from r2.lib.validator import (
     VCount,
     VExistingUname,
     VLimit,
-    VMarkdown,
+    VMarkdownLength,
     VModhash,
     VRatelimit,
     VOneOf,
@@ -700,7 +700,7 @@ class LiveUpdateController(RedditController):
     @validatedForm(
         VLiveUpdateContributorWithPermission("update"),
         VModhash(),
-        text=VMarkdown("body", max_length=4096),
+        text=VMarkdownLength("body", max_length=4096),
     )
     @api_doc(
         section=api_section.live,
