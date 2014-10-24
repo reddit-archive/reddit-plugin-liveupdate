@@ -667,10 +667,23 @@ class LiveUpdateController(RedditController):
 
         type, permissions = type_and_perms
         if type == "liveupdate_contributor":
+            if user._id not in c.liveupdate_event.contributors:
+                c.errors.add(errors.LIVEUPDATE_NOT_CONTRIBUTOR, field="user")
+                form.has_errors("user", errors.LIVEUPDATE_NOT_CONTRIBUTOR)
+                return
+
             c.liveupdate_event.update_contributor_permissions(user, permissions)
         elif type == "liveupdate_contributor_invite":
-            LiveUpdateContributorInvitesByEvent.update_invite_permissions(
-                c.liveupdate_event, user, permissions)
+            try:
+                LiveUpdateContributorInvitesByEvent.get(
+                    c.liveupdate_event, user)
+            except InviteNotFoundError:
+                c.errors.add(errors.LIVEUPDATE_NO_INVITE_FOUND, field="user")
+                form.has_errors("user", errors.LIVEUPDATE_NO_INVITE_FOUND)
+                return
+            else:
+                LiveUpdateContributorInvitesByEvent.update_invite_permissions(
+                    c.liveupdate_event, user, permissions)
 
         row = form.closest("tr")
         editor = row.find(".permissions").data("PermissionEditor")

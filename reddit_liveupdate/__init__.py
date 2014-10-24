@@ -65,6 +65,8 @@ class LiveUpdate(Plugin):
     needs_static_build = True
 
     errors = {
+        "LIVEUPDATE_NOT_CONTRIBUTOR":
+            N_("that user is not a contributor"),
         "LIVEUPDATE_NO_INVITE_FOUND":
             N_("there is no pending invite for that thread"),
         "LIVEUPDATE_TOO_MANY_INVITES":
