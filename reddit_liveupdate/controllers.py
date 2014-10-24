@@ -150,7 +150,7 @@ class LiveUpdateContributorBuilder(SimpleBuilder):
         return not item.account._deleted
 
     def wrap_item(self, item):
-        return pages.ContributorTableItem(
+        return pages.LiveUpdateContributorTableItem(
             item,
             self.event,
             editable=self.editable,
@@ -165,7 +165,7 @@ class LiveUpdateContributorBuilder(SimpleBuilder):
 
 class LiveUpdateInvitedContributorBuilder(LiveUpdateContributorBuilder):
     def wrap_item(self, item):
-        return pages.InvitedContributorTableItem(
+        return pages.InvitedLiveUpdateContributorTableItem(
             item,
             self.event,
             editable=self.editable,
@@ -562,7 +562,7 @@ class LiveUpdateController(RedditController):
 
         # add the user to the table
         contributor = LiveUpdateContributor(user, permissions)
-        user_row = pages.InvitedContributorTableItem(
+        user_row = pages.InvitedLiveUpdateContributorTableItem(
             contributor, c.liveupdate_event, editable=True)
         jquery(".liveupdate_contributor_invite-table").show(
             ).find("table").insert_table_rows(user_row)

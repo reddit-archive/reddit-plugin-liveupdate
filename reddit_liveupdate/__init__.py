@@ -204,6 +204,8 @@ class LiveUpdate(Plugin):
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
         api('liveupdatereportedeventrow', pages.LiveUpdateEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)
+        api('liveupdatecontributortableitem',
+            pages.ContributorTableItemJsonTemplate)
 
         from reddit_liveupdate import scraper
         scraper.hooks.register_all()

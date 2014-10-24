@@ -23,6 +23,7 @@ from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
     ThingJsonTemplate,
+    UserTableItemJsonTemplate,
 )
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
@@ -267,12 +268,12 @@ class LiveUpdateContributorPermissions(ModeratorPermissions):
         )
 
 
-class ContributorTableItem(UserTableItem):
+class LiveUpdateContributorTableItem(UserTableItem):
     type = "liveupdate_contributor"
 
     def __init__(self, contributor, event, editable):
         self.event = event
-        self.render_class = ContributorTableItem
+        self.render_class = LiveUpdateContributorTableItem
         self.permissions = LiveUpdateContributorPermissions(
             self.type, contributor.account, contributor.permissions)
         UserTableItem.__init__(self, contributor.account, editable=editable)
@@ -302,12 +303,25 @@ class ContributorTableItem(UserTableItem):
         return "live/%s/rm_contributor" % self.event._id
 
 
-class InvitedContributorTableItem(ContributorTableItem):
+class InvitedLiveUpdateContributorTableItem(LiveUpdateContributorTableItem):
     type = "liveupdate_contributor_invite"
 
     @property
     def remove_action(self):
         return "live/%s/rm_contributor_invite" % self.event._id
+
+
+class ContributorTableItemJsonTemplate(UserTableItemJsonTemplate):
+    _data_attrs_ = UserTableItemJsonTemplate.data_attrs(
+        permissions="permissions",
+    )
+
+    def thing_attr(self, thing, attr):
+        if attr == "permissions":
+            return [perm for perm, has in
+                thing.permissions.permissions.iteritems() if has]
+        else:
+            return UserTableItemJsonTemplate.thing_attr(self, thing, attr)
 
 
 class LiveUpdateInvitedContributorListing(UserListing):
