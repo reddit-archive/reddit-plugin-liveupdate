@@ -23,6 +23,7 @@ from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
     ThingJsonTemplate,
+    UserTableItemJsonTemplate,
 )
 
 from reddit_liveupdate.permissions import ContributorPermissionSet
@@ -308,6 +309,19 @@ class InvitedContributorTableItem(ContributorTableItem):
     @property
     def remove_action(self):
         return "live/%s/rm_contributor_invite" % self.event._id
+
+
+class ContributorTableItemJsonTemplate(UserTableItemJsonTemplate):
+    _data_attrs_ = UserTableItemJsonTemplate.data_attrs(
+        permissions="permissions",
+    )
+
+    def thing_attr(self, thing, attr):
+        if attr == "permissions":
+            return [perm for perm, has in
+                thing.permissions.permissions.iteritems() if has]
+        else:
+            return UserTableItemJsonTemplate.thing_attr(self, thing, attr)
 
 
 class LiveUpdateInvitedContributorListing(UserListing):
