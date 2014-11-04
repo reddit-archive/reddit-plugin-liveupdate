@@ -175,7 +175,10 @@ class LiveUpdateEventEmbed(LiveUpdateEventPage):
 
     def __init__(self, *args, **kwargs):
         self.base_url = add_sr(
-            "/live/" + c.liveupdate_event._id, force_hostname=True)
+            "/live/" + c.liveupdate_event._id,
+            force_hostname=True,
+            force_https=c.secure,
+        )
         super(LiveUpdateEventEmbed, self).__init__(*args, **kwargs)
 
 
