@@ -36,7 +36,7 @@
 
 <div class="main-content">
 % if thing.show_sidebar:
-<aside class="sidebar">
+<aside class="sidebar side md-container">
   % if thing.event.description:
   <section id="liveupdate-description">
     ${utils.md(thing.event.description, wrap=True)}
