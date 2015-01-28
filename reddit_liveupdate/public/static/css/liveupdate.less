@@ -26,9 +26,11 @@
 }
 
 body {
+    min-width: @full-width + @container-horizontal-padding * 2 + @container-border-width * 2;
     background-color: @outside-background-color;
 
     &.embed {
+        min-width: 0;
         background-color: white;
     }
 }
@@ -37,7 +39,7 @@ body {
     @border-radius: 7px;
 
     margin: 0 auto;
-    max-width: @full-width;
+    width: @full-width;
     border: @container-border-width solid @container-border-color;
     border-top: none;
     border-radius: 0 0 @border-radius @border-radius;
@@ -54,6 +56,7 @@ body {
     }
 
     body.embed & {
+        width: auto;
         border: 0;
     }
 }
@@ -226,15 +229,11 @@ body {
         background: url(../throbber.gif) center bottom no-repeat;
     }
 
-    .embed & {
-        width: @listing-width;
-    }
-
     li.separator {
         color: #808080;
         font-size: 13px;
         text-align: center;
-        margin-bottom: 2em;
+        margin-bottom: 1em;
         position: relative;
         background: transparent;
         z-index: 0;
@@ -264,12 +263,12 @@ body {
 
             display: inline-block;
             font-size: 10px;
-            max-width: @time-col-width - @bauble-width;
-            min-width: @time-col-width - @bauble-width;
+            width: @time-col-width - @bauble-width;
             text-align: left;
             overflow: hidden;
             float: left;
             vertical-align: top;
+            margin-bottom: .5em;
             padding-top: 3px;
 
             color: #888;
@@ -300,7 +299,7 @@ body {
             width: 100%;
             max-width: @update-col-width;
             word-break: break-word;
-            padding-bottom: 1em;
+            margin-bottom: 1em;
             font-size: 13px;
 
             div.md {
@@ -556,14 +555,15 @@ aside.sidebar {
 
 @media all and (max-width: 700px) {
     body {
+        min-width: 0;
         background-color: #fff;
     }
 
     .content,
     .liveupdate-focus .content {
-        max-width: 95%;
+        width: auto;
         border: none;
-        padding: 0;
+        padding: 0 10px;
         margin: 0 auto;
     }
 
@@ -602,7 +602,6 @@ aside.sidebar {
     aside.sidebar {
         float: none;
         margin: 0 0 2em 0;
-        max-width: 700px;
         width: auto;
         opacity: 1;
         transition: opacity 0;
@@ -652,11 +651,27 @@ aside.sidebar {
     }
 
     .liveupdate-listing {
-        max-width: 700px;
+        max-width: none;
 
-        li.liveupdate time {
-            margin-bottom: .5em;
-            padding-left: 15px;
+        .embed & {
+            width: auto;
+        }
+
+        li.separator {
+            margin-left: 0;
+            margin-rigth: 0;
+        }
+
+        li.liveupdate {
+            time {
+                float: none;
+                width: auto;
+                padding-left: 15px;
+            }
+
+            .body {
+                display: block;
+            }
         }
 
         // always display the buttons in tiny-screen mode since it's likely a touch
