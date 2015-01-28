@@ -2,3 +2,4 @@
 *.sw[op]
 *.py[oc]
 .DS_Store
+build/
