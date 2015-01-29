@@ -63,7 +63,7 @@
     </ul>
 
     % if len(thing.contributors) > CONTRIBUTOR_CUTOFF:
-    <a href="/live/${c.liveupdate_event._id}/contributors" class="more-contributors">${unsafe(_("&hellip; and %(count)s more &raquo;") % dict(count=len(thing.contributors) - CONTRIBUTOR_CUTOFF))}</a>
+    <a href="/live/${c.liveupdate_event._id}/contributors" class="more-contributors">${_("… and %(count)s more ⇒") % dict(count=len(thing.contributors) - CONTRIBUTOR_CUTOFF)}</a>
     % endif
   </section>
 
