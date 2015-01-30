@@ -142,4 +142,16 @@ $(function() {
   } else if ($body.hasClass('liveupdate-focus')) {
     r.liveupdate.app = new r.liveupdate.LiveUpdateAppBase()
   }
+
+  $('.sidebar-expand').on('click', function(e) {
+    var $this = $(this)
+    var toggleText = $this.data('toggle')
+    var currentText = $this.text()
+
+    $this
+      .text(toggleText)
+      .data('toggle', currentText)
+      .parent().toggleClass('sidebar-expanded')
+  });
+
 })

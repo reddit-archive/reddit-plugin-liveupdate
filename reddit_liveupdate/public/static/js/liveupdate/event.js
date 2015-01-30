@@ -24,12 +24,12 @@
       this.$resourcesEl = $('#liveupdate-resources')
 
       if (!this.$descriptionEl.length) {
-        this.$descriptionEl = $('<section id="liveupdate-description">')
+        this.$descriptionEl = $('<div id="liveupdate-description">')
       }
 
       if (!this.$resourcesEl.length) {
         this.$resourcesEl = $('<section id="liveupdate-resources">')
-        this.$resourcesEl.append($('<h1>' + r._('resources') + '</h1>'))
+        this.$resourcesEl.append($('<h2>' + r._('resources') + '</h2>'))
       }
 
       this.listenTo(this.model, {
@@ -52,7 +52,7 @@
 
       this.$descriptionEl
         .html(description)
-        .prependTo('aside.sidebar')
+        .insertAfter(this.$titleEl)
     },
 
     renderResources: function() {
@@ -65,12 +65,7 @@
       }
 
       this.$resourcesEl.find('.md').replaceWith($.parseHTML(resources))
-
-      if ($('html').has(this.$descriptionEl).length) {
-        this.$resourcesEl.insertAfter(this.$descriptionEl)
-      } else {
-        this.$resourcesEl.prependTo('aside.sidebar')
-      }
+      this.$resourcesEl.insertAfter('.sidebar-expand')
     },
   })
 }(r, Backbone, jQuery)

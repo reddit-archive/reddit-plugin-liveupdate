@@ -8,6 +8,11 @@
 
 <header id="liveupdate-header">
   <h1 id="liveupdate-title">${thing.event.title}</h1>
+  % if thing.event.description:
+  <div id="liveupdate-description" class="md-container">
+    ${utils.md(thing.event.description, wrap=True)}
+  </div>
+  % endif
 
   <div id="liveupdate-statusbar" class="${thing.event.state}">
     <p class="state">
@@ -37,23 +42,19 @@
 <div class="main-content">
 % if thing.show_sidebar:
 <aside class="sidebar side md-container">
-  % if thing.event.description:
-  <section id="liveupdate-description">
-    ${utils.md(thing.event.description, wrap=True)}
-  </section>
-  % endif
+  <a class="sidebar-expand" href="javascript: void 0;" data-toggle="${_("less about this live thread")}">${_("more about this live thread")}</a>
   % if thing.event.resources:
   <section id="liveupdate-resources">
-    <h1>${_("resources")}</h1>
+    <h2>${_("resources")}</h2>
     ${utils.md(thing.event.resources, wrap=True)}
   </section>
   % endif
   <section id="discussions" title="${_("comment threads on reddit linking to this page")}">
-    <h1>${_("discussions")}</h1>
+    <h2>${_("discussions")}</h2>
     ${thing.discussions}
   </section>
   <section id="contributors">
-    <h1>${_("updated by")}</h1>
+    <h2>${_("updated by")}</h2>
 
     <ul>
       % for contributor in thing.contributors[:CONTRIBUTOR_CUTOFF]:
