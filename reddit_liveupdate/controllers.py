@@ -260,7 +260,7 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}",
-        extensions=["json", "xml"],
+        supports_rss=True,
         notes=[paginated_listing.doc_note],
     )
     def GET_listing(self, num, after, before, count, is_embed, style_sr):
@@ -375,7 +375,6 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}/about",
-        extensions=["json"],
     )
     def GET_about(self):
         """Get some basic information about the live thread.
@@ -393,7 +392,7 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}/discussions",
-        extensions=["json", "xml"],
+        supports_rss=True,
     )
     def GET_discussions(self, num, after, reverse, count):
         """Get a list of reddit submissions linking to this thread."""
@@ -462,7 +461,6 @@ class LiveUpdateController(RedditController):
     @api_doc(
         section=api_section.live,
         uri="/live/{thread}/contributors",
-        extensions=["json"],
     )
     def GET_contributors(self):
         """Get a list of users that contribute to this thread.
