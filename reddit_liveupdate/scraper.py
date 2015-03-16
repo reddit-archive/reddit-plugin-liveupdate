@@ -5,13 +5,14 @@ from pylons import g, c
 
 from r2.lib.hooks import HookRegistrar
 from r2.lib.media import Scraper, MediaEmbed
+from r2.lib.template_helpers import format_html
 from r2.lib.utils import UrlParser
 
 
 hooks = HookRegistrar()
 _EMBED_TEMPLATE = """
 <div class="psuedo-selftext">
-  <iframe src="{url}" height="{height}"></iframe>
+  <iframe src="%(url)s" height="%(height)s"></iframe>
 </div>
 """
 
@@ -51,10 +52,7 @@ class _LiveUpdateScraper(Scraper):
             None,
         ))
 
-        content = _EMBED_TEMPLATE.format(
-            url=url,
-            height=height,
-        )
+        content = format_html(_EMBED_TEMPLATE, url=url, height=height)
 
         return MediaEmbed(
             height=height,
