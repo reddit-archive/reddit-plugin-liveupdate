@@ -30,6 +30,7 @@ class _LiveUpdateScraper(Scraper):
     def scrape(self):
         return (
             None,
+            None,
             self._make_media_object(),
             self._make_media_object(),
         )

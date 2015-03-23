@@ -93,7 +93,7 @@ def _scrape_media_object(url, autoplay=False, maxwidth=_EMBED_WIDTH):
     scraper = LiveScraper.for_url(url, autoplay=autoplay, maxwidth=maxwidth)
 
     try:
-        thumbnail, media_object, secure_media_object = scraper.scrape()
+        thumbnail, preview, media_object, secure_media_object = scraper.scrape()
     except (HTTPError, URLError):
         g.log.info("Unable to scrape suspected scrapable URL: %r", url)
         return None
