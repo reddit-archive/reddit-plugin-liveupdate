@@ -137,7 +137,7 @@ class _EmbedlyCardFallbackScraper(Scraper):
         self.scraper = scraper
 
     def scrape(self):
-        thumb, media_object, secure_media_object = self.scraper.scrape()
+        thumb, preview, media_object, secure_media_object = self.scraper.scrape()
 
         # ok, the upstream scraper failed so let's make an embedly card
         if not media_object:
@@ -150,7 +150,7 @@ class _EmbedlyCardFallbackScraper(Scraper):
                 },
             }
 
-        return thumb, media_object, secure_media_object
+        return thumb, preview, media_object, secure_media_object
 
     @classmethod
     def media_embed(cls, media_object):
@@ -203,12 +203,13 @@ class _TwitterScraper(Scraper):
     def scrape(self):
         oembed = self._fetch_from_twitter()
         if not oembed:
-            return None, None, None
+            return None, None, None, None
 
         media_object = self._make_media_object(oembed)
 
         return (
             None,  # no thumbnails for twitter
+            None,
             media_object,
             media_object,  # Twitter's response is ssl ready by default
         )
