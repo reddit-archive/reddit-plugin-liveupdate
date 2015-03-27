@@ -41,6 +41,7 @@ class LiveUpdatePage(Reddit):
         Reddit.__init__(self,
             title=title,
             show_sidebar=False,
+            show_newsletterbar=False,
             content=content,
             **kwargs
         )
