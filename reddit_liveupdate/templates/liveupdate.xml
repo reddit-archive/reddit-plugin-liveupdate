@@ -1,9 +1,10 @@
 <%!
     from r2.lib.filters import spaceCompress, safemarkdown
+    from r2.lib.template_helpers import get_domain
 %>
 
 <item>
-    <guid isPermaLink="false">${thing._id}</guid>
+    <guid isPermaLink="true">https://${get_domain(cname=False, subreddit=False)}/live/${c.liveupdate_event._id}/updates/${thing._id}</guid>
     <pubDate>${thing._date.strftime('%a, %d %b %Y %H:%M:%S %z')}</pubDate>
     <description>
         ${spaceCompress(safemarkdown(thing.body))}
