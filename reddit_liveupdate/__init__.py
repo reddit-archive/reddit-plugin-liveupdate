@@ -192,6 +192,7 @@ class LiveUpdate(Plugin):
         }
 
         from reddit_liveupdate.controllers import (
+            controller_hooks,
             LiveUpdateController,
             LiveUpdateEventsController,
             LiveUpdatePixelController,
@@ -206,6 +207,8 @@ class LiveUpdate(Plugin):
         api('liveupdate', pages.LiveUpdateJsonTemplate)
         api('liveupdatecontributortableitem',
             pages.ContributorTableItemJsonTemplate)
+
+        controller_hooks.register_all()
 
         from reddit_liveupdate import scraper
         scraper.hooks.register_all()

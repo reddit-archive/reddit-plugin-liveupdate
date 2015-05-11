@@ -529,3 +529,9 @@ class LiveUpdateHome(Templated):
 
 class LiveUpdateNSFWEmbed(Templated):
     pass
+
+
+class LiveUpdateHappeningNowBar(Templated):
+    def __init__(self, event):
+        self.event = event
+        Templated.__init__(self)
