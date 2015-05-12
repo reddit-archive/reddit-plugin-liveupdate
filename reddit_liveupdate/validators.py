@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from pylons import c
@@ -12,6 +13,7 @@ from r2.lib.validator import (
 )
 from r2.lib.db import tdb_cassandra
 from r2.lib.errors import errors
+from r2.lib.utils import UrlParser
 
 from reddit_liveupdate import models
 from reddit_liveupdate.permissions import ContributorPermissionSet
@@ -26,6 +28,23 @@ class VLiveUpdateEvent(Validator):
             return models.LiveUpdateEvent._byID(id)
         except tdb_cassandra.NotFound:
             return None
+
+
+class VLiveUpdateEventUrl(VLiveUpdateEvent):
+    def run(self, url):
+        if not url:
+            return None
+
+        u = UrlParser(url)
+        # TODO: We should probably set error messages in these cases.
+        if not u.is_reddit_url():
+            return None
+
+        event_id = re.match(r'/live/(\w+)/?', u.path)
+        if not event_id:
+            return None
+
+        return VLiveUpdateEvent.run(self, event_id.group(1))
 
 
 class VLiveUpdateID(Validator):

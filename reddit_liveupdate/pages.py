@@ -535,3 +535,10 @@ class LiveUpdateHappeningNowBar(Templated):
     def __init__(self, event):
         self.event = event
         Templated.__init__(self)
+
+
+class HappeningNowAdmin(Templated):
+    """Admin page for choosing the promoted reddit live thread."""
+
+    def __init__(self, current_thread):
+        super(HappeningNowAdmin, self).__init__(current_thread=current_thread)

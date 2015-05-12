@@ -6,6 +6,7 @@ import pytz
 
 from pycassa.util import convert_uuid_to_time
 from pycassa.system_manager import TIME_UUID_TYPE, UTF8_TYPE
+from pylons import g
 
 from r2.lib import utils
 from r2.lib.db import tdb_cassandra
@@ -76,6 +77,13 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
                     ContributorPermissionSet.loads(v)
                 for k, v in self._t.iteritems()
                 if k.startswith(self._contributor_prefix)}
+
+    def url(self, absolute=False):
+        if absolute:
+            prefix = g.https_endpoint
+        else:
+            prefix = ''
+        return '%s/live/%s' % (prefix, self._id)
 
     @classmethod
     def new(cls, id, title, **properties):

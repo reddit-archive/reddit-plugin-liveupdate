@@ -174,6 +174,8 @@ class LiveUpdate(Plugin):
         mc('/mediaembed/liveupdate/:event/:liveupdate/:embed_index',
            controller="liveupdateembed", action="mediaembed")
 
+        mc('/admin/happening-now', controller='liveupdateadmin', action='happening_now')
+
     def load_controllers(self):
         from r2.controllers.api_docs import api_section, section_info
         api_section["live"] = "live"

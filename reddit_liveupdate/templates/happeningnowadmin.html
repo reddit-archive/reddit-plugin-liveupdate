@@ -1,0 +1,20 @@
+<%namespace file="utils.html" import="text_with_links"/>
+
+%if thing.current_thread:
+  <div class="infobar">
+    ${text_with_links(
+      _("warning: we're already featuring a live thread. you shouldn't submit a new link unless you are deleting this one: %(thread)s"),
+      thread=dict(
+        link_text=thing.current_thread.title,
+        path=thing.current_thread.url())
+    )}
+  </div>
+%endif
+
+<h1>${_("reddit live: happening now")}</h1>
+
+<form action="/admin/happening-now" method="POST">
+  <input type="hidden" name="uh" value="${c.modhash}">
+  <input type="url" name="url" size="40" value="${thing.current_thread.url(absolute=True) if thing.current_thread else ''}">
+  <input type="submit">
+</form>

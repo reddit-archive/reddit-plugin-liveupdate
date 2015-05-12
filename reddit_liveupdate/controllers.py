@@ -54,7 +54,7 @@ from r2.models import (
 from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
-from r2.lib.pages import PaneStack, Wrapped, RedditError, Reddit
+from r2.lib.pages import AdminPage, PaneStack, Wrapped, RedditError, Reddit
 
 from reddit_liveupdate import pages, queries
 from reddit_liveupdate.media_embeds import (
@@ -79,6 +79,7 @@ from reddit_liveupdate.validators import (
     VLiveUpdate,
     VLiveUpdateContributorWithPermission,
     VLiveUpdateEvent,
+    VLiveUpdateEventUrl,
     VLiveUpdatePermissions,
     VLiveUpdateID,
 )
@@ -98,6 +99,7 @@ REPORTED_MESSAGE = """\
 The live thread [%(title)s](%(url)s) was just reported for %(reason)s.  Please
 see the [reports page](/live/reported) for more information.
 """
+HAPPENING_NOW_KEY = 'live_happening_now'
 
 
 def _broadcast(type, payload):
@@ -1096,6 +1098,33 @@ class LiveUpdateEmbedController(MinimalController):
         return pages.LiveUpdateMediaEmbedBody(**args).render()
 
 
+@add_controller
+class LiveUpdateAdminController(RedditController):
+    @validate(VAdmin())
+    def GET_happening_now(self):
+        current_thread_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
+        if current_thread_id:
+            current_thread = LiveUpdateEvent._byID(current_thread_id)
+        else:
+            current_thread = None
+        return AdminPage(
+                content=pages.HappeningNowAdmin(current_thread),
+                title='live: happening now',
+                nav_menus=[]
+            ).render()
+
+    @validate(
+        VAdmin(),
+        VModhash(),
+        featured_thread=VLiveUpdateEventUrl('url'),
+    )
+    def POST_happening_now(self, featured_thread):
+        NamedGlobals.set(HAPPENING_NOW_KEY,
+                         getattr(featured_thread, '_id', None))
+
+        self.redirect('/admin/happening-now')
+
+
 @controller_hooks.on("hot.get_content")
 def add_featured_live_thread(controller):
     """If we have a live thread featured, display it on the homepage."""
@@ -1110,7 +1139,7 @@ def add_featured_live_thread(controller):
     if getattr(controller, 'listing_obj') and controller.listing_obj.prev:
         return None
 
-    event_id = NamedGlobals.get('live_happening_now', None)
+    event_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
     if not event_id:
         return None
 
