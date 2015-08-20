@@ -192,6 +192,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         viewer_count="viewer_count",
         viewer_count_fuzzed="viewer_count_fuzzed",
         title="title",
+        nsfw="nsfw",
         description="description",
         description_html="description_html",
         resources="resources",
