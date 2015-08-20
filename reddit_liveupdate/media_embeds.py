@@ -9,7 +9,7 @@ from urllib2 import (
 
 import requests
 
-from pylons import g
+from pylons import app_globals as g
 
 from r2.lib import amqp
 from r2.lib.db import tdb_cassandra

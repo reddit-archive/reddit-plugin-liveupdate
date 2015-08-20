@@ -1,7 +1,7 @@
 import re
 import uuid
 
-from pylons import c
+from pylons import tmpl_context as c
 from pylons.controllers.util import abort
 
 from r2.lib.validator import (

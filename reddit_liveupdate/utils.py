@@ -3,7 +3,7 @@ import datetime
 import pytz
 
 from babel.dates import format_datetime
-from pylons import c
+from pylons import tmpl_context as c
 
 from r2.lib import websockets, template_helpers
 

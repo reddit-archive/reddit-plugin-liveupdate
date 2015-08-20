@@ -1,7 +1,8 @@
 import urllib
 import urlparse
 
-from pylons import g, c
+from pylons import tmpl_context as c
+from pylons import app_globals as g
 
 from r2.lib.hooks import HookRegistrar
 from r2.lib.media import Scraper, MediaEmbed
