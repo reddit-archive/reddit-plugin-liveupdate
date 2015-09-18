@@ -55,10 +55,12 @@ class MomentTranslations(LocaleSpecificSource):
     def get_localized_source(self, lang):
         # TODO: minify this
         source = FileSource("lib/moment-langs/%s.js" % lang)
-        if not source.path:
+        try:
+            localized_source = source.get_source(use_built_statics=True)
+        except IOError:
             print >> sys.stderr, "    WARNING: no moment.js support for %r" % lang
             return ""
-        return source.get_source()
+        return localized_source
 
 
 class LiveUpdate(Plugin):
