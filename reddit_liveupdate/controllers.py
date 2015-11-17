@@ -455,7 +455,9 @@ class LiveUpdateController(RedditController):
             changes["resources_html"] = safemarkdown(resources, nofollow=True) or ""
         if nsfw != c.liveupdate_event.nsfw:
             changes["nsfw"] = nsfw
-        _broadcast(type="settings", payload=changes)
+
+        if changes:
+            _broadcast(type="settings", payload=changes)
 
         c.liveupdate_event.title = title
         c.liveupdate_event.description = description
