@@ -45,7 +45,7 @@
         if ('MutationObserver' in window) {
             /* Currently just check on every set of mutations. */
             var observer = new MutationObserver(checkDimensions),
-                config = { attributes: true, subtree: true};
+                config = { attributes: true, subtree: true, childList: true};
 
             observer.observe(root, config);
         } else {
