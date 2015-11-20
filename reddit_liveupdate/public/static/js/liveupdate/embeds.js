@@ -51,7 +51,6 @@
           'class': 'embedFrame',
           'id': 'embed-' + updateId + '-' + embedIndex,
           'src': embedUri,
-          'width': embed.width,
           'height': embed.height || 200,
           'scrolling': 'no',
           'frameborder': 0,
@@ -74,7 +73,6 @@
       if (data.action === 'dimensionsChange') {
         $('#embed-LiveUpdate_' + data.updateId + '-' + data.embedIndex)
           .attr({
-            'width': Math.min(data.width, 480),
             'height': data.height,
           })
       }
