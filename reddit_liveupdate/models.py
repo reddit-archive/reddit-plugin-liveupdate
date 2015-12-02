@@ -234,8 +234,8 @@ class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
         key_validation_class=tdb_cassandra.ASCII_TYPE,
     )
 
-    _read_consistency_level  = tdb_cassandra.CL.ONE
-    _write_consistency_level = tdb_cassandra.CL.ANY
+    _read_consistency_level  = tdb_cassandra.CL.QUORUM
+    _write_consistency_level = tdb_cassandra.CL.ONE
 
     @classmethod
     def touch(cls, event_id, hash):
