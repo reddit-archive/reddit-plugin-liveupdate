@@ -1,12 +1,36 @@
 <%!
-    from r2.lib.filters import spaceCompress, safemarkdown
-    from r2.lib.template_helpers import get_domain
+    from r2.lib.filters import safemarkdown
+    from r2.lib.template_helpers import add_sr
+    from r2.lib.template_helpers import html_datetime
 %>
-
-<item>
-    <guid isPermaLink="true">https://${get_domain(cname=False, subreddit=False)}/live/${c.liveupdate_event._id}/updates/${thing._id}</guid>
-    <pubDate>${thing._date.strftime('%a, %d %b %Y %H:%M:%S %z')}</pubDate>
-    <description>
-        ${spaceCompress(safemarkdown(thing.body))}
-    </description>
-</item>
+<%namespace name="utils" file="utils.xml"/>
+<%
+    url = add_sr(("/live/%(event_id)s/updates/%(thing_id)s"
+                  % dict(event_id=c.liveupdate_event._id,
+                         thing_id=thing._id)),
+                 force_hostname=True,
+                 retain_extension=False,
+                 sr_path=False)
+%>
+<entry>
+    %if not thing.author.deleted:
+        ## thing.author isn't an actual account object here
+        <author><name>/u/${thing.author.name}</name></author>
+    %endif
+    <%utils:atom_content>
+        ${unsafe(safemarkdown(thing.body))}
+        %if not thing.author.deleted:
+            <div>
+                <a href="${add_sr('/user/'+thing.author.name,
+                                  sr_path=False,
+                                  retain_extension=False,
+                                  force_hostname=True)}">
+                    /u/${thing.author.name}
+                </a>
+            </div>
+        %endif
+    </%utils:atom_content>
+    <id>${thing._fullname}</id>
+    <link href="${url}" />
+    <published>${html_datetime(thing._date)}</published>
+</entry>

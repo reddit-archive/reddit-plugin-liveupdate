@@ -1,5 +1,0 @@
-<%inherit file="reddit.xml" />
-
-<%def name="Title()">
-${thing.title}
-</%def>
