@@ -32,5 +32,5 @@
     </%utils:atom_content>
     <id>${thing._fullname}</id>
     <link href="${url}" />
-    <published>${html_datetime(thing._date)}</published>
+    <updated>${html_datetime(thing._date)}</updated>
 </entry>
