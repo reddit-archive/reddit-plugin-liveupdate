@@ -205,9 +205,15 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         if attr == "_fullname":
             return "LiveUpdateEvent_" + thing._id
         elif attr == "viewer_count":
-            return thing.active_visitors
+            if thing.state == "live":
+                return thing.active_visitors
+            else:
+                return None
         elif attr == "viewer_count_fuzzed":
-            return thing.active_visitors_fuzzed
+            if thing.state == "live":
+                return thing.active_visitors_fuzzed
+            else:
+                return None
         elif attr == "description_html":
             return filters.spaceCompress(
                 filters.safemarkdown(thing.description, nofollow=True) or "")

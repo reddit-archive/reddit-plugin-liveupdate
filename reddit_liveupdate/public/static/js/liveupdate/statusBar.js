@@ -38,7 +38,7 @@
       this.listenTo(this.model, {
         'change:state change:delay_remaining': this.renderState,
         'change:socket_state': this.onSocketStateChange,
-        'change:viewer_count': this.renderViewerCount,
+        'change:state change:viewer_count': this.renderViewerCount,
       })
     },
 
@@ -115,6 +115,11 @@
 
     renderViewerCount: function() {
       var $viewerCount = this.$viewerCount || $('<p class="viewer-count">')
+
+      if (this.model.get('state') == 'complete') {
+        $viewerCount.remove();
+        return;
+      }
 
       var viewerCount = this.model.get('viewer_count')
       var viewerString = r.P_('%(num)s viewer', '%(num)s viewers', viewerCount)

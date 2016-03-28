@@ -1,9 +1,10 @@
 import collections
 import datetime
 
-from pylons import app_globals as g
+from pylons import app_globals as g, tmpl_context as c
+from thrift.transport.TTransport import TTransportException
 
-from r2.lib import amqp, websockets, utils
+from r2.lib import amqp, websockets, utils, baseplate_integration
 from r2.lib.db import tdb_cassandra
 from r2.models.query_cache import CachedQueryMutator
 
@@ -15,54 +16,48 @@ from reddit_liveupdate.models import (
 from reddit_liveupdate.queries import get_active_events
 
 
-ACTIVITY_FUZZING_THRESHOLD = 100
-
-
+@baseplate_integration.with_root_span("job.liveupdate_activity")
 def update_activity():
     events = {}
     event_counts = collections.Counter()
-    event_ids = ActiveVisitorsByLiveUpdateEvent._cf.get_range(
-        column_count=1, filter_empty=False)
 
-    for event_id, is_active in event_ids:
-        count = 0
+    for chunk in utils.in_chunks(LiveUpdateEvent._all(), size=100):
+        context_ids = {"LiveUpdateEvent_" + ev._id: ev._id for ev in chunk}
 
-        if is_active:
+        try:
+            with c.activity_service.retrying() as svc:
+                infos = svc.count_activity_multi(context_ids.keys())
+        except TTransportException:
+            continue
+
+        for context_id, info in infos.iteritems():
+            event_id = context_ids[context_id]
+
             try:
-                count = ActiveVisitorsByLiveUpdateEvent.get_count(event_id)
+                LiveUpdateActivityHistoryByEvent.record_activity(
+                    event_id, info.count)
             except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
-                g.log.warning("Failed to fetch activity count for %r: %s",
+                g.log.warning("Failed to update activity history for %r: %s",
                               event_id, e)
-                return
 
-        try:
-            LiveUpdateActivityHistoryByEvent.record_activity(event_id, count)
-        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
-            g.log.warning("Failed to update activity history for %r: %s",
-                          event_id, e)
+            try:
+                event = LiveUpdateEvent.update_activity(
+                    event_id, info.count, info.is_fuzzed)
+            except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
+                g.log.warning("Failed to update event activity for %r: %s",
+                              event_id, e)
+            else:
+                events[event_id] = event
+                event_counts[event_id] = info.count
 
-        is_fuzzed = False
-        if count < ACTIVITY_FUZZING_THRESHOLD:
-            count = utils.fuzz_activity(count)
-            is_fuzzed = True
-
-        try:
-            event = LiveUpdateEvent.update_activity(event_id, count, is_fuzzed)
-        except tdb_cassandra.TRANSIENT_EXCEPTIONS as e:
-            g.log.warning("Failed to update event activity for %r: %s",
-                          event_id, e)
-        else:
-            events[event_id] = event
-            event_counts[event_id] = count
-
-        websockets.send_broadcast(
-            "/live/" + event_id,
-            type="activity",
-            payload={
-                "count": count,
-                "fuzzed": is_fuzzed,
-            },
-        )
+            websockets.send_broadcast(
+                "/live/" + event_id,
+                type="activity",
+                payload={
+                    "count": info.count,
+                    "fuzzed": info.is_fuzzed,
+                },
+            )
 
     top_event_ids = [event_id for event_id, count in event_counts.most_common(1000)]
     top_events = [events[event_id] for event_id in top_event_ids]
