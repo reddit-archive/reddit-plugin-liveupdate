@@ -1035,8 +1035,16 @@ class LiveUpdateEventsController(RedditController):
         if not is_event_configuration_valid(form):
             return
 
+        # for simplicity, set the live-thread creation threshold at the
+        # subreddit creation threshold
+        if not c.user_is_admin and not c.user.can_create_subreddit:
+            form.set_error(errors.CANT_CREATE_SR, "")
+            c.errors.add(errors.CANT_CREATE_SR, field="")
+            return
+
         if form.has_errors("ratelimit", errors.RATELIMIT):
             return
+
         VRatelimit.ratelimit(
             rate_user=True, prefix="liveupdate_create_", seconds=60)
 
