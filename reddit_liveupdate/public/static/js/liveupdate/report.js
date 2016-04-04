@@ -67,15 +67,33 @@
     },
 
     onAdminAction: function() {
-      var action = this.$adminButton.data('action')
-      var url = '/api/live/' + r.config.liveupdate_event + '/' + action
+      post_admin_api(this.$adminButton, r.config.liveupdate_event).then(function() {
+        window.location.reload();
+      });
+    },
+  });
 
-      r.ajax({
+  var post_admin_api = function($btn, thing_id) {
+      var action = $btn.data('action')
+
+      var url = '/api/live/' + thing_id + '/' + action
+
+      return r.ajax({
         type: 'POST',
         url: url,
-      }).then(function() {
-        window.location.reload()
-      })
-    },
-  })
+      });
+  };
+
+  $('#siteTable .liveupdate-event button.admin').each(function() {
+    new r.ui.ConfirmButton({el: $(this)});
+  });
+  $('#siteTable .liveupdate-event .admin').on("confirm", function() {
+    var $this = $(this);
+    var $btn = $(this).children("button")
+    post_admin_api($btn, $btn.data("threadid")).success(function() {
+      $this.text("success");
+    }).error(function() {
+      $this.text("fail");
+    });
+  });
 }(r, Backbone, jQuery, _)
