@@ -85,6 +85,7 @@ from reddit_liveupdate.validators import (
     VLiveUpdatePermissions,
     VLiveUpdateID,
 )
+from reddit_liveupdate import events as liveupdate_events
 
 controller_hooks = hooks.HookRegistrar()
 
@@ -763,6 +764,8 @@ class LiveUpdateController(RedditController):
         # Queue up parsing any embeds
         queue_parse_embeds(c.liveupdate_event, update)
 
+        liveupdate_events.update_event(update, context=c, request=request)
+
         # reset the submission form
         t = form.find("textarea")
         t.attr('rows', 3).html("").val("")
@@ -793,6 +796,7 @@ class LiveUpdateController(RedditController):
 
         update.deleted = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
+        liveupdate_events.update_event(update, context=c, request=request)
 
         _broadcast(type="delete", payload=update._fullname)
 
@@ -823,6 +827,9 @@ class LiveUpdateController(RedditController):
         update.stricken = True
         LiveUpdateStream.add_update(c.liveupdate_event, update)
 
+        liveupdate_events.update_event(
+            update, stricken=True, context=c, request=request
+        )
         _broadcast(type="strike", payload=update._fullname)
 
     @require_oauth2_scope("livemanage")
@@ -845,6 +852,7 @@ class LiveUpdateController(RedditController):
         queries.complete_event(c.liveupdate_event)
 
         _broadcast(type="complete", payload={})
+        liveupdate_events.close_event(context=c, request=request)
 
         form.refresh()
 
@@ -874,6 +882,10 @@ class LiveUpdateController(RedditController):
             c.user, c.liveupdate_event, type=report_type)
         queries.report_event(c.liveupdate_event)
 
+        liveupdate_events.report_event(
+            report_type, context=c, request=request
+        )
+
         try:
             default_subreddit = Subreddit._by_name(g.default_sr)
         except NotFound:
@@ -901,6 +913,7 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event._commit()
 
         queries.unreport_event(c.liveupdate_event)
+        liveupdate_events.ban_event(context=c, request=request)
 
     @validatedForm(
         VAdmin(),
@@ -912,6 +925,7 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event._commit()
 
         queries.unreport_event(c.liveupdate_event)
+        liveupdate_events.ban_event(context=c, request=request)
 
 
 class LiveUpdateEventBuilder(IDBuilder):
@@ -1061,6 +1075,7 @@ class LiveUpdateEventsController(RedditController):
 
         form.redirect("/live/" + event._id)
         form._send_data(id=event._id)
+        liveupdate_events.create_event(event, context=c, request=request)
 
 
 @add_controller
