@@ -9,7 +9,6 @@ from r2.lib.db import tdb_cassandra
 from r2.models.query_cache import CachedQueryMutator
 
 from reddit_liveupdate.models import (
-    ActiveVisitorsByLiveUpdateEvent,
     LiveUpdateEvent,
     LiveUpdateActivityHistoryByEvent,
 )

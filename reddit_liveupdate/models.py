@@ -225,27 +225,6 @@ class LiveUpdate(object):
         return embeds
 
 
-class ActiveVisitorsByLiveUpdateEvent(tdb_cassandra.View):
-    _use_db = True
-    _connection_pool = 'main'
-    _ttl = datetime.timedelta(minutes=15)
-
-    _extra_schema_creation_args = dict(
-        key_validation_class=tdb_cassandra.ASCII_TYPE,
-    )
-
-    _read_consistency_level  = tdb_cassandra.CL.QUORUM
-    _write_consistency_level = tdb_cassandra.CL.ONE
-
-    @classmethod
-    def touch(cls, event_id, hash):
-        cls._set_values(event_id, {hash: ''})
-
-    @classmethod
-    def get_count(cls, event_id):
-        return cls._cf.get_count(event_id)
-
-
 class LiveUpdateActivityHistoryByEvent(tdb_cassandra.View):
     _use_db = True
     _connection_pool = "main"

@@ -72,7 +72,6 @@ from reddit_liveupdate.models import (
     LiveUpdateContributorInvitesByEvent,
     LiveUpdateReportsByAccount,
     LiveUpdateReportsByEvent,
-    ActiveVisitorsByLiveUpdateEvent,
 )
 from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import send_event_broadcast
@@ -208,7 +207,6 @@ class LiveUpdatePixelController(BaseController):
         event_id = event[:50]  # some very simple poor-man's validation
         user_agent = request.user_agent or ''
         user_id = hashlib.sha1(request.ip + user_agent).hexdigest()
-        ActiveVisitorsByLiveUpdateEvent.touch(event_id, user_id)
 
         if c.activity_service:
             event_context_id = "LiveUpdateEvent_" + event_id
