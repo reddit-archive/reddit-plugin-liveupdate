@@ -20,7 +20,7 @@ from r2.controllers.reddit_base import (
     base_listing,
     paginated_listing,
 )
-from r2.lib import hooks
+from r2.lib import hooks, baseplate_integration
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.filters import safemarkdown
@@ -196,7 +196,11 @@ class LiveUpdatePixelController(BaseController):
                 self._pixel_data = f.read()
         return self._pixel_data
 
-    def GET_pixel(self, event):
+    # this decorator takes **kwargs which routes treats specially and throws
+    # every routing variable it could think of at the endpoint, so this means
+    # GET_pixel then has to take **kwargs too just to appease it. annoying.
+    @baseplate_integration.with_root_span("liveupdatepixelcontroller.GET_pixel")
+    def GET_pixel(self, event, **kwargs):
         extension = request.environ.get("extension")
         if extension != "png":
             abort(404)
