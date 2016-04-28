@@ -22,7 +22,10 @@ def update_activity():
     event_counts = collections.Counter()
 
     for chunk in utils.in_chunks(LiveUpdateEvent._all(), size=100):
-        context_ids = {"LiveUpdateEvent_" + ev._id: ev._id for ev in chunk}
+        context_ids = {"LiveUpdateEvent_" + ev._id: ev._id for ev in chunk
+                       if ev.state == "live" and not ev.banned}
+        if not context_ids:
+            continue
 
         try:
             with c.activity_service.retrying() as svc:
