@@ -12,7 +12,7 @@ from r2.lib import utils
 from r2.lib.db import tdb_cassandra
 from r2.models import query_cache
 
-from reddit_liveupdate.contrib import simpleflake
+from r2.lib.contrib import simpleflake
 from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
