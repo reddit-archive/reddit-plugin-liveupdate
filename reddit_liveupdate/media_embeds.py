@@ -14,7 +14,7 @@ from pylons import app_globals as g
 from r2.lib import amqp
 from r2.lib.db import tdb_cassandra
 from r2.lib.media import MediaEmbed, Scraper, get_media_embed
-from r2.lib.utils import sanitize_url
+from r2.lib.utils import sanitize_url, TimeoutFunction, TimeoutFunctionException
 
 from reddit_liveupdate import pages
 from reddit_liveupdate.models import LiveUpdateStream, LiveUpdateEvent
@@ -242,7 +242,12 @@ def process_liveupdate_scraper_q():
         d = json.loads(msg.body)
 
         try:
-            liveupdate = parse_embeds(d['event_id'], d['liveupdate_id'])
+            fn = TimeoutFunction(parse_embeds, 10)
+            liveupdate = fn(d['event_id'], d['liveupdate_id'])
+        except TimeoutFunctionException:
+            g.log.warning(
+                "Timed out on %s::%s", d["event_id"], d["liveupdate_id"])
+            return
         except Exception as e:
             g.log.warning("Failed to scrape %s::%s: %r",
                 d["event_id"], d["liveupdate_id"], e)
