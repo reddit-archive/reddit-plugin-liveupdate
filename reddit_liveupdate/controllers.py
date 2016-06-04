@@ -901,8 +901,8 @@ class LiveUpdateController(RedditController):
         except NotFound:
             pass
         else:
-            not_yet_reported = g.cache.add(
-                "lu_reported_" + str(c.liveupdate_event._id), 1, time=3600)
+            not_yet_reported = g.ratelimitcache.add(
+                "rl:lu_reported_" + str(c.liveupdate_event._id), 1, time=3600)
             if not_yet_reported:
                 send_system_message(
                     default_subreddit,
