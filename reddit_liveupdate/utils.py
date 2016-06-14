@@ -14,26 +14,18 @@ def pretty_time(dt, allow_relative=True):
     if allow_relative and ago < datetime.timedelta(hours=24):
         return template_helpers.simplified_timesince(dt)
     elif dt.date() == datetime.datetime.now(pytz.UTC).date():
-        return format_datetime(
-            datetime=dt,
-            tzinfo=pytz.UTC,
-            format="HH:mm",
-            locale=c.locale,
-        )
+        date_format="HH:mm"
     elif ago < datetime.timedelta(days=365):
-        return format_datetime(
-            datetime=dt,
-            tzinfo=pytz.UTC,
-            format="dd MMM HH:mm",
-            locale=c.locale,
-        )
+        date_format="dd MMM HH:mm"
     else:
-        return format_datetime(
-            datetime=dt,
-            tzinfo=pytz.UTC,
-            format="dd MMM YYYY HH:mm",
-            locale=c.locale,
-        )
+        date_format="dd MMM YYYY HH:mm"
+
+    return format_datetime(
+        datetime=dt,
+        tzinfo=pytz.UTC,
+        format=date_format,
+        locale=c.locale,
+    )
 
 
 def send_event_broadcast(event_id, type, payload):
