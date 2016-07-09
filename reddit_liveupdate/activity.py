@@ -26,7 +26,7 @@ def update_activity():
         context_ids = {"LiveUpdateEvent_" + ev._id: ev._id for ev in chunk}
 
         try:
-            with c.activity_service.retrying() as svc:
+            with c.activity_service.retrying(attempts=4) as svc:
                 infos = svc.count_activity_multi(context_ids.keys())
         except TTransportException:
             continue
