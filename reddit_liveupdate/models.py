@@ -157,10 +157,6 @@ class LiveUpdateStream(tdb_cassandra.View):
         return [LiveUpdate.from_json(*column.popitem())
                 for column in utils.tup(columns)]
 
-    @classmethod
-    def query_focus(cls, event, id):
-        return FocusQuery([cls.get_update(event, id)])
-
 
 class LiveUpdate(object):
     __slots__ = ("_id", "_data")

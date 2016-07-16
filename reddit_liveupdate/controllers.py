@@ -72,6 +72,7 @@ from reddit_liveupdate.models import (
     LiveUpdateContributorInvitesByEvent,
     LiveUpdateReportsByAccount,
     LiveUpdateReportsByEvent,
+    FocusQuery,
 )
 from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import send_event_broadcast
@@ -366,9 +367,14 @@ class LiveUpdateController(RedditController):
             self.abort404()
 
         try:
-            query = LiveUpdateStream.query_focus(c.liveupdate_event, target)
+            update = LiveUpdateStream.get_update(c.liveupdate_event, target)
         except tdb_cassandra.NotFound:
             self.abort404()
+
+        if update.deleted:
+            self.abort404()
+
+        query = FocusQuery([update])
 
         builder = LiveUpdateBuilder(
             query=query, skip=True, reverse=True, num=1, count=0)
@@ -387,6 +393,7 @@ class LiveUpdateController(RedditController):
 
         return pages.LiveUpdateEventFocusPage(
             content=content,
+            focused_update=update,
             page_classes=["liveupdate-focus"],
         ).render()
 

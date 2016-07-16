@@ -11,6 +11,7 @@ from r2.lib.pages import (
     UserTableItem,
     MediaEmbedBody,
     ModeratorPermissions,
+    MAX_DESCRIPTION_LENGTH,
 )
 from r2.lib.menus import NavMenu, NavButton
 from r2.lib.template_helpers import add_sr
@@ -19,7 +20,7 @@ from r2.lib.wrapped import Templated, Wrapped
 from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
 from r2.lib.strings import strings
 from r2.lib.template_helpers import static
-from r2.lib.utils import tup
+from r2.lib.utils import tup, trunc_string
 from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
@@ -157,7 +158,7 @@ class LiveUpdateEventAppPage(LiveUpdateEventPage):
             "image": static("liveupdate-logo.png"),
             "image:width": "300",
             "image:height": "300",
-            "site_name": g.short_description,
+            "site_name": "reddit",
             "ttl": "600",  # have this stuff re-fetched frequently
         }
 
@@ -170,6 +171,24 @@ class LiveUpdateEventAppPage(LiveUpdateEventPage):
 
 
 class LiveUpdateEventFocusPage(LiveUpdateEventPage):
+    def __init__(self, focused_update, **kwargs):
+        og_data = {
+            "type": "article",
+            "url": make_event_url(c.liveupdate_event._id),
+            "description": trunc_string(
+                focused_update.body.strip(), MAX_DESCRIPTION_LENGTH),
+            "image": static("liveupdate-logo.png"),
+            "image:width": "300",
+            "image:height": "300",
+            "site_name": "reddit",
+        }
+
+        LiveUpdateEventPage.__init__(
+            self,
+            og_data=og_data,
+            **kwargs
+        )
+
     def build_toolbars(self):
         return []
 
