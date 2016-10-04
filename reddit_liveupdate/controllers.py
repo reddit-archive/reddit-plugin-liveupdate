@@ -982,7 +982,7 @@ class LiveUpdateEventsController(RedditController):
     @require_oauth2_scope("read")
     @api_doc(
         section=api_section.live,
-        uri="/live/happening_now",
+        uri="/api/live/happening_now",
     )
     def GET_happening_now(self):
         """ Get some basic information about the currently featured live thread.
