@@ -979,6 +979,33 @@ class LiveUpdateEventsController(RedditController):
             page_classes=["liveupdate-home"],
         ).render()
 
+    @require_oauth2_scope("read")
+    @api_doc(
+        section=api_section.live,
+        uri="/live/happening_now",
+    )
+    def GET_happening_now(self):
+        """ Get some basic information about the currently featured live thread.
+
+            See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
+        """
+
+        if not is_api() or not feature.is_enabled('live_happening_now'):
+            self.abort404()
+
+        event_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
+        if not event_id:
+            self.abort404()
+
+        try:
+            event = LiveUpdateEvent._byID(event_id)
+        except NotFound:
+            self.abort404()
+        else:
+            c.liveupdate_event = event
+            content = Wrapped(event)
+            return pages.LiveUpdateEventPage(content).render()
+
     @validate(
         VEmployee(),
         num=VLimit("limit", default=25, max_limit=100),
