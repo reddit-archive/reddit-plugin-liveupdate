@@ -242,7 +242,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         elif attr == "websocket_url":
             if thing.state == "live":
                 return websockets.make_url(
-                    "/live/" + c.liveupdate_event._id, max_age=24 * 60 * 60)
+                    "/live/" + thing._id, max_age=24 * 60 * 60)
             else:
                 return None
         else:
