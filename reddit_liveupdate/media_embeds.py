@@ -174,13 +174,11 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
         if not thumbnail:
             return None, None, None, None
 
-        secure_oembed = self.fetch_oembed()
-
         return (
             thumbnail,
             preview_object,
             media_object,
-            self.make_media_object(secure_oembed),
+            None,
         )
 
 
