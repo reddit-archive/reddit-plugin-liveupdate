@@ -165,6 +165,7 @@ class LiveUpdate(object):
         "stricken": False,
         "_spam": False,
         "media_objects": [],
+        "mobile_objects": [],
     }
 
     def __init__(self, id=None, data=None):
@@ -220,6 +221,10 @@ class LiveUpdate(object):
                 pass
         return embeds
 
+    @property
+    def mobile_embeds(self):
+        # can filter these results down here if needed
+        return self.mobile_objects
 
 class LiveUpdateActivityHistoryByEvent(tdb_cassandra.View):
     _use_db = True

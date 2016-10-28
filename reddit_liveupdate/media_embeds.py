@@ -13,7 +13,7 @@ from pylons import app_globals as g
 
 from r2.lib import amqp
 from r2.lib.db import tdb_cassandra
-from r2.lib.media import MediaEmbed, Scraper, get_media_embed
+from r2.lib.media import MediaEmbed, Scraper, get_media_embed, _OEmbedScraper
 from r2.lib.utils import sanitize_url, TimeoutFunction, TimeoutFunctionException
 
 from reddit_liveupdate import pages
@@ -60,6 +60,7 @@ def parse_embeds(event_id, liveupdate_id, maxwidth=_EMBED_WIDTH):
 
     urls = _extract_isolated_urls(liveupdate.body)
     liveupdate.media_objects = _scrape_media_objects(urls, maxwidth=maxwidth)
+    liveupdate.mobile_objects = _scrape_mobile_media_objects(urls)
     LiveUpdateStream.add_update(event, liveupdate)
 
     return liveupdate
@@ -78,6 +79,21 @@ def _extract_isolated_urls(md):
         if url and url != "self":
             urls.append(url)
     return urls
+
+
+def _scrape_mobile_media_objects(urls):
+    return filter(None, (_scrape_mobile_media_object(url) for url in urls))
+
+
+def _scrape_mobile_media_object(url):
+    scraper = _LiveEmbedlyScraper(url)
+    try:
+        _, _, result, _ = scraper.scrape()
+        return result['oembed']
+    except:
+        pass
+
+    return None
 
 
 def _scrape_media_objects(urls, autoplay=False, maxwidth=_EMBED_WIDTH, max_urls=3):
@@ -129,6 +145,41 @@ class LiveScraper(Scraper):
 
         return _EmbedlyCardFallbackScraper(url, scraper)
 
+# mostly lifted from the EmbedlyScraper in r2
+class _LiveEmbedlyScraper(_OEmbedScraper):
+    OEMBED_ENDPOINT = "https://api.embed.ly/1/oembed"
+
+    @classmethod
+    def matches(cls, url):
+        return True
+
+    def __init__(self, url):
+        super(_LiveEmbedlyScraper, self).__init__(
+            url,
+            maxwidth=500,
+        )
+
+        self.allowed_oembed_types = {"video", "rich", "link", "photo"}
+        self.oembed_params["key"] = g.embedly_api_key
+
+    def fetch_oembed(self):
+        return super(_LiveEmbedlyScraper, self).fetch_oembed(
+            self.OEMBED_ENDPOINT
+        )
+
+    def scrape(self):
+        scrape_results = super(_LiveEmbedlyScraper, self).scrape()
+        thumbnail, preview_object, media_object, _ = scrape_results
+
+        if not thumbnail:
+            return None, None, None, None
+
+        return (
+            thumbnail,
+            preview_object,
+            media_object,
+            None,
+        )
 
 
 class _EmbedlyCardFallbackScraper(Scraper):
@@ -253,12 +304,10 @@ def process_liveupdate_scraper_q():
                 d["event_id"], d["liveupdate_id"], e)
             return
 
-        if not liveupdate.media_objects:
-            return
-
         payload = {
             "liveupdate_id": "LiveUpdate_" + d['liveupdate_id'],
-            "media_embeds": liveupdate.embeds
+            "media_embeds": liveupdate.embeds,
+            "mobile_embeds": liveupdate.mobile_embeds,
         }
         send_event_broadcast(d['event_id'],
                              type="embeds_ready",

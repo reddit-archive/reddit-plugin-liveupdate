@@ -419,6 +419,7 @@ class LiveUpdateJsonTemplate(ThingJsonTemplate):
         author="author",
         stricken="stricken",
         embeds="embeds",
+        mobile_embeds="mobile_embeds",
     )
 
     def thing_attr(self, thing, attr):
