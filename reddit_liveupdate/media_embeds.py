@@ -89,6 +89,7 @@ def _scrape_mobile_media_object(url):
     scraper = _LiveEmbedlyScraper(url)
     try:
         _, _, result, _ = scraper.scrape()
+        result['oembed']['original_url'] = url
         return result['oembed']
     except:
         pass
