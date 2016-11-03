@@ -173,6 +173,9 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
         )
 
     def scrape(self):
+        if not self.oembed:
+            return None, None, None, None
+
         media_object = self.make_media_object(self.oembed)
         return None, None, media_object, media_object
 
