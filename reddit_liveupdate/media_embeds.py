@@ -163,10 +163,6 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
         self.allowed_oembed_types = {"video", "rich", "link", "photo"}
         self.oembed_params["key"] = g.embedly_api_key
 
-    def fetch_media(self):
-        # Don't need this for mobile
-        return None
-
     def fetch_oembed(self):
         return super(_LiveEmbedlyScraper, self).fetch_oembed(
             self.OEMBED_ENDPOINT
@@ -177,7 +173,7 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
             return None, None, None, None
 
         media_object = self.make_media_object(self.oembed)
-        return None, None, media_object, media_object
+        return None, None, media_object, None
 
 
 class _EmbedlyCardFallbackScraper(Scraper):
