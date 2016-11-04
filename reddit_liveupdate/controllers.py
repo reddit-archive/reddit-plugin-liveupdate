@@ -182,6 +182,20 @@ class LiveUpdateInvitedContributorBuilder(LiveUpdateContributorBuilder):
         )
 
 
+def record_activity(event_id):
+    """Record the visit in the activity service."""
+    event_id = event_id[:50]  # some very simple poor-man's validation
+    user_agent = request.user_agent or ''
+    user_id = hashlib.sha1(request.ip + user_agent).hexdigest()
+
+    if c.activity_service:
+        event_context_id = "LiveUpdateEvent_" + event_id
+        try:
+            c.activity_service.record_activity(event_context_id, user_id)
+        except TTransportException:
+            pass
+
+
 @add_controller
 class LiveUpdatePixelController(BaseController):
     def __init__(self, *args, **kwargs):
@@ -205,16 +219,7 @@ class LiveUpdatePixelController(BaseController):
         if extension != "png":
             abort(404)
 
-        event_id = event[:50]  # some very simple poor-man's validation
-        user_agent = request.user_agent or ''
-        user_id = hashlib.sha1(request.ip + user_agent).hexdigest()
-
-        if c.activity_service:
-            event_context_id = "LiveUpdateEvent_" + event_id
-            try:
-                c.activity_service.record_activity(event_context_id, user_id)
-            except TTransportException:
-                pass
+        record_activity(event)
 
         response.content_type = "image/png"
         response.headers["Cache-Control"] = "no-cache, max-age=0"
@@ -289,6 +294,12 @@ class LiveUpdateController(RedditController):
         See also: [/api/live/*thread*/update](#POST_api_live_{thread}_update).
 
         """
+
+        # preemptively record activity for clients that don't send pixel pings.
+        # this won't capture their continued visit, but will at least show a
+        # correct activity count for short lived connections.
+        record_activity(c.liveupdate_event._id)
+
         reverse = False
         if before:
             reverse = True
