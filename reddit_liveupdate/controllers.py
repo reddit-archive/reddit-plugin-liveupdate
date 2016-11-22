@@ -421,6 +421,7 @@ class LiveUpdateController(RedditController):
         """
         if not is_api():
             self.abort404()
+        response.headers["Cache-Control"] = "max-age=15"
         content = Wrapped(c.liveupdate_event)
         return pages.LiveUpdateEventPage(content=content).render()
 
