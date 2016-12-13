@@ -136,6 +136,12 @@ class LiveUpdate(Plugin):
         )
 
         mc(
+            "/api/live/by_id/:names",
+            action="listing",
+            controller="liveupdatebyid",
+        )
+
+        mc(
             "/live/:filter",
             action="listing",
             controller="liveupdateevents",
@@ -203,6 +209,7 @@ class LiveUpdate(Plugin):
 
         from reddit_liveupdate.controllers import (
             controller_hooks,
+            LiveUpdateByIDController,
             LiveUpdateController,
             LiveUpdateEventsController,
             LiveUpdatePixelController,
@@ -234,7 +241,9 @@ class LiveUpdate(Plugin):
         from reddit_liveupdate.controllers import (
             LiveUpdateController,
             LiveUpdateEventsController,
+            LiveUpdateByIDController,
         )
 
         yield LiveUpdateController, "/api/live/{thread}"
         yield LiveUpdateEventsController, ""
+        yield LiveUpdateByIDController, ""

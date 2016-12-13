@@ -20,6 +20,9 @@ from r2.controllers.reddit_base import (
     base_listing,
     paginated_listing,
 )
+from r2.controllers.listingcontroller import (
+    ListingController
+)
 from r2.lib import hooks, baseplate_integration
 from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
@@ -1135,6 +1138,30 @@ class LiveUpdateEventsController(RedditController):
         form.redirect("/live/" + event._id)
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
+
+
+@add_controller
+class LiveUpdateByIDController(ListingController):
+    title_text = _('API')
+    builder_cls = LiveUpdateEventBuilder
+
+    def query(self):
+        return self.names
+
+    @require_oauth2_scope("read")
+    @validate(
+        events=VLiveUpdateEvent("names", multiple=True),
+    )
+    @api_doc(section=api_section.live, uri="/api/live/by_id/{names}")
+    def GET_listing(self, events, **env):
+        """Get a listing of live events by id."""
+        if not is_api():
+            self.abort404()
+        if not events:
+            return self.abort404()
+
+        self.names = [e for e in events]
+        return ListingController.GET_listing(self, **env)
 
 
 @add_controller

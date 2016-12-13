@@ -20,12 +20,33 @@ from reddit_liveupdate.permissions import ContributorPermissionSet
 
 
 class VLiveUpdateEvent(Validator):
+    splitter = re.compile('[ ,]+')
+
+    def __init__(self, param, multiple=False, **kw):
+        self.multiple = multiple
+        Validator.__init__(self, param, kw)
+
+    def param_docs(self):
+        if self.multiple:
+            return {
+                self.param: ("A comma-separated list of ids"),
+            }
+        else:
+            return {
+                self.param: ("A live update event id"),
+            }
+
     def run(self, id):
+
         if not id:
             return None
 
         try:
-            return models.LiveUpdateEvent._byID(id)
+            if self.multiple:
+                items = self.splitter.split(id)
+            else:
+                items = id
+            return models.LiveUpdateEvent._byID(items)
         except tdb_cassandra.NotFound:
             return None
 
