@@ -998,6 +998,8 @@ class LiveUpdateEventsController(RedditController):
     def GET_happening_now(self):
         """ Get some basic information about the currently featured live thread.
 
+            Returns an empty 204 response for api requests if no thread is currently featured.
+
             See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
         """
 
@@ -1006,12 +1008,14 @@ class LiveUpdateEventsController(RedditController):
 
         event_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
         if not event_id:
-            self.abort404()
+            response.status_code = 204
+            return
 
         try:
             event = LiveUpdateEvent._byID(event_id)
         except NotFound:
-            self.abort404()
+            response.status_code = 204
+            return
         else:
             c.liveupdate_event = event
             content = Wrapped(event)
