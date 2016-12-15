@@ -67,12 +67,22 @@
         return false
       }
 
-      var data = JSON.parse(ev.data)
-      var $embedFrame
+      var data;
+      try {
+        data = JSON.parse(ev.data)
+      } catch (e) {
+        // Message probably intended for another consumer
+        return false
+      }
+      if (typeof data.updateId === 'undefined' || typeof data.embedIndex === 'undefined') {
+        // Message probably intended for another consumer
+        return false
+      }
+
+      var $embedFrame = $('#embed-LiveUpdate_' + data.updateId + '-' + data.embedIndex)
 
       if (data.action === 'dimensionsChange') {
-        $('#embed-LiveUpdate_' + data.updateId + '-' + data.embedIndex)
-          .attr({
+          $embedFrame.attr({
             'height': data.height,
           })
       }
