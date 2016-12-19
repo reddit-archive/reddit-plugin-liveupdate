@@ -499,7 +499,8 @@ class LiveUpdateOtherDiscussions(Templated):
             # ideally we'd check if the user can see the subreddit, but by
             # doing this we keep everything user unspecific which makes caching
             # easier.
-            if w.subreddit.type == "private":
+            if (w.subreddit.type not in ("public", "restricted") or
+                not w.subreddit.discoverable):
                 continue
 
             comment_label = ungettext("comment", "comments", link.num_comments)
