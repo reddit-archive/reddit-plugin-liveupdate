@@ -113,6 +113,16 @@ def _broadcast(type, payload):
     send_event_broadcast(c.liveupdate_event._id, type, payload)
 
 
+def close_event(event):
+    """Close a liveupdate event"""
+    event.state = "complete"
+    event._commit()
+
+    queries.complete_event(event)
+
+    send_event_broadcast(event._id, type="complete", payload={})
+
+
 class LiveUpdateBuilder(QueryBuilder):
     def wrap_items(self, items):
         wrapped = []
@@ -877,12 +887,7 @@ class LiveUpdateController(RedditController):
         Requires the `close` permission for this thread.
 
         """
-        c.liveupdate_event.state = "complete"
-        c.liveupdate_event._commit()
-
-        queries.complete_event(c.liveupdate_event)
-
-        _broadcast(type="complete", payload={})
+        close_event(c.liveupdate_event)
         liveupdate_events.close_event(context=c, request=request)
 
         form.refresh()
