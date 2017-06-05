@@ -123,10 +123,9 @@
 
       var viewerCount = this.model.get('viewer_count')
       var viewerString = r.P_('%(num)s viewer', '%(num)s viewers', viewerCount)
-      var viewerCountPrefix = this.model.get('viewer_count_fuzzed') ? '~' : ''
 
       $viewerCount
-        .text(viewerString.format({num: viewerCountPrefix + viewerCount}))
+        .text(viewerString.format({num: viewerCount}))
 
       if (!this.$viewerCount) {
         this.$viewerCount = $viewerCount
