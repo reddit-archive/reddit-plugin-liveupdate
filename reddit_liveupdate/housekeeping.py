@@ -11,7 +11,7 @@ from reddit_liveupdate.models import LiveUpdateEvent, LiveUpdateStream
 
 # how long a live thread must go without being updated before we consider it
 # abandoned and eligible to be automatically closed.
-DERELICTION_THRESHOLD = datetime.timedelta(days=7)
+DERELICTION_THRESHOLD = datetime.timedelta(days=30)
 
 
 def close_abandoned_threads():
