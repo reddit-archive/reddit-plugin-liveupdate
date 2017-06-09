@@ -1,20 +1,31 @@
 <%namespace file="utils.html" import="text_with_links"/>
 
-%if thing.current_thread:
-  <div class="infobar">
-    ${text_with_links(
-      _("warning: we're already featuring a live thread. you shouldn't submit a new link unless you are deleting this one: %(thread)s"),
-      thread=dict(
-        link_text=thing.current_thread.title,
-        path=thing.current_thread.url())
-    )}
-  </div>
-%endif
+<style>
+.happening-now-form > p, .happening-now {
+  margin: 0 0 1.2em 0;
+}
+</style>
 
+<div class="happening-now-form md-container" style="width: 500px;">
 <h1>${_("reddit live: happening now")}</h1>
+
+%if thing.current_thread:
+<p><b>The following live thread is currently featured on the front page:</b></p>
+
+${thing.bar}
 
 <form action="/admin/happening-now" method="POST">
   <input type="hidden" name="uh" value="${c.modhash}">
-  <input type="url" name="url" size="40" value="${thing.current_thread.url(absolute=True) if thing.current_thread else ''}">
-  <input type="submit">
+  <input type="hidden" name="url" value="">
+  <input type="submit" value="un-feature thread">
 </form>
+%else:
+<p><b>No live threads are currently featured on the front page.</b>&#32;To feature a thread, enter its full URL in the form below.</p>
+
+<form action="/admin/happening-now" method="POST">
+  <input type="hidden" name="uh" value="${c.modhash}">
+  <input type="url" name="url" size="40" placeholder="e.g. https://${g.domain}/live/z2j36p70xdrf">
+  <input type="submit" value="feature thread">
+</form>
+%endif
+</div>

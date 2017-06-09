@@ -564,8 +564,9 @@ class LiveUpdateNSFWEmbed(Templated):
 
 
 class LiveUpdateHappeningNowBar(Templated):
-    def __init__(self, event):
+    def __init__(self, event, enable_logo=True):
         self.event = event
+        self.enable_logo = enable_logo
         Templated.__init__(self)
 
 
@@ -573,4 +574,12 @@ class HappeningNowAdmin(Templated):
     """Admin page for choosing the promoted reddit live thread."""
 
     def __init__(self, current_thread):
-        super(HappeningNowAdmin, self).__init__(current_thread=current_thread)
+        if current_thread:
+            bar = LiveUpdateHappeningNowBar(current_thread, enable_logo=False)
+        else:
+            bar = None
+
+        super(HappeningNowAdmin, self).__init__(
+            current_thread=current_thread,
+            bar=bar,
+        )
