@@ -573,13 +573,15 @@ class LiveUpdateHappeningNowBar(Templated):
 class HappeningNowAdmin(Templated):
     """Admin page for choosing the promoted reddit live thread."""
 
-    def __init__(self, current_thread):
-        if current_thread:
-            bar = LiveUpdateHappeningNowBar(current_thread, enable_logo=False)
+    def __init__(self, featured_events):
+        if featured_events:
+            target, event = featured_events.items()[0]
+            super(HappeningNowAdmin, self).__init__(
+                featured_event=LiveUpdateHappeningNowBar(event, enable_logo=False),
+                target=target,
+            )
         else:
-            bar = None
-
-        super(HappeningNowAdmin, self).__init__(
-            current_thread=current_thread,
-            bar=bar,
-        )
+            super(HappeningNowAdmin, self).__init__(
+                featured_event=None,
+                target=None,
+            )

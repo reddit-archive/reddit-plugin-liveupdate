@@ -1,18 +1,28 @@
+<%!
+    from reddit_liveupdate.contrib.iso3166 import countries
+%>
 <%namespace file="utils.html" import="text_with_links"/>
 
 <style>
 .happening-now-form > p, .happening-now {
   margin: 0 0 1.2em 0;
 }
+
+.happening-now-form th {
+  text-align: left;
+  font-weight: normal;
+  padding-right: 2em;
+}
 </style>
 
 <div class="happening-now-form md-container" style="width: 500px;">
 <h1>${_("reddit live: happening now")}</h1>
 
-%if thing.current_thread:
-<p><b>The following live thread is currently featured on the front page:</b></p>
+%if thing.featured_event:
+<p><b>The following live thread is currently featured on the front page for
+users from ${countries[thing.target].apolitical_name}:</b></p>
 
-${thing.bar}
+${thing.featured_event}
 
 <form action="/admin/happening-now" method="POST">
   <input type="hidden" name="uh" value="${c.modhash}">
@@ -20,12 +30,33 @@ ${thing.bar}
   <input type="submit" value="un-feature thread">
 </form>
 %else:
-<p><b>No live threads are currently featured on the front page.</b>&#32;To feature a thread, enter its full URL in the form below.</p>
+<p><b>No live threads are currently featured on the front page.</b>&#32;To
+feature a thread, enter its full URL in the form below and select a locale to
+limit the banner to.</p>
 
 <form action="/admin/happening-now" method="POST">
   <input type="hidden" name="uh" value="${c.modhash}">
-  <input type="url" name="url" size="40" placeholder="e.g. https://${g.domain}/live/z2j36p70xdrf">
-  <input type="submit" value="feature thread">
+  <table>
+    <tr>
+      <th scope="row"><label for="url">URL</label></th>
+      <td><input type="url" id="url" name="url" size="40" placeholder="e.g. https://${g.domain}/live/z2j36p70xdrf"></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="target">Target</label></th>
+      <td>
+        <select id="target" name="target">
+          %for country in countries:
+          <option value="${country.alpha2}">${country.apolitical_name}</option>
+          %endfor
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <input type="submit" value="feature thread">
+      </td>
+    </tr>
+  </table>
 </form>
 %endif
 </div>

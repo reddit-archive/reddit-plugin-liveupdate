@@ -61,8 +61,10 @@ from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 from r2.lib.pages import AdminPage, PaneStack, Wrapped, RedditError, Reddit
+from r2.lib import geoip
 
 from reddit_liveupdate import pages, queries
+from reddit_liveupdate.contrib import iso3166
 from reddit_liveupdate.media_embeds import (
     get_live_media_embed,
     queue_parse_embeds,
@@ -1014,20 +1016,14 @@ class LiveUpdateEventsController(RedditController):
         if not is_api() or not feature.is_enabled('live_happening_now'):
             self.abort404()
 
-        event_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
-        if not event_id:
+        featured_event = get_featured_event()
+        if not featured_event:
             response.status_code = 204
             return
 
-        try:
-            event = LiveUpdateEvent._byID(event_id)
-        except NotFound:
-            response.status_code = 204
-            return
-        else:
-            c.liveupdate_event = event
-            content = Wrapped(event)
-            return pages.LiveUpdateEventPage(content).render()
+        c.liveupdate_event = featured_event
+        content = Wrapped(featured_event)
+        return pages.LiveUpdateEventPage(content).render()
 
     @validate(
         VEmployee(),
@@ -1222,13 +1218,14 @@ class LiveUpdateEmbedController(MinimalController):
 class LiveUpdateAdminController(RedditController):
     @validate(VAdmin())
     def GET_happening_now(self):
-        current_thread_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
-        if current_thread_id:
-            current_thread = LiveUpdateEvent._byID(current_thread_id)
-        else:
-            current_thread = None
+        featured_event_ids = NamedGlobals.get(HAPPENING_NOW_KEY, None) or {}
+        featured_events = {}
+        for target, event_id in featured_event_ids.iteritems():
+            event = LiveUpdateEvent._byID(event_id)
+            featured_events[target] = event
+
         return AdminPage(
-                content=pages.HappeningNowAdmin(current_thread),
+                content=pages.HappeningNowAdmin(featured_events),
                 title='live: happening now',
                 nav_menus=[]
             ).render()
@@ -1237,12 +1234,36 @@ class LiveUpdateAdminController(RedditController):
         VAdmin(),
         VModhash(),
         featured_thread=VLiveUpdateEventUrl('url'),
+        target=VOneOf("target", [country.alpha2 for country in iso3166.countries]),
     )
-    def POST_happening_now(self, featured_thread):
-        NamedGlobals.set(HAPPENING_NOW_KEY,
-                         getattr(featured_thread, '_id', None))
+    def POST_happening_now(self, featured_thread, target):
+        if featured_thread:
+            if not target:
+                abort(400)
+
+            NamedGlobals.set(HAPPENING_NOW_KEY,
+                             {target: featured_thread._id})
+        else:
+            NamedGlobals.set(HAPPENING_NOW_KEY, None)
 
         self.redirect('/admin/happening-now')
+
+
+def get_featured_event():
+    """Return the currently featured live thread for the given user."""
+    featured_events = NamedGlobals.get(HAPPENING_NOW_KEY, None)
+    location = geoip.get_request_location(request, c)
+    event_id = None
+    if featured_events:
+        event_id = featured_events.get(location) or featured_events.get("ANY")
+
+    if not event_id:
+        return None
+
+    try:
+        return LiveUpdateEvent._byID(event_id)
+    except NotFound:
+        return None
 
 
 @controller_hooks.on("hot.get_content")
@@ -1259,13 +1280,8 @@ def add_featured_live_thread(controller):
     if getattr(controller, 'listing_obj') and controller.listing_obj.prev:
         return None
 
-    event_id = NamedGlobals.get(HAPPENING_NOW_KEY, None)
-    if not event_id:
+    featured_event = get_featured_event()
+    if not featured_event:
         return None
 
-    try:
-        event = LiveUpdateEvent._byID(event_id)
-    except NotFound:
-        return None
-    else:
-        return pages.LiveUpdateHappeningNowBar(event=event)
+    return pages.LiveUpdateHappeningNowBar(event=featured_event)
