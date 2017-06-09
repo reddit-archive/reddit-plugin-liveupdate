@@ -80,6 +80,7 @@ class LiveUpdate(Plugin):
     config = {
         ConfigValue.int: [
             "liveupdate_invite_quota",
+            "liveupdate_min_score_for_discussions",
         ],
 
         ConfigValue.str: [
