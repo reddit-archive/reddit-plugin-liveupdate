@@ -802,7 +802,7 @@ aside.sidebar {
     }
 
     .tagline {
-        span {
+        > * {
             margin-right: .5em;
         }
 
@@ -816,17 +816,19 @@ aside.sidebar {
             color: red;
         }
 
-        span:after {
+        > *:after {
             content: "–";
             margin-left: .5em;
         }
+
+        > :last-child:after {
+            content: "";
+        }
+
         .admin-buttons {
             display: inline;
             margin-left: .5em;
 
-            span:after {
-                content: "";
-            }
             button {
                 padding: 0;
                 border: none;
