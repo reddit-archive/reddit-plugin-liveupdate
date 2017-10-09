@@ -54,12 +54,19 @@ class LiveUpdatePage(Reddit):
 
 class LiveUpdateMetaPage(LiveUpdatePage):
     def build_toolbars(self):
+        tabs = [
+            NavButton(
+                _("reddit live"),
+                "/",
+            ),
+            NavButton(
+                _("happening now"),
+                "/happening_now",
+            ),
+        ]
+
         if c.user_is_loggedin and c.user.employee:
-            tabs = [
-                NavButton(
-                    _("reddit live"),
-                    "/",
-                ),
+            tabs.extend([
                 NavButton(
                     _("active"),
                     "/active",
@@ -72,7 +79,7 @@ class LiveUpdateMetaPage(LiveUpdatePage):
                     _("closed"),
                     "/closed",
                 ),
-            ]
+            ])
 
             if c.user_is_admin:
                 tabs.extend([
@@ -82,13 +89,11 @@ class LiveUpdateMetaPage(LiveUpdatePage):
                     ),
                 ])
 
-            return [NavMenu(
-                tabs,
-                base_path="/live/",
-                type="tabmenu",
-            )]
-        else:
-            return []
+        return [NavMenu(
+            tabs,
+            base_path="/live/",
+            type="tabmenu",
+        )]
 
 
 class LiveUpdateEventPage(LiveUpdatePage):
@@ -251,6 +256,17 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
 
     def kind(self, wrapped):
         return "LiveUpdateEvent"
+
+
+class LiveUpdateFeaturedEventJsonTemplate(LiveUpdateEventJsonTemplate):
+    _data_attrs_ = LiveUpdateEventJsonTemplate.data_attrs(
+        featured_in="featured_in",
+    )
+
+    def thing_attr(self, thing, attr):
+        if attr == "featured_in":
+            return list(thing.featured_in)
+        return LiveUpdateEventJsonTemplate.thing_attr(self, thing, attr)
 
 
 REPORT_TYPES = collections.OrderedDict((
@@ -534,6 +550,10 @@ class LiveUpdateReportedEventRow(Wrapped):
     def report_counts(self):
         for report_type in REPORT_TYPES:
             yield self.reports_by_type[report_type]
+
+
+class LiveUpdateFeaturedEvent(Wrapped):
+    pass
 
 
 def liveupdate_add_props(user, wrapped):

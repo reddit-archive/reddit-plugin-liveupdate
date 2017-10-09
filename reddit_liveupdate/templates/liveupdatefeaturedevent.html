@@ -1,0 +1,6 @@
+<%inherit file="liveupdateevent.html" />
+
+<%block name="tagline">
+  ${parent.tagline()}
+  <span>${_("featured in: %(locations)s") % dict(locations=", ".join(thing.featured_in))}</span>
+</%block>

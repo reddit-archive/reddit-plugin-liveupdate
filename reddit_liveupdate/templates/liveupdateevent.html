@@ -5,6 +5,7 @@
     <a href="/live/${thing._id}">${thing.title}</a>
   </div>
   <div class="tagline">
+    <%block name="tagline">
     % if thing.state == "live":
       <span class="state">${_("live")}</span>
     % endif
@@ -31,5 +32,6 @@
       % endif
       </div>
     % endif
+    </%block>
   </div>
 </div>
