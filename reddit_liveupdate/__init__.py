@@ -151,16 +151,10 @@ class LiveUpdate(Plugin):
         )
 
         mc(
-            '/api/live/happening_now',
-            controller='liveupdateevents',
-            action='happening_now',
-        )
-
-        mc(
             "/api/live/:action",
             controller="liveupdateevents",
             conditions={"function": not_in_sr},
-            requirements={"action": "create"},
+            requirements={"action": "create|happening_now"},
         )
 
         mc("/live/:event", controller="liveupdate", action="listing",
