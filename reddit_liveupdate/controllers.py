@@ -10,7 +10,6 @@ from pylons import app_globals as g
 from pylons.i18n import _
 from thrift.transport.TTransport import TTransportException
 
-from r2.config import feature
 from r2.config.extensions import is_api
 from r2.controllers import add_controller
 from r2.controllers.api_docs import api_doc, api_section
@@ -1039,7 +1038,7 @@ class LiveUpdateEventsController(RedditController):
             See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
         """
 
-        if not is_api() or not feature.is_enabled('live_happening_now'):
+        if not is_api():
             self.abort404()
 
         featured_event = get_featured_event()
@@ -1300,9 +1299,6 @@ def get_featured_event():
 @controller_hooks.on("hot.get_content")
 def add_featured_live_thread(controller):
     """If we have a live thread featured, display it on the homepage."""
-    if not feature.is_enabled('live_happening_now'):
-        return None
-
     # Not on front page
     if not isinstance(c.site, DefaultSR):
         return None
