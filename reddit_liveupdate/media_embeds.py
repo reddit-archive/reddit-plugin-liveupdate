@@ -51,8 +51,10 @@ def parse_embeds(event_id, liveupdate_id, maxwidth=_EMBED_WIDTH):
         liveupdate_id = uuid.UUID(liveupdate_id)
 
     try:
-        event = LiveUpdateEvent._byID(event_id)
-        liveupdate = LiveUpdateStream.get_update(event, liveupdate_id)
+        event = LiveUpdateEvent._byID(
+            event_id, read_consistency_level=tdb_cassandra.CL.QUORUM)
+        liveupdate = LiveUpdateStream.get_update(
+            event, liveupdate_id, read_consistency_level=tdb_cassandra.CL.QUORUM)
     except tdb_cassandra.NotFound:
         g.log.warning("Couldn't find event/liveupdate for embedding: %r / %r",
                       event_id, liveupdate_id)

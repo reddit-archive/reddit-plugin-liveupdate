@@ -135,8 +135,9 @@ class LiveUpdateStream(tdb_cassandra.View):
         cls._set_values(event._id, columns)
 
     @classmethod
-    def get_update(cls, event, id):
-        thing = cls._byID(event._id, properties=[id])
+    def get_update(cls, event, id, read_consistency_level=None):
+        thing = cls._byID(event._id, properties=[id],
+                          read_consistency_level=read_consistency_level)
 
         try:
             data = thing._t[id]
