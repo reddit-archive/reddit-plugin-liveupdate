@@ -298,6 +298,9 @@ def process_liveupdate_scraper_q():
                 d["event_id"], d["liveupdate_id"], e)
             return
 
+        if not liveupdate:
+            return
+
         payload = {
             "liveupdate_id": "LiveUpdate_" + d['liveupdate_id'],
             "media_embeds": liveupdate.embeds,
