@@ -301,6 +301,9 @@ def process_liveupdate_scraper_q():
         if not liveupdate:
             return
 
+        if not liveupdate.embeds and not liveupdate.mobile_embeds:
+            return
+
         payload = {
             "liveupdate_id": "LiveUpdate_" + d['liveupdate_id'],
             "media_embeds": liveupdate.embeds,
