@@ -1,5 +1,6 @@
 import collections
 import hashlib
+import json
 import os
 import re
 import uuid
@@ -62,14 +63,11 @@ from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 from r2.lib.pages import AdminPage, PaneStack, Wrapped, RedditError, Reddit
-from r2.lib import geoip
+from r2.lib import amqp, geoip
 
 from reddit_liveupdate import pages, queries
 from reddit_liveupdate.contrib import iso3166
-from reddit_liveupdate.media_embeds import (
-    get_live_media_embed,
-    queue_parse_embeds,
-)
+from reddit_liveupdate.media_embeds import get_live_media_embed
 from reddit_liveupdate.models import (
     InviteNotFoundError,
     LiveUpdate,
@@ -517,6 +515,11 @@ class LiveUpdateController(RedditController):
         c.liveupdate_event.nsfw = nsfw
         c.liveupdate_event._commit()
 
+        amqp.add_item("liveupdate_event_edited", json.dumps({
+            "event_fullname": c.liveupdate_event._fullname,
+            "editor_fullname": c.user._fullname,
+        }))
+
         form.set_html(".status", _("saved"))
         form.refresh()
 
@@ -621,6 +624,12 @@ class LiveUpdateController(RedditController):
                 "url": "/live/" + c.liveupdate_event._id,
             },
         )
+
+        amqp.add_item("new_liveupdate_contributor", json.dumps({
+            "event_fullname": c.liveupdate_event._fullname,
+            "inviter_fullname": c.user._fullname,
+            "invitee_fullname": user._fullname,
+        }))
 
         # add the user to the table
         contributor = LiveUpdateContributor(user, permissions)
@@ -812,8 +821,12 @@ class LiveUpdateController(RedditController):
         rendered = wrapped.render(style="api")
         _broadcast(type="update", payload=rendered)
 
-        # Queue up parsing any embeds
-        queue_parse_embeds(c.liveupdate_event, update)
+        amqp.add_item("new_liveupdate_update", json.dumps({
+            "event_fullname": c.liveupdate_event._fullname,
+            "author_fullname": c.user._fullname,
+            "liveupdate_id": str(update._id),
+            "body": text,
+        }))
 
         liveupdate_events.update_event(update, context=c, request=request)
 
@@ -931,6 +944,12 @@ class LiveUpdateController(RedditController):
         liveupdate_events.report_event(
             report_type, context=c, request=request
         )
+
+        amqp.add_item("new_liveupdate_report", json.dumps({
+            "event_fullname": c.liveupdate_event._fullname,
+            "reporter_fullname": c.user._fullname,
+            "reason": report_type,
+        }))
 
         try:
             default_subreddit = Subreddit._by_name(g.default_sr)
@@ -1143,6 +1162,11 @@ class LiveUpdateEventsController(RedditController):
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
+
+        amqp.add_item("new_liveupdate_event", json.dumps({
+            "event_fullname": event._fullname,
+            "creator_fullname": c.user._fullname,
+        }))
 
         form.redirect("/live/" + event._id)
         form._send_data(id=event._id)

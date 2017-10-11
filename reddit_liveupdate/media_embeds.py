@@ -32,14 +32,6 @@ def get_live_media_embed(media_object):
     return get_media_embed(media_object)
 
 
-def queue_parse_embeds(event, liveupdate):
-    msg = json.dumps({
-        'liveupdate_id': unicode(liveupdate._id),  # serializing UUID
-        'event_id': event._id,  # Already a string
-    })
-    amqp.add_item('liveupdate_scraper_q', msg)
-
-
 def parse_embeds(event_id, liveupdate_id, maxwidth=_EMBED_WIDTH):
     """Find, scrape, and store any embeddable URLs in this liveupdate.
 
@@ -288,16 +280,19 @@ def process_liveupdate_scraper_q():
     def _handle_q(msg):
         d = json.loads(msg.body)
 
+        event_id = d.get("event_id") or d["event_fullname"][len("LiveUpdateEvent_"):]
+        liveupdate_id = d["liveupdate_id"]
+
         try:
             fn = TimeoutFunction(parse_embeds, 10)
-            liveupdate = fn(d['event_id'], d['liveupdate_id'])
+            liveupdate = fn(event_id, liveupdate_id)
         except TimeoutFunctionException:
             g.log.warning(
-                "Timed out on %s::%s", d["event_id"], d["liveupdate_id"])
+                "Timed out on %s::%s", event_id, liveupdate_id)
             return
         except Exception as e:
             g.log.warning("Failed to scrape %s::%s: %r",
-                d["event_id"], d["liveupdate_id"], e)
+                event_id, liveupdate_id, e)
             return
 
         if not liveupdate:
@@ -307,11 +302,11 @@ def process_liveupdate_scraper_q():
             return
 
         payload = {
-            "liveupdate_id": "LiveUpdate_" + d['liveupdate_id'],
+            "liveupdate_id": "LiveUpdate_" + liveupdate_id,
             "media_embeds": liveupdate.embeds,
             "mobile_embeds": liveupdate.mobile_embeds,
         }
-        send_event_broadcast(d['event_id'],
+        send_event_broadcast(event_id,
                              type="embeds_ready",
                              payload=payload)
 

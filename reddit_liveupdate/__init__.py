@@ -231,6 +231,10 @@ class LiveUpdate(Plugin):
             "liveupdate_scraper_q": MessageQueue(bind_to_self=True),
         })
 
+        queues.liveupdate_scraper_q << (
+            "new_liveupdate_update",
+        )
+
     source_root_url = "https://github.com/reddit/reddit-plugin-liveupdate/blob/master/reddit_liveupdate/"
     def get_documented_controllers(self):
         from reddit_liveupdate.controllers import (
