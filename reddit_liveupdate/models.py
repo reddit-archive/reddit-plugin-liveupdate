@@ -63,10 +63,6 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         return ContributorPermissionSet.loads(permission_string)
 
     @property
-    def _fullname(self):
-        return self._id
-
-    @property
     def _id36(self):
         # this is a bit of a hack but lets us use events in denormalizedrels
         return self._id
