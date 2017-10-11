@@ -974,7 +974,7 @@ class LiveUpdateController(RedditController):
 
 class LiveUpdateEventBuilder(IDBuilder):
     def thing_lookup(self, names):
-        return LiveUpdateEvent._byID(names, return_dict=False)
+        return LiveUpdateEvent._by_fullname(names, return_dict=False)
 
     def wrap_items(self, items):
         return [self.wrap(item) for item in items]
