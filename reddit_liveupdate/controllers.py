@@ -386,7 +386,13 @@ class LiveUpdateController(RedditController):
 
             return embed_page.render()
 
+    @require_oauth2_scope("read")
+    @api_doc(
+        section=api_section.live,
+        uri="/live/{thread}/updates/{update_id}",
+    )
     def GET_focus(self, target):
+        """Get details about a specific update in a live thread."""
         try:
             target = uuid.UUID(target)
         except (TypeError, ValueError):
