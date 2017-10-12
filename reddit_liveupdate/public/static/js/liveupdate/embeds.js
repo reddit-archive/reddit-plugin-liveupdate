@@ -54,6 +54,7 @@
           'height': embed.height || 200,
           'scrolling': 'no',
           'frameborder': 0,
+          'allowfullscreen': true,
         })
         r.debug('Rendering embed for link: ', embed.url)
         $placeholder.replaceWith(iframe)
