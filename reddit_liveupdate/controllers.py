@@ -612,6 +612,7 @@ class LiveUpdateController(RedditController):
 
         LiveUpdateContributorInvitesByEvent.create(
             c.liveupdate_event, user, permissions)
+        queries.add_contributor(c.liveupdate_event, user)
 
         # TODO: make this i18n-friendly when we have such a system for PMs
         send_system_message(
@@ -654,6 +655,7 @@ class LiveUpdateController(RedditController):
 
         """
         c.liveupdate_event.remove_contributor(c.user)
+        queries.remove_contributor(c.liveupdate_event, c.user)
 
     @require_oauth2_scope("livemanage")
     @validatedForm(
@@ -675,6 +677,7 @@ class LiveUpdateController(RedditController):
         """
         LiveUpdateContributorInvitesByEvent.remove(
             c.liveupdate_event, user)
+        queries.remove_contributor(c.liveupdate_event, user)
 
     @require_oauth2_scope("livemanage")
     @validatedForm(
@@ -777,6 +780,7 @@ class LiveUpdateController(RedditController):
 
         """
         c.liveupdate_event.remove_contributor(user)
+        queries.remove_contributor(c.liveupdate_event, user)
 
     @require_oauth2_scope("submit")
     @validatedForm(
@@ -1107,6 +1111,13 @@ class LiveUpdateEventsController(RedditController):
             query = sorted(set(featured_events.values()))
             builder_cls = featured_event_builder_factory(featured_events)
             wrapper = pages.LiveUpdateFeaturedEvent
+            require_employee = False
+        elif filter == "mine":
+            if not c.user_is_loggedin:
+                self.abort404()
+
+            title = _("my live threads")
+            query = queries.get_contributor_events(c.user)
             require_employee = False
         else:
             self.abort404()
