@@ -1,0 +1,91 @@
+<%!
+  from r2.lib.strings import Score
+  from r2.lib.filters import safemarkdown
+%>
+
+<h1>${c.liveupdate_event.title}</h1>
+
+<style>
+  p {
+    font-size: 13px;
+  }
+
+  #discussions {
+    margin-top: 1em;
+    font-size: 13px;
+  }
+
+  #discussions th {
+    font-size: 15px;
+  }
+
+  #discussions th,
+  #discussions td {
+    padding: .5em 2em 0 0;
+  }
+
+  #discussions .pretty-button {
+    margin-bottom: 0;
+  }
+</style>
+
+% if not thing.things:
+${unsafe(safemarkdown(_("no discussions yet. [start one]({url})").format(url=thing.submit_url), wrap=False))}
+% else:
+<p>${_("Check out discussion about this live thread in the posts below.")}</p>
+
+<table id="discussions">
+% for link in thing.things:
+<tr data-link="${link._id36}" class="${'hidden' if link.is_hidden_discussion else ''}">
+  <th scope="row"><a href="${link.make_permalink(link.subreddit)}">${link.title}</a></th>
+  <td><a href="/r/${link.subreddit.name}">/r/${link.subreddit.name}</a></td>
+  <td>${Score.somethings(link.num_comments, "comment")}</td>
+</tr>
+% endfor
+</table>
+
+% if c.liveupdate_permissions.allow("discussions"):
+<script>
+$('#discussions tr').each(function(i, row) {
+  var $row = $(row);
+  var isHidden = $(row).hasClass('hidden');
+
+  $('<td>')
+    .append(
+        $('<button class="pretty-button positive" data-action="unhide_discussion">')
+          .text('${_("show")}')
+          .toggleClass('pressed', !isHidden)
+    )
+    .append(
+        $('<button class="pretty-button negative" data-action="hide_discussion">')
+          .text('${_("hide")}')
+          .toggleClass('pressed', isHidden)
+    )
+    .prependTo($row);
+});
+
+$('#discussions button').on('click', function(ev) {
+  var $button = $(ev.target);
+  var action = $button.data('action');
+  var $row = $button.closest('tr');
+  var linkId = $row.data('link');
+
+  $button.siblings('button')
+    .prop('disabled', false)
+    .removeClass('pressed');
+
+  $button
+    .prop('disabled', true)
+    .addClass('pressed');
+
+  r.ajax({
+    type: 'POST',
+    url: '/api/live/' + r.config.liveupdate_event + '/' + action,
+    data: {
+      'link': linkId,
+    },
+  });
+})
+</script>
+% endif
+% endif

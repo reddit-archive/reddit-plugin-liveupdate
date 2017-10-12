@@ -1,11 +1,14 @@
-<%! from r2.lib.filters import safemarkdown %>
+<%!
+  from r2.lib.strings import Score
+  from r2.lib.filters import safemarkdown
+%>
 
 % if thing.links:
 % for link in thing.links:
-<div>
+<div id="discussion-${link._id36}">
   <p><a href="${link.make_permalink(link.subreddit)}">${link.title}</a></p>
   <ul>
-    <li>${link.comments_label}</li>
+    <li>${Score.somethings(link.num_comments, "comment")}</li>
     <li><a href="/r/${link.subreddit.name}">/r/${link.subreddit.name}</a></li>
   </ul>
 </div>

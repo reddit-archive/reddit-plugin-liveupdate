@@ -99,6 +99,17 @@
           model.set('embeds', data.media_embeds)
           this.embedViewer.restart()
         },
+        'message:hide_discussion': function(data) {
+          // until the discussions panel is properly live, this is just going
+          // to remove hidden links so they don't bother existing viewers of
+          // the live thread.
+          $('#discussion-' + data.link_id).remove()
+          if ($('#discussions div').length === 0) {
+            $('<p>')
+              .text(r._('no discussions yet.'))
+              .appendTo('#discussions')
+          }
+        },
         'message:complete': function() {
           this.event.set('state', 'complete')
           $options.remove()

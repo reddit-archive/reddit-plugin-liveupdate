@@ -75,6 +75,8 @@ class LiveUpdate(Plugin):
             N_("there are too many pending invites outstanding"),
         "LIVEUPDATE_ALREADY_CONTRIBUTOR":
             N_("that user is already a contributor"),
+        "LIVEUPDATE_LINK_IS_NOT_DISCUSSION":
+            N_("the specified link is not a discussion about this live thread"),
     }
 
     config = {
@@ -211,6 +213,7 @@ class LiveUpdate(Plugin):
         )
 
         from r2.config.templates import api
+        from r2.lib.jsontemplates import ListingJsonTemplate
         from reddit_liveupdate import pages
         api('liveupdateeventapp', pages.LiveUpdateEventAppJsonTemplate)
         api('liveupdatefocusapp', pages.LiveUpdateEventAppJsonTemplate)
@@ -220,6 +223,7 @@ class LiveUpdate(Plugin):
         api('liveupdate', pages.LiveUpdateJsonTemplate)
         api('liveupdatecontributortableitem',
             pages.ContributorTableItemJsonTemplate)
+        api('liveupdatediscussionslisting', ListingJsonTemplate)
 
         controller_hooks.register_all()
 

@@ -18,6 +18,7 @@ from reddit_liveupdate.permissions import ContributorPermissionSet
 
 class LiveUpdateEvent(tdb_cassandra.Thing):
     _contributor_prefix = "contributor_"
+    _discussion_prefix = "discussion_"
 
     _use_db = True
     _read_consistency_level = tdb_cassandra.CL.ONE
@@ -58,6 +59,21 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         del self[self._contributor_key(user)]
         self._commit()
 
+    @classmethod
+    def _discussion_key(cls, link):
+        return "%s%s" % (cls._discussion_prefix, link._id36)
+
+    def hide_discussion(self, link):
+        self[self._discussion_key(link)] = ""
+        self._commit()
+
+    def unhide_discussion(self, link):
+        try:
+            del self[self._discussion_key(link)]
+        except KeyError:
+            pass
+        self._commit()
+
     def get_permissions(self, user):
         permission_string = self._t.get(self._contributor_key(user), "")
         return ContributorPermissionSet.loads(permission_string)
@@ -73,6 +89,12 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
                     ContributorPermissionSet.loads(v)
                 for k, v in self._t.iteritems()
                 if k.startswith(self._contributor_prefix)}
+
+    @property
+    def hidden_discussions(self):
+        return {int(k[len(self._discussion_prefix):], 36)
+                for k in self._t.iterkeys()
+                if k.startswith(self._discussion_prefix)}
 
     def url(self, absolute=False):
         if absolute:
