@@ -64,3 +64,18 @@ def unreport_event(event):
 
     with CachedQueryMutator() as m:
         m.delete(query, [_LiveUpdateEventReport(event)])
+
+
+@cached_query(LiveUpdateQueryCache)
+def get_contributor_events(user):
+    return FakeQuery(sort=[desc("date")])
+
+
+def add_contributor(event, user):
+    with CachedQueryMutator() as m:
+        m.insert(get_contributor_events(user), [event])
+
+
+def remove_contributor(event, user):
+    with CachedQueryMutator() as m:
+        m.delete(get_contributor_events(user), [event])

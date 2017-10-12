@@ -65,6 +65,14 @@ class LiveUpdateMetaPage(LiveUpdatePage):
             ),
         ]
 
+        if c.user_is_loggedin:
+            tabs.extend((
+                NavButton(
+                    _("my live threads"),
+                    "/mine",
+                ),
+            ))
+
         if c.user_is_loggedin and c.user.employee:
             tabs.extend([
                 NavButton(
