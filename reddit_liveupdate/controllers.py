@@ -39,6 +39,7 @@ from r2.lib.validator import (
     VCount,
     VExistingUname,
     VLimit,
+    VLink,
     VMarkdownLength,
     VModhash,
     VRatelimit,
@@ -61,12 +62,12 @@ from r2.models import (
 )
 from r2.models.admintools import send_system_message
 from r2.lib.errors import errors
-from r2.lib.utils import url_links_builder
 from r2.lib.pages import AdminPage, PaneStack, Wrapped, RedditError, Reddit
 from r2.lib import amqp, geoip
 
 from reddit_liveupdate import pages, queries
 from reddit_liveupdate.contrib import iso3166
+from reddit_liveupdate.discussions import get_discussions
 from reddit_liveupdate.media_embeds import get_live_media_embed
 from reddit_liveupdate.models import (
     InviteNotFoundError,
@@ -453,17 +454,79 @@ class LiveUpdateController(RedditController):
     )
     def GET_discussions(self, num, after, reverse, count):
         """Get a list of reddit submissions linking to this thread."""
-        builder = url_links_builder(
-            url="/live/" + c.liveupdate_event._id,
-            num=num,
-            after=after,
-            reverse=reverse,
-            count=count,
-        )
+
+        show_hidden = c.liveupdate_permissions.allow("discussions")
+        builder = get_discussions(
+            c.liveupdate_event, limit=50, show_hidden=show_hidden)
         listing = LinkListing(builder).listing()
+        listing.render_class = pages.LiveUpdateDiscussionsListing
+        listing.submit_url = pages.make_submit_url(c.liveupdate_event)
         return pages.LiveUpdateEventPage(
             content=listing,
         ).render()
+
+    @require_oauth2_scope("livemanage")
+    @validatedForm(
+        VLiveUpdateContributorWithPermission("discussions"),
+        VModhash(),
+        link=VLink("link"),
+    )
+    @api_doc(
+        section=api_section.live,
+    )
+    def POST_hide_discussion(self, form, jquery, link):
+        """Hide a linked comment thread from the discussions sidebar and listing.
+
+        Requires the `discussions` permission for this thread.
+
+        See also: [/api/live/*thread*/unhide_discussion](#POST_api_live_{thread}_unhide_discussion).
+
+        """
+        # this prevents a potential information leak where you use the
+        # following link.url check to determine if links in a private subreddit
+        # point at a given live thread.
+        if link.subreddit_slow.type in Subreddit.private_types:
+            self.abort403()
+
+        url = pages.make_event_url(c.liveupdate_event._id)
+        if link.url != url:
+            c.errors.add(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION)
+            form.set_error(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION, None)
+            return
+
+        c.liveupdate_event.hide_discussion(link)
+        _broadcast(type="hide_discussion", payload={"link_id": link._id36})
+
+    @require_oauth2_scope("livemanage")
+    @validatedForm(
+        VLiveUpdateContributorWithPermission("discussions"),
+        VModhash(),
+        link=VLink("link"),
+    )
+    @api_doc(
+        section=api_section.live,
+    )
+    def POST_unhide_discussion(self, form, jquery, link):
+        """Unhide a linked comment thread from the discussions sidebar and listing..
+
+        Requires the `discussions` permission for this thread.
+
+        See also: [/api/live/*thread*/hide_discussion](#POST_api_live_{thread}_hide_discussion).
+
+        """
+        # this prevents a potential information leak where you use the
+        # following link.url check to determine if links in a private subreddit
+        # point at a given live thread.
+        if link.subreddit_slow.type in Subreddit.private_types:
+            self.abort403()
+
+        url = pages.make_event_url(c.liveupdate_event._id)
+        if link.url != url:
+            c.errors.add(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION)
+            form.set_error(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION, None)
+            return
+
+        c.liveupdate_event.unhide_discussion(link)
 
     def GET_edit(self):
         if not (c.liveupdate_permissions.allow("settings") or

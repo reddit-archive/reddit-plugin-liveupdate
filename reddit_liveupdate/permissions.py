@@ -25,6 +25,11 @@ class ContributorPermissionSet(PermissionSet):
             "description": N_("strike and delete others' updates"),
         },
 
+        "discussions": {
+            "title": N_("hide discussions"),
+            "description": N_("unlink posts discussing this thread"),
+        },
+
         "close": {
             "title": N_("close live thread"),
             "description": N_("permanently close the live thread"),

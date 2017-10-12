@@ -3,7 +3,7 @@ import urllib
 
 from pylons import tmpl_context as c
 from pylons import app_globals as g
-from pylons.i18n import _, ungettext, N_
+from pylons.i18n import _, N_
 
 from r2.lib import filters, websockets
 from r2.lib.pages import (
@@ -15,12 +15,10 @@ from r2.lib.pages import (
 )
 from r2.lib.menus import NavMenu, NavButton
 from r2.lib.template_helpers import add_sr
-from r2.lib.memoize import memoize
 from r2.lib.wrapped import Templated, Wrapped
-from r2.models import Account, Subreddit, Link, NotFound, Listing, UserListing
-from r2.lib.strings import strings
+from r2.models import Account, Listing, UserListing
 from r2.lib.template_helpers import static
-from r2.lib.utils import tup, trunc_string
+from r2.lib.utils import trunc_string
 from r2.lib.jsontemplates import (
     JsonTemplate,
     ObjectTemplate,
@@ -28,12 +26,13 @@ from r2.lib.jsontemplates import (
     UserTableItemJsonTemplate,
 )
 
+from reddit_liveupdate.discussions import get_discussions
 from reddit_liveupdate.permissions import ContributorPermissionSet
 from reddit_liveupdate.utils import pretty_time
 
 
 def make_event_url(event_id):
-    return add_sr("/live/%s" % event_id, sr_path=False, force_hostname=True)
+    return add_sr("/live/%s/" % event_id, sr_path=False, force_hostname=True)
 
 
 class LiveUpdatePage(Reddit):
@@ -127,16 +126,18 @@ class LiveUpdateEventPage(LiveUpdatePage):
         )
 
     def build_toolbars(self):
-        toolbars = []
+        tabs = [
+            NavButton(
+                _("updates"),
+                "/",
+            ),
+            NavButton(
+                _("discussions"),
+                "/discussions",
+            ),
+        ]
 
         if c.liveupdate_permissions:
-            tabs = [
-                NavButton(
-                    _("updates"),
-                    "/",
-                ),
-            ]
-
             if (c.liveupdate_permissions.allow("settings") or
                     c.liveupdate_permissions.allow("close")):
                 tabs.append(NavButton(
@@ -150,13 +151,13 @@ class LiveUpdateEventPage(LiveUpdatePage):
                 "/contributors",
             ))
 
-            toolbars.append(NavMenu(
+        return [
+            NavMenu(
                 tabs,
                 base_path="/live/" + c.liveupdate_event._id,
                 type="tabmenu",
-            ))
-
-        return toolbars
+            ),
+        ]
 
 
 class LiveUpdateEventAppPage(LiveUpdateEventPage):
@@ -474,69 +475,29 @@ class LiveUpdateAccount(Templated):
         )
 
 
+def make_submit_url(event):
+    return "/submit?" + urllib.urlencode({
+        "url": make_event_url(event._id),
+        "title": event.title.encode("utf-8"),
+    })
+
+
 class LiveUpdateOtherDiscussions(Templated):
     max_links = 5
 
     def __init__(self):
-        links = self.get_links(c.liveupdate_event._id)
+        builder = get_discussions(c.liveupdate_event, limit=self.max_links+1)
+        links, prev, next, bcount, acount = builder.get_items()
+
         self.more_links = len(links) > self.max_links
         self.links = links[:self.max_links]
-        self.submit_url = "/submit?" + urllib.urlencode({
-            "url": make_event_url(c.liveupdate_event._id),
-            "title": c.liveupdate_event.title.encode("utf-8"),
-        })
+        self.submit_url = make_submit_url(c.liveupdate_event)
 
         Templated.__init__(self)
 
-    @classmethod
-    @memoize("live_update_discussion_ids", time=60)
-    def _get_related_link_ids(cls, event_id):
-        url = make_event_url(c.liveupdate_event._id)
 
-        try:
-            links = tup(Link._by_url(url, sr=None))
-        except NotFound:
-            links = []
-
-        return [link._id for link in links]
-
-    @classmethod
-    def get_links(cls, event_id):
-        link_ids = cls._get_related_link_ids(event_id)
-        links = Link._byID(link_ids, data=True, return_dict=False)
-        links.sort(key=lambda L: L.num_comments, reverse=True)
-
-        sr_ids = set(L.sr_id for L in links)
-        subreddits = Subreddit._byID(sr_ids, data=True)
-
-        wrapped = []
-        for link in links:
-            w = Wrapped(link)
-
-            if w._spam or w._deleted:
-                continue
-
-            if not getattr(w, "allow_liveupdate", True):
-                continue
-
-            if link._score < g.liveupdate_min_score_for_discussions:
-                continue
-
-            w.subreddit = subreddits[link.sr_id]
-
-            # ideally we'd check if the user can see the subreddit, but by
-            # doing this we keep everything user unspecific which makes caching
-            # easier.
-            if (w.subreddit.type not in ("public", "restricted") or
-                not w.subreddit.discoverable):
-                continue
-
-            comment_label = ungettext("comment", "comments", link.num_comments)
-            w.comments_label = strings.number_label % dict(
-                num=link.num_comments, thing=comment_label)
-
-            wrapped.append(w)
-        return wrapped
+class LiveUpdateDiscussionsListing(Templated):
+    pass
 
 
 class LiveUpdateListing(Listing):
