@@ -124,7 +124,8 @@ class LiveUpdateEventPage(LiveUpdatePage):
                 ),
             ]
 
-            if c.liveupdate_permissions.allow("settings"):
+            if (c.liveupdate_permissions.allow("settings") or
+                    c.liveupdate_permissions.allow("close")):
                 tabs.append(NavButton(
                     _("settings"),
                     "/edit",

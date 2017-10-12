@@ -4,6 +4,7 @@
 <%namespace name="utils" file="utils.html"/>
 <%namespace name="liveupdate_utils" file="liveupdateutils.html" />
 
+% if c.liveupdate_permissions.allow("settings"):
 <%liveupdate_utils:configuration_form button_name="${_('save settings')}" endpoint="live/${c.liveupdate_event._id}/edit" thing="${c.liveupdate_event}">
   <%utils:line_field title="${_('resources')}" description="${_('information and links that are useful at any point')}">
     ${UserText(None, text=getattr(c.liveupdate_event, 'resources', ''), editable=True, creating=True, name="resources", have_form=False)}
@@ -21,6 +22,7 @@
     </label>
   </%utils:line_field>
 </%liveupdate_utils:configuration_form>
+% endif
 
 % if c.liveupdate_permissions.allow("close"):
 <%utils:line_field title="${_('close the live thread')}" css_class="danger-zone">

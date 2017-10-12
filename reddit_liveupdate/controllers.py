@@ -466,10 +466,11 @@ class LiveUpdateController(RedditController):
             content=listing,
         ).render()
 
-    @validate(
-        VLiveUpdateContributorWithPermission("settings"),
-    )
     def GET_edit(self):
+        if not (c.liveupdate_permissions.allow("settings") or
+                c.liveupdate_permissions.allow("close")):
+            abort(403)
+
         return pages.LiveUpdateEventPage(
             content=pages.LiveUpdateEventConfiguration(),
         ).render()
