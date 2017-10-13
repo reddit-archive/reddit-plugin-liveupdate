@@ -78,6 +78,7 @@
           this.event.set({
             'viewer_count': message.count,
             'viewer_count_fuzzed': message.fuzzed,
+            'total_views': message.total_views,
           })
         },
         'message:settings': function(updates) {

@@ -33,7 +33,10 @@ will be in text frames containing a JSON object with two keys: `type` and
 See /r/live for more information.
 
 """
+import datetime
 import sys
+
+import pytz
 
 from pylons.i18n import N_
 
@@ -63,6 +66,10 @@ class MomentTranslations(LocaleSpecificSource):
         return localized_source
 
 
+def Date(text):
+    return datetime.datetime.strptime(text, "%Y-%m-%d").replace(tzinfo=pytz.utc)
+
+
 class LiveUpdate(Plugin):
     needs_static_build = True
 
@@ -85,6 +92,10 @@ class LiveUpdate(Plugin):
 
         ConfigValue.str: [
             "liveupdate_pixel_domain",
+        ],
+
+        ConfigValue.baseplate(Date): [
+            "liveupdate_min_date_viewcounts",
         ],
     }
 

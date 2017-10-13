@@ -225,6 +225,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         state="state",
         viewer_count="viewer_count",
         viewer_count_fuzzed="viewer_count_fuzzed",
+        total_views="total_views",
         title="title",
         nsfw="nsfw",
         description="description",
@@ -247,6 +248,12 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
                 return thing.active_visitors_fuzzed
             else:
                 return None
+        elif attr == "total_views":
+            # this requires an extra query, so we'll only show it in places
+            # where we're just getting one event.
+            if not hasattr(thing, "total_views"):
+                return None
+            return thing.total_views
         elif attr == "description_html":
             return filters.spaceCompress(
                 filters.safemarkdown(thing.description, nofollow=True) or "")

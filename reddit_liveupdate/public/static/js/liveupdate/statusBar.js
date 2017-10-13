@@ -39,6 +39,7 @@
         'change:state change:delay_remaining': this.renderState,
         'change:socket_state': this.onSocketStateChange,
         'change:state change:viewer_count': this.renderViewerCount,
+        'change:total_views': this.renderTotalViews,
       })
     },
 
@@ -129,7 +130,36 @@
 
       if (!this.$viewerCount) {
         this.$viewerCount = $viewerCount
-        this.$el.append($viewerCount)
+        this.$el.find('.state').after($viewerCount)
+      }
+
+      return this
+    },
+
+    renderTotalViews: function() {
+      var $totalViews = this.$totalViews || $('<p class="total-views">')
+      var totalViews = this.model.get('total_views')
+
+      if (totalViews === null) {
+        $totalViews.remove()
+        return
+      }
+
+      if (totalViews < 999) {
+        var formattedTotalViews = totalViews
+      } else if (totalViews <= 999999) {
+        var formattedTotalViews = (totalViews / 1000).toFixed(1) + 'k'
+      } else {
+        var formattedTotalViews = (totalViews / 1000000).toFixed(2) + 'm'
+      }
+
+      var totalViewsString = r.P_('%(num)s view', '%(num)s views', totalViews)
+      $totalViews
+        .text(totalViewsString.format({num: formattedTotalViews}))
+
+      if (!this.$totalViews) {
+        this.$totalViews = $totalViews
+        this.$el.append($totalViews)
       }
 
       return this

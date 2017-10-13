@@ -58,6 +58,7 @@ from r2.models import (
     Subreddit,
 )
 from r2.models.admintools import send_system_message
+from r2.models.view_counts import ViewCountsQuery
 from r2.lib.errors import errors
 from r2.lib.utils import url_links_builder
 from r2.lib.pages import AdminPage, PaneStack, Wrapped, RedditError, Reddit
@@ -307,6 +308,11 @@ class LiveUpdateController(RedditController):
 
         """
 
+        view_counts_query = None
+        if c.liveupdate_event._date >= g.liveupdate_min_date_viewcounts:
+            view_counts_query = ViewCountsQuery.execute_async(
+                [c.liveupdate_event._fullname])
+
         # preemptively record activity for clients that don't send pixel pings.
         # this won't capture their continued visit, but will at least show a
         # correct activity count for short lived connections.
@@ -340,9 +346,16 @@ class LiveUpdateController(RedditController):
             report_type=report_type,
         )
 
+        view_count = None
+        if view_counts_query:
+            view_counts = view_counts_query.result()
+            view_count = view_counts.get(c.liveupdate_event._fullname)
+
+        wrapped_event = Wrapped(c.liveupdate_event)
+        wrapped_event.total_views = view_count
         c.js_preload.set_wrapped(
             "/live/" + c.liveupdate_event._id + "/about.json",
-            Wrapped(c.liveupdate_event),
+            wrapped_event,
         )
 
         c.js_preload.set_wrapped(
@@ -439,7 +452,13 @@ class LiveUpdateController(RedditController):
         """
         if not is_api():
             self.abort404()
+
         content = Wrapped(c.liveupdate_event)
+
+        if c.liveupdate_event._date >= g.liveupdate_min_date_viewcounts:
+            view_counts = ViewCountsQuery.execute([c.liveupdate_event._fullname])
+            content.total_views = view_counts.get(c.liveupdate_event._fullname)
+
         return pages.LiveUpdateEventPage(content=content).render()
 
     @require_oauth2_scope("read")
