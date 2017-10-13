@@ -7,6 +7,7 @@ from thrift.transport.TTransport import TTransportException
 from r2.lib import amqp, websockets, utils, baseplate_integration
 from r2.lib.db import tdb_cassandra
 from r2.models.query_cache import CachedQueryMutator
+from r2.models.view_counts import ViewCountsQuery
 
 from reddit_liveupdate.models import (
     LiveUpdateEvent,
@@ -23,13 +24,19 @@ def update_activity():
     query = (ev for ev in LiveUpdateEvent._all()
              if ev.state == "live" and not ev.banned)
     for chunk in utils.in_chunks(query, size=100):
-        context_ids = {"LiveUpdateEvent_" + ev._id: ev._id for ev in chunk}
+        context_ids = {ev._fullname: ev._id for ev in chunk}
+
+        view_countable = [ev._fullname for ev in chunk
+                          if ev._date >= g.liveupdate_min_date_viewcounts]
+        view_counts_query = ViewCountsQuery.execute_async(view_countable)
 
         try:
             with c.activity_service.retrying(attempts=4) as svc:
                 infos = svc.count_activity_multi(context_ids.keys())
         except TTransportException:
             continue
+
+        view_counts = view_counts_query.result()
 
         for context_id, info in infos.iteritems():
             event_id = context_ids[context_id]
@@ -57,6 +64,7 @@ def update_activity():
                 payload={
                     "count": info.count,
                     "fuzzed": info.is_fuzzed,
+                    "total_views": view_counts.get(context_id),
                 },
             )
 
