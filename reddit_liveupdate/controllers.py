@@ -1,6 +1,7 @@
 import collections
 import hashlib
 import os
+import re
 import uuid
 
 from pylons import request, response
@@ -27,6 +28,7 @@ from r2.lib.base import BaseController, abort
 from r2.lib.db import tdb_cassandra
 from r2.lib.filters import safemarkdown
 from r2.lib.validator import (
+    nop,
     validate,
     validatedForm,
     VAdmin,
@@ -1149,6 +1151,7 @@ class LiveUpdateEventsController(RedditController):
 
 @add_controller
 class LiveUpdateByIDController(ListingController):
+    splitter = re.compile('[ ,]+')
     title_text = _('API')
     builder_cls = LiveUpdateEventBuilder
 
@@ -1157,7 +1160,7 @@ class LiveUpdateByIDController(ListingController):
 
     @require_oauth2_scope("read")
     @validate(
-        events=VLiveUpdateEvent("names", multiple=True),
+        events=nop("names", docs={"names": "a comma-delimited list of live thread fullnames or IDs"}),
     )
     @api_doc(section=api_section.live, uri="/api/live/by_id/{names}")
     def GET_listing(self, events, **env):
@@ -1167,7 +1170,17 @@ class LiveUpdateByIDController(ListingController):
         if not events:
             return self.abort404()
 
-        self.names = [e for e in events]
+        self.names = []
+        for item in self.splitter.split(events):
+            # we originally overrode the fullname for live events to look like
+            # regular IDs (no prefix). this snuck out to the world through this
+            # api endpoint. to provide backwards compatibility, we'll prepend
+            # the prefix if the requester doesn't send a proper fullname.
+            if not item.startswith("LiveUpdateEvent_"):
+                self.names.append("LiveUpdateEvent_" + item)
+            else:
+                self.names.append(item)
+
         return ListingController.GET_listing(self, **env)
 
 
