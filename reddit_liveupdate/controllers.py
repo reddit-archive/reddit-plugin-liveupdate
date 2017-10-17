@@ -1023,15 +1023,15 @@ class LiveUpdateReportedEventBuilder(LiveUpdateEventBuilder):
 
 
 def featured_event_builder_factory(featured_events):
-    locales_by_id = collections.defaultdict(set)
+    locales_by_fullname = collections.defaultdict(set)
     for locale, event_id in featured_events.iteritems():
-        locales_by_id[event_id].add(locale)
+        locales_by_fullname[event_id].add(locale)
 
     class LiveUpdateFeaturedEventBuilder(LiveUpdateEventBuilder):
         def wrap_items(self, items):
             wrapped = LiveUpdateEventBuilder.wrap_items(self, items)
             for w in wrapped:
-                w.featured_in = locales_by_id.get(w._id)
+                w.featured_in = locales_by_fullname.get(w._fullname)
             return wrapped
 
     return LiveUpdateFeaturedEventBuilder
@@ -1294,14 +1294,19 @@ class LiveUpdateEmbedController(MinimalController):
         return pages.LiveUpdateMediaEmbedBody(**args).render()
 
 
+def get_all_featured_events():
+    return NamedGlobals.get(HAPPENING_NOW_KEY, None) or {}
+
+
 @add_controller
 class LiveUpdateAdminController(RedditController):
     @validate(VAdmin())
     def GET_happening_now(self):
-        featured_event_ids = NamedGlobals.get(HAPPENING_NOW_KEY, None) or {}
+        featured_event_fullnames = get_all_featured_events()
+
         featured_events = {}
-        for target, event_id in featured_event_ids.iteritems():
-            event = LiveUpdateEvent._byID(event_id)
+        for target, event_id in featured_event_fullnames.iteritems():
+            event = LiveUpdateEvent._by_fullname(event_id)
             featured_events[target] = event
 
         return AdminPage(
@@ -1322,15 +1327,11 @@ class LiveUpdateAdminController(RedditController):
                 abort(400)
 
             NamedGlobals.set(HAPPENING_NOW_KEY,
-                             {target: featured_thread._id})
+                             {target: featured_thread._fullname})
         else:
             NamedGlobals.set(HAPPENING_NOW_KEY, None)
 
         self.redirect('/admin/happening-now')
-
-
-def get_all_featured_events():
-    return NamedGlobals.get(HAPPENING_NOW_KEY, None) or {}
 
 
 def get_featured_event():
@@ -1343,7 +1344,7 @@ def get_featured_event():
         return None
 
     try:
-        return LiveUpdateEvent._byID(event_id)
+        return LiveUpdateEvent._by_fullname(event_id)
     except NotFound:
         return None
 

@@ -49,7 +49,10 @@ class VLiveUpdateEventUrl(VLiveUpdateEvent):
         if not event_id:
             return None
 
-        return VLiveUpdateEvent.run(self, event_id.group(1))
+        try:
+            return models.LiveUpdateEvent._byID(event_id.group(1))
+        except tdb_cassandra.NotFound:
+            return None
 
 
 class VLiveUpdateID(Validator):
