@@ -39,6 +39,9 @@ def get_discussions(event, limit, show_hidden=False):
         if link.subreddit_slow.type in Subreddit.private_types:
             return False
 
+        if not link.subreddit_slow.discoverable:
+            return False
+
         if not getattr(link, "allow_liveupdate", True):
             return False
 
