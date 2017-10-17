@@ -3,6 +3,8 @@
   from r2.lib.filters import safemarkdown
 %>
 
+<%namespace file="utils.html" import="_mdf" />
+
 <h1>${c.liveupdate_event.title}</h1>
 
 <style>
@@ -30,7 +32,7 @@
 </style>
 
 % if not thing.things:
-${unsafe(safemarkdown(_("no discussions yet. [start one]({url})").format(url=thing.submit_url), wrap=False))}
+${_mdf("no discussions yet. [start one](%(url)s)", wrap=False, url=thing.submit_url)}
 % else:
 <p>${_("Check out discussion about this live thread in the posts below.")}</p>
 
