@@ -508,6 +508,12 @@ class LiveUpdateController(RedditController):
         See also: [/api/live/*thread*/hide_discussion](#POST_api_live_{thread}_hide_discussion).
 
         """
+        url = pages.make_event_url(c.liveupdate_event._id)
+        if link.url != url:
+            c.errors.add(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION)
+            form.set_error(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION, None)
+            return
+
         c.liveupdate_event.unhide_discussion(link)
 
     def GET_edit(self):
