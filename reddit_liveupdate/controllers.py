@@ -482,6 +482,12 @@ class LiveUpdateController(RedditController):
         See also: [/api/live/*thread*/unhide_discussion](#POST_api_live_{thread}_unhide_discussion).
 
         """
+        # this prevents a potential information leak where you use the
+        # following link.url check to determine if links in a private subreddit
+        # point at a given live thread.
+        if link.subreddit_slow.type in Subreddit.private_types:
+            self.abort403()
+
         url = pages.make_event_url(c.liveupdate_event._id)
         if link.url != url:
             c.errors.add(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION)
@@ -508,6 +514,12 @@ class LiveUpdateController(RedditController):
         See also: [/api/live/*thread*/hide_discussion](#POST_api_live_{thread}_hide_discussion).
 
         """
+        # this prevents a potential information leak where you use the
+        # following link.url check to determine if links in a private subreddit
+        # point at a given live thread.
+        if link.subreddit_slow.type in Subreddit.private_types:
+            self.abort403()
+
         url = pages.make_event_url(c.liveupdate_event._id)
         if link.url != url:
             c.errors.add(errors.LIVEUPDATE_LINK_IS_NOT_DISCUSSION)

@@ -3,7 +3,7 @@ import itertools
 from pylons import app_globals as g
 
 from r2.lib.memoize import memoize
-from r2.models import Link, NotFound, IDBuilder
+from r2.models import Link, NotFound, IDBuilder, Subreddit
 
 
 MAX_LINK_IDS_TO_CACHE = 50
@@ -31,6 +31,12 @@ def get_discussions(event, limit, show_hidden=False):
     hidden_links = event.hidden_discussions
     def _keep_discussion_link(link):
         if link._spam or link._deleted:
+            return False
+
+        # just don't allow any private subreddits so we don't get into a
+        # situation where an abusive link is posted in a private subreddit and
+        # contributors can't do anything about it because they can't see it.
+        if link.subreddit_slow.type in Subreddit.private_types:
             return False
 
         if not getattr(link, "allow_liveupdate", True):
