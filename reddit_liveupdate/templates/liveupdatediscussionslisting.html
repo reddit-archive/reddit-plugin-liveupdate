@@ -1,6 +1,6 @@
 <%!
   from r2.lib.strings import Score
-  from r2.lib.filters import safemarkdown
+  from r2.lib.filters import safemarkdown, scriptsafe_dumps
 %>
 
 <%namespace file="utils.html" import="_mdf" />
@@ -55,12 +55,12 @@ $('#discussions tr').each(function(i, row) {
   $('<td>')
     .append(
         $('<button class="pretty-button positive" data-action="unhide_discussion">')
-          .text('${_("show")}')
+          .text(${scriptsafe_dumps(_("show"))})
           .toggleClass('pressed', !isHidden)
     )
     .append(
         $('<button class="pretty-button negative" data-action="hide_discussion">')
-          .text('${_("hide")}')
+          .text(${scriptsafe_dumps(_("hide"))})
           .toggleClass('pressed', isHidden)
     )
     .prependTo($row);
