@@ -43,7 +43,6 @@ class TestEventCollector(RedditTestCase):
             'user_id': self.context.user._id,
             'user_name': self.context.user.name,
 
-            'geoip_country': self.context.location,
             'oauth2_client_id': self.context.oauth2_client._id,
             'oauth2_client_app_type': self.context.oauth2_client.app_type,
             'oauth2_client_name': self.context.oauth2_client.name,
