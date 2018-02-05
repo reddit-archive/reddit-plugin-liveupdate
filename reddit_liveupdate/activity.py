@@ -4,7 +4,7 @@ import datetime
 from pylons import app_globals as g, tmpl_context as c
 from thrift.transport.TTransport import TTransportException
 
-from r2.lib import amqp, websockets, utils, baseplate_integration
+from r2.lib import amqp, websockets, utils
 from r2.lib.db import tdb_cassandra
 from r2.models.query_cache import CachedQueryMutator
 from r2.models.view_counts import ViewCountsQuery
@@ -16,7 +16,6 @@ from reddit_liveupdate.models import (
 from reddit_liveupdate.queries import get_active_events
 
 
-@baseplate_integration.with_root_span("job.liveupdate_activity")
 def update_activity():
     events = {}
     event_counts = collections.Counter()

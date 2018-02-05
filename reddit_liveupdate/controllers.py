@@ -229,13 +229,14 @@ class LiveUpdatePixelController(BaseController):
     # this decorator takes **kwargs which routes treats specially and throws
     # every routing variable it could think of at the endpoint, so this means
     # GET_pixel then has to take **kwargs too just to appease it. annoying.
-    @baseplate_integration.with_root_span("liveupdatepixelcontroller.GET_pixel")
     def GET_pixel(self, event, **kwargs):
         extension = request.environ.get("extension")
         if extension != "png":
             abort(404)
 
-        record_activity(event)
+        with baseplate_integration.make_server_span(
+                "liveupdatepixelcontroller.GET_pixel"):
+            record_activity(event)
 
         response.content_type = "image/png"
         response.headers["Cache-Control"] = "no-cache, max-age=0"
