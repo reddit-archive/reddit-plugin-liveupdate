@@ -82,7 +82,7 @@ def _scrape_mobile_media_objects(urls):
 def _scrape_mobile_media_object(url):
     scraper = _LiveEmbedlyScraper(url)
     try:
-        _, _, result, _ = scraper.scrape()
+        _, _, _, result = scraper.scrape()
         result['oembed']['original_url'] = url
         return result['oembed']
     except:
@@ -104,21 +104,22 @@ def _scrape_media_object(url, autoplay=False, maxwidth=_EMBED_WIDTH):
     scraper = LiveScraper.for_url(url, autoplay=autoplay, maxwidth=maxwidth)
 
     try:
-        thumbnail, preview, media_object, secure_media_object = scraper.scrape()
+        thumbnail, preview, _, secure_media_object = scraper.scrape()
     except (HTTPError, URLError):
         g.log.info("Unable to scrape suspected scrapable URL: %r", url)
         return None
 
     # No oembed? We don't want it for liveupdate.
-    if not media_object or 'oembed' not in media_object:
+    # Deprecate use of media_object with None, prefer secure
+    if not secure_media_object or 'oembed' not in secure_media_object:
         return None
 
     # Use our exact passed URL to ensure matching in markdown.
     # Some scrapers will canonicalize a URL to something we
     # haven't seen yet.
-    media_object['oembed']['url'] = url
+    secure_media_object['oembed']['url'] = url
 
-    return media_object
+    return secure_media_object
 
 
 class LiveScraper(Scraper):
@@ -166,8 +167,9 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
         if not self.oembed:
             return None, None, None, None
 
-        media_object = self.make_media_object(self.oembed)
-        return None, None, media_object, None
+        # Deprecate use of media_object with None, prefer secure
+        secure_media_object = self.make_media_object(self.oembed)
+        return None, None, None, secure_media_object
 
 
 class _EmbedlyCardFallbackScraper(Scraper):
@@ -176,11 +178,11 @@ class _EmbedlyCardFallbackScraper(Scraper):
         self.scraper = scraper
 
     def scrape(self):
-        thumb, preview, media_object, secure_media_object = self.scraper.scrape()
+        thumb, preview, _, secure_media_object = self.scraper.scrape()
 
         # ok, the upstream scraper failed so let's make an embedly card
-        if not media_object:
-            media_object = secure_media_object = {
+        if not secure_media_object:
+            secure_media_object = {
                 "type": "embedly-card",
                 "oembed": {
                     "width": _EMBED_WIDTH,
@@ -189,7 +191,8 @@ class _EmbedlyCardFallbackScraper(Scraper):
                 },
             }
 
-        return thumb, preview, media_object, secure_media_object
+        # Deprecate use of media_object with None, prefer secure
+        return thumb, preview, None, secure_media_object
 
     @classmethod
     def media_embed(cls, media_object):
@@ -249,7 +252,7 @@ class _TwitterScraper(Scraper):
         return (
             None,  # no thumbnails for twitter
             None,
-            media_object,
+            None, # Deprecate use of media_object with None, prefer secure
             media_object,  # Twitter's response is ssl ready by default
         )
 
