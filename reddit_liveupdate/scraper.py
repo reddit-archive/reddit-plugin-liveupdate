@@ -33,7 +33,6 @@ class _LiveUpdateScraper(Scraper):
         return (
             None,
             None,
-            None, # Deprecate use of media_object with None, prefer secure
             self._make_media_object(),
         )
 

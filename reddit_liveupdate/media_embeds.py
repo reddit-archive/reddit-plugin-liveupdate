@@ -82,7 +82,7 @@ def _scrape_mobile_media_objects(urls):
 def _scrape_mobile_media_object(url):
     scraper = _LiveEmbedlyScraper(url)
     try:
-        _, _, _, result = scraper.scrape()
+        _, _, result = scraper.scrape()
         result['oembed']['original_url'] = url
         return result['oembed']
     except:
@@ -104,7 +104,7 @@ def _scrape_media_object(url, autoplay=False, maxwidth=_EMBED_WIDTH):
     scraper = LiveScraper.for_url(url, autoplay=autoplay, maxwidth=maxwidth)
 
     try:
-        thumbnail, preview, _, secure_media_object = scraper.scrape()
+        thumbnail, preview, secure_media_object = scraper.scrape()
     except (HTTPError, URLError):
         g.log.info("Unable to scrape suspected scrapable URL: %r", url)
         return None
@@ -165,11 +165,11 @@ class _LiveEmbedlyScraper(_OEmbedScraper):
 
     def scrape(self):
         if not self.oembed:
-            return None, None, None, None
+            return None, None, None
 
         # Deprecate use of media_object with None, prefer secure
         secure_media_object = self.make_media_object(self.oembed)
-        return None, None, None, secure_media_object
+        return None, None, secure_media_object
 
 
 class _EmbedlyCardFallbackScraper(Scraper):
@@ -178,7 +178,7 @@ class _EmbedlyCardFallbackScraper(Scraper):
         self.scraper = scraper
 
     def scrape(self):
-        thumb, preview, _, secure_media_object = self.scraper.scrape()
+        thumb, preview, secure_media_object = self.scraper.scrape()
 
         # ok, the upstream scraper failed so let's make an embedly card
         if not secure_media_object:
@@ -192,7 +192,7 @@ class _EmbedlyCardFallbackScraper(Scraper):
             }
 
         # Deprecate use of media_object with None, prefer secure
-        return thumb, preview, None, secure_media_object
+        return thumb, preview, secure_media_object
 
     @classmethod
     def media_embed(cls, media_object):
@@ -245,14 +245,13 @@ class _TwitterScraper(Scraper):
     def scrape(self):
         oembed = self._fetch_from_twitter()
         if not oembed:
-            return None, None, None, None
+            return None, None, None
 
         media_object = self._make_media_object(oembed)
 
         return (
             None,  # no thumbnails for twitter
             None,
-            None, # Deprecate use of media_object with None, prefer secure
             media_object,  # Twitter's response is ssl ready by default
         )
 
