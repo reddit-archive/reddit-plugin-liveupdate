@@ -1145,6 +1145,8 @@ class LiveUpdateEventsController(RedditController):
         if not is_api():
             self.abort404()
 
+        response.headers["Cache-Control"] = "max-age=300"
+
         featured_event = get_featured_event()
         if not featured_event:
             response.status_code = 204
