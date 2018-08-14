@@ -110,6 +110,7 @@ The live thread [%(title)s](%(url)s) was just reported for %(reason)s.  Please
 see the [reports page](/live/reported) for more information.
 """
 HAPPENING_NOW_KEY = 'live_happening_now'
+ANNOUNCEMENTS_KEY = 'announcements_happening_now'
 
 
 def _broadcast(type, payload):
@@ -1121,6 +1122,103 @@ def featured_event_builder_factory(featured_events):
 
 
 @add_controller
+class LiveAnnouncementsController(RedditController):
+    def GET_home(self):
+        return pages.LiveUpdateMetaPage(
+            title=_("reddit live"),
+            content=pages.LiveUpdateHome(),
+            page_classes=["liveupdate-home"],
+        ).render()
+    
+    @require_oauth2_scope("read")
+    @api_doc(
+        section=api_section.live,
+        uri="/api/announcements/happening_now",
+    )
+    def GET_happening_now(self):
+        """ Get some basic information about the currently featured live thread.
+
+            Returns an empty 204 response for api requests if no thread is currently featured.
+
+            See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
+        """
+        import pdb; pdb.set_trace()
+        if not is_api():
+            self.abort404()
+
+        featured_announcement = get_featured_announcement()
+        if not featured_announcement:
+            response.status_code = 204
+            return
+
+        c.liveupdate_event = featured_announcement
+        content = Wrapped(featured_announcement)
+        return pages.LiveUpdateEventPage(content).render()
+
+
+    @require_oauth2_scope("submit")
+    @validatedForm(
+        VUser(),
+        VModhash(),
+        VRatelimit(rate_user=True, prefix="liveupdate_create_"),
+        **EVENT_CONFIGURATION_VALIDATORS
+    )
+    @api_doc(
+        section=api_section.live,
+        uri="/api/announcements/create",
+    )
+    def POST_create(self, form, jquery, title, description, resources, nsfw, announcement_url='', button_cta='', start_date=None, end_date=None):
+        """Create a new live thread.
+
+        Once created, the initial settings can be modified with
+        [/api/live/*thread*/edit](#POST_api_live_{thread}_edit) and new updates
+        can be posted with
+        [/api/live/*thread*/update](#POST_api_live_{thread}_update).
+
+        """
+        if not is_event_configuration_valid(form):
+            return
+
+        # for simplicity, set the live-thread creation threshold at the
+        # subreddit creation threshold
+        if not c.user_is_admin and not c.user.can_create_subreddit:
+            form.set_error(errors.CANT_CREATE_SR, "")
+            c.errors.add(errors.CANT_CREATE_SR, field="")
+            return
+
+        if form.has_errors("ratelimit", errors.RATELIMIT):
+            return
+
+        VRatelimit.ratelimit(
+            rate_user=True, prefix="liveupdate_create_", seconds=60)
+
+        event = LiveUpdateEvent.new(
+            id=None,
+            title=title,
+            description=description,
+            resources=resources,
+            banned=c.user._spam,
+            nsfw=nsfw,
+            is_announcement=True,
+            announcement_url=announcement_url,
+            button_cta=button_cta,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
+        queries.create_event(event)
+
+        amqp.add_item("new_liveupdate_event", json.dumps({
+            "event_fullname": event._fullname,
+            "creator_fullname": c.user._fullname,
+        }))
+
+        form.redirect("/live/" + event._id)
+        form._send_data(id=event._id)
+        liveupdate_events.create_event(event, context=c, request=request)
+
+
+@add_controller
 class LiveUpdateEventsController(RedditController):
     def GET_home(self):
         return pages.LiveUpdateMetaPage(
@@ -1381,6 +1479,10 @@ def get_all_featured_events():
     return NamedGlobals.get(HAPPENING_NOW_KEY, None) or {}
 
 
+def get_all_featured_announcements():
+    return NamedGlobals.get(ANNOUNCEMENTS_KEY, None) or {}
+
+
 @add_controller
 class LiveUpdateAdminController(RedditController):
     @validate(VAdmin())
@@ -1422,6 +1524,21 @@ def get_featured_event():
     location = geoip.get_request_location(request, c)
     featured_events = get_all_featured_events()
     event_id = featured_events.get(location) or featured_events.get("ANY")
+
+    if not event_id:
+        return None
+
+    try:
+        return LiveUpdateEvent._by_fullname(event_id)
+    except NotFound:
+        return None
+
+
+def get_featured_announcement():
+    """Return the currently featured live thread for the given user."""
+    location = geoip.get_request_location(request, c)
+    featured_announcements = get_all_featured_announcements()
+    event_id = featured_announcements.get(location) or featured_announcements.get("ANY")
 
     if not event_id:
         return None

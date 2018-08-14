@@ -164,6 +164,21 @@ class LiveUpdate(Plugin):
         )
 
         mc(
+            "/announcements",
+            controller="liveannouncements",
+            action="home",
+            conditions={"function": not_in_sr},
+        )
+
+
+        mc(
+            "/api/announcements/:action",
+            controller="liveannouncements",
+            conditions={"function": not_in_sr},
+            requirements={"action": "create|happening_now"},
+        )        
+
+        mc(
             "/api/live/:action",
             controller="liveupdateevents",
             conditions={"function": not_in_sr},
@@ -217,6 +232,7 @@ class LiveUpdate(Plugin):
 
         from reddit_liveupdate.controllers import (
             controller_hooks,
+            LiveAnnouncementsController,
             LiveUpdateByIDController,
             LiveUpdateController,
             LiveUpdateEventsController,
@@ -229,6 +245,7 @@ class LiveUpdate(Plugin):
         api('liveupdateeventapp', pages.LiveUpdateEventAppJsonTemplate)
         api('liveupdatefocusapp', pages.LiveUpdateEventAppJsonTemplate)
         api('liveupdateevent', pages.LiveUpdateEventJsonTemplate)
+        api('liveannouncements', pages.LiveAnnouncementsJsonTemplate)
         api('liveupdatereportedeventrow', pages.LiveUpdateEventJsonTemplate)
         api('liveupdatefeaturedevent', pages.LiveUpdateFeaturedEventJsonTemplate)
         api('liveupdate', pages.LiveUpdateJsonTemplate)

@@ -31,6 +31,11 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         "active_visitors_fuzzed",
         "banned",
         "nsfw",
+        "is_announcement",
+    )
+    _date_props = (
+        "start_date",
+        "end_date",
     )
     _defaults = {
         "description": "",
@@ -42,6 +47,10 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         "banned": False,
         "banned_by": "(unknown)",
         "nsfw": False,
+        "button_cta": "",
+        "announcement_url": "",
+        "start_date": None,
+        "end_date": None,
     }
 
     @classmethod
