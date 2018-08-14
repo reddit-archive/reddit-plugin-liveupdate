@@ -1142,7 +1142,6 @@ class LiveAnnouncementsController(RedditController):
 
             See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
         """
-        import pdb; pdb.set_trace()
         if not is_api():
             self.abort404()
 
@@ -1202,8 +1201,6 @@ class LiveAnnouncementsController(RedditController):
             is_announcement=True,
             announcement_url=announcement_url,
             button_cta=button_cta,
-            start_date=start_date,
-            end_date=end_date,
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
@@ -1216,6 +1213,24 @@ class LiveAnnouncementsController(RedditController):
         form.redirect("/live/" + event._id)
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
+
+
+    @require_oauth2_scope("submit")
+    @validate(
+        VUser(),
+        VModhash(),
+        featured_thread=VLiveUpdateEventUrl('url'),
+        target=VOneOf("target", [country.alpha2 for country in iso3166.countries]),
+    )
+    def POST_happening_now(self, featured_thread, target):
+        if featured_thread:
+            if not target:
+                abort(400)
+
+            NamedGlobals.set(ANNOUNCEMENTS_KEY,
+                             {target: featured_thread._fullname})
+        else:
+            NamedGlobals.set(ANNOUNCEMENTS_KEY, None)
 
 
 @add_controller
