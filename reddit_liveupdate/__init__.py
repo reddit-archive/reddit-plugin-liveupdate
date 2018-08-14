@@ -212,6 +212,7 @@ class LiveUpdate(Plugin):
            controller="liveupdateembed", action="mediaembed")
 
         mc('/admin/happening-now', controller='liveupdateadmin', action='happening_now')
+        mc('/admin/announcements', controller='liveupdateadmin', action='announcements')
 
     def load_controllers(self):
         from r2.controllers.api_docs import api_section, section_info

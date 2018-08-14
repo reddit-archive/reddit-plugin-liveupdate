@@ -234,6 +234,9 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         resources="resources",
         resources_html="resources_html",
         websocket_url="websocket_url",
+        is_announcement="is_announcement",
+        announcement_url="announcement_url",
+        button_cta="button_cta",
     )
 
     def thing_attr(self, thing, attr):
@@ -577,11 +580,35 @@ class LiveUpdateNSFWEmbed(Templated):
     pass
 
 
+class LiveUpdateAnnouncementsBar(Templated):
+    def __init__(self, event, enable_logo=True):
+        self.event = event
+        self.enable_logo = enable_logo
+        Templated.__init__(self)
+
+
 class LiveUpdateHappeningNowBar(Templated):
     def __init__(self, event, enable_logo=True):
         self.event = event
         self.enable_logo = enable_logo
         Templated.__init__(self)
+
+
+class AnnouncementsAdmin(Templated):
+    """Admin page for choosing the promoted announcement."""
+
+    def __init__(self, featured_events):
+        if featured_events:
+            target, event = featured_events.items()[0]
+            super(AnnouncementsAdmin, self).__init__(
+                featured_event=LiveUpdateHappeningNowBar(event, enable_logo=False),
+                target=target,
+            )
+        else:
+            super(AnnouncementsAdmin, self).__init__(
+                featured_event=None,
+                target=None,
+            )
 
 
 class HappeningNowAdmin(Templated):
@@ -591,7 +618,7 @@ class HappeningNowAdmin(Templated):
         if featured_events:
             target, event = featured_events.items()[0]
             super(HappeningNowAdmin, self).__init__(
-                featured_event=LiveUpdateHappeningNowBar(event, enable_logo=False),
+                featured_event=LiveUpdateAnnouncementsBar(event, enable_logo=False),
                 target=target,
             )
         else:

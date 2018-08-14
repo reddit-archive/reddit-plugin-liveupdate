@@ -1131,10 +1131,6 @@ class LiveAnnouncementsController(RedditController):
         ).render()
     
     @require_oauth2_scope("read")
-    @api_doc(
-        section=api_section.live,
-        uri="/api/announcements/happening_now",
-    )
     def GET_happening_now(self):
         """ Get some basic information about the currently featured live thread.
 
@@ -1213,24 +1209,6 @@ class LiveAnnouncementsController(RedditController):
         form.redirect("/live/" + event._id)
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
-
-
-    @require_oauth2_scope("submit")
-    @validate(
-        VUser(),
-        VModhash(),
-        featured_thread=VLiveUpdateEventUrl('url'),
-        target=VOneOf("target", [country.alpha2 for country in iso3166.countries]),
-    )
-    def POST_happening_now(self, featured_thread, target):
-        if featured_thread:
-            if not target:
-                abort(400)
-
-            NamedGlobals.set(ANNOUNCEMENTS_KEY,
-                             {target: featured_thread._fullname})
-        else:
-            NamedGlobals.set(ANNOUNCEMENTS_KEY, None)
 
 
 @add_controller
@@ -1501,6 +1479,41 @@ def get_all_featured_announcements():
 @add_controller
 class LiveUpdateAdminController(RedditController):
     @validate(VAdmin())
+    def GET_announcements(self):
+        featured_announcement_fullnames = get_all_featured_announcements()
+
+        featured_events = {}
+        for target, event_id in featured_announcement_fullnames.iteritems():
+            event = LiveUpdateEvent._by_fullname(event_id)
+            featured_events[target] = event
+
+        return AdminPage(
+                content=pages.HappeningNowAdmin(featured_events),
+                title='announcements: happening now',
+                nav_menus=[]
+            ).render()
+
+    @require_oauth2_scope("submit")
+    @validate(
+        VUser(),
+        VModhash(),
+        featured_thread=VLiveUpdateEventUrl('url'),
+        target=VOneOf("target", [country.alpha2 for country in iso3166.countries]),
+    )
+    def POST_announcements(self, featured_thread, target):
+        if featured_thread:
+            if not target:
+                abort(400)
+
+            NamedGlobals.set(ANNOUNCEMENTS_KEY,
+                             {target: featured_thread._fullname})
+        else:
+            NamedGlobals.set(ANNOUNCEMENTS_KEY, None)
+
+        self.redirect('/admin/announcements')
+
+
+    @validate(VAdmin())
     def GET_happening_now(self):
         featured_event_fullnames = get_all_featured_events()
 
@@ -1577,6 +1590,10 @@ def add_featured_live_thread(controller):
 
     featured_event = get_featured_event()
     if not featured_event:
+        featured_announcement = get_featured_announcement()
+        if featured_announcement:
+            return pages.LiveUpdateAnnouncementsBar(event=featured_announcement)
+
         return None
 
     return pages.LiveUpdateHappeningNowBar(event=featured_event)
