@@ -117,6 +117,8 @@ EVENT_CONFIGURATION_VALIDATORS = {
     "description": VMarkdownLength("description", max_length=120, empty_error=None),
     "resources": VMarkdownLength("resources", max_length=10000, empty_error=None),
     "nsfw": VBoolean("nsfw"),
+    "announcement_url": VLength("announcement_url", max_length=2083),
+    "button_cta": VLength("button_cta", max_length=100),
 }
 
 
