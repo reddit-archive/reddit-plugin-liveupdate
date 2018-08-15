@@ -59,6 +59,7 @@ from r2.models import (
     QueryBuilder,
     SimpleBuilder,
     Subreddit,
+    SubscribedSubredditsByAccount,
 )
 from r2.models.admintools import send_system_message
 from r2.models.view_counts import ViewCountsQuery
@@ -1483,12 +1484,13 @@ class LiveUpdateAdminController(RedditController):
         featured_announcement_fullnames = get_all_featured_announcements()
 
         featured_events = {}
-        for target, event_id in featured_announcement_fullnames.iteritems():
+        for target, event in featured_announcement_fullnames.iteritems():
+            event_id = event.get('event_id')
             event = LiveUpdateEvent._by_fullname(event_id)
             featured_events[target] = event
 
         return AdminPage(
-                content=pages.HappeningNowAdmin(featured_events),
+                content=pages.AnnouncementsAdmin(featured_events),
                 title='announcements: happening now',
                 nav_menus=[]
             ).render()
@@ -1498,15 +1500,40 @@ class LiveUpdateAdminController(RedditController):
         VUser(),
         VModhash(),
         featured_thread=VLiveUpdateEventUrl('url'),
-        target=VOneOf("target", [country.alpha2 for country in iso3166.countries]),
+        target=VOneOf(
+            "target",
+            [country.alpha2 for country in iso3166.countries]
+        ),
+        logged_in=VBoolean("logged_in"),
+        logged_out=VBoolean("logged_out"),
+        mod_only=VBoolean("mod_only"),
+        sr_blacklist=nop("sr_blacklist"),
     )
-    def POST_announcements(self, featured_thread, target):
+    def POST_announcements(self, featured_thread, target, logged_in=False,
+                           logged_out=False, mod_only=False, sr_blacklist=""):
         if featured_thread:
             if not target:
                 abort(400)
 
-            NamedGlobals.set(ANNOUNCEMENTS_KEY,
-                             {target: featured_thread._fullname})
+            sr_ids_blacklist = []
+            import pdb
+            pdb.set_trace()
+            if sr_blacklist:
+                sr_names = sr_blacklist.split(",")
+                for sr_name in sr_names:
+                    sr = Subreddit._by_name(sr_name)
+                    if sr:
+                        sr_ids_blacklist.append(sr._id)
+            entry = {
+                target: {
+                    "event_id": featured_thread._fullname,
+                    "logged_in": logged_in,
+                    "logged_out": logged_out,
+                    "mod_only": mod_only,
+                    "sr_blacklist": sr_ids_blacklist,
+                }
+            }
+            NamedGlobals.set(ANNOUNCEMENTS_KEY, entry)
         else:
             NamedGlobals.set(ANNOUNCEMENTS_KEY, None)
 
@@ -1554,7 +1581,11 @@ def get_featured_event():
     event_id = featured_events.get(location) or featured_events.get("ANY")
 
     if not event_id:
-        return None
+        featured_announcement = get_featured_announcement()
+        if featured_announcement:
+            return featured_announcement
+        else:
+            return None
 
     try:
         return LiveUpdateEvent._by_fullname(event_id)
@@ -1564,12 +1595,42 @@ def get_featured_event():
 
 def get_featured_announcement():
     """Return the currently featured live thread for the given user."""
+
     location = geoip.get_request_location(request, c)
     featured_announcements = get_all_featured_announcements()
-    event_id = featured_announcements.get(location) or featured_announcements.get("ANY")
+    announcement = (featured_announcements.get(location) or
+                    featured_announcements.get("ANY"))
+
+    if not announcement:
+        return None
+
+    event_id = announcement.get("event_id")
 
     if not event_id:
         return None
+
+    if (announcement.get("logged_out") and not
+            announcement.get("logged_in") and c.user_is_loggedin):
+        return None
+
+    if (announcement.get("logged_in") and not
+            announcement.get("logged_out") and not c.user_is_loggedin):
+        return None
+
+    sr_blacklist = announcement.get("sr_blacklist")
+    if sr_blacklist and c.user_is_loggedin:
+        subscribed_srs = SubscribedSubredditsByAccount.get_all_sr_ids(c.user)
+        if subscribed_srs:
+            for sr_id in sr_blacklist:
+                if sr_id in subscribed_srs:
+                    return None
+
+    if announcement.get("mod_only"):
+        if not c.user_is_loggedin:
+            return None
+
+        if not c.user.is_moderator_somewhere:
+            return None
 
     try:
         return LiveUpdateEvent._by_fullname(event_id)
