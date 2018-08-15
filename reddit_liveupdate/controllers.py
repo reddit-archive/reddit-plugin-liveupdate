@@ -1129,26 +1129,15 @@ class LiveAnnouncementsController(RedditController):
             content=pages.LiveUpdateHome(),
             page_classes=["liveupdate-home"],
         ).render()
-    
-    @require_oauth2_scope("read")
-    def GET_happening_now(self):
-        """ Get some basic information about the currently featured live thread.
 
-            Returns an empty 204 response for api requests if no thread is currently featured.
-
-            See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
-        """
-        if not is_api():
-            self.abort404()
-
-        featured_announcement = get_featured_announcement()
-        if not featured_announcement:
-            response.status_code = 204
-            return
-
-        c.liveupdate_event = featured_announcement
-        content = Wrapped(featured_announcement)
-        return pages.LiveUpdateEventPage(content).render()
+    @validate(
+        VAdmin(),
+    )
+    def GET_create(self):
+        return pages.LiveUpdateMetaPage(
+            title=_("create live thread"),
+            content=pages.LiveAnnouncementsCreate(),
+        ).render()
 
 
     @require_oauth2_scope("submit")
@@ -1157,10 +1146,6 @@ class LiveAnnouncementsController(RedditController):
         VModhash(),
         VRatelimit(rate_user=True, prefix="liveupdate_create_"),
         **EVENT_CONFIGURATION_VALIDATORS
-    )
-    @api_doc(
-        section=api_section.live,
-        uri="/api/announcements/create",
     )
     def POST_create(self, form, jquery, title, description, resources, nsfw, announcement_url='', button_cta='', start_date=None, end_date=None):
         """Create a new live thread.
@@ -1210,6 +1195,7 @@ class LiveAnnouncementsController(RedditController):
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
 
+        return event._id
 
 @add_controller
 class LiveUpdateEventsController(RedditController):
@@ -1488,7 +1474,7 @@ class LiveUpdateAdminController(RedditController):
             featured_events[target] = event
 
         return AdminPage(
-                content=pages.HappeningNowAdmin(featured_events),
+                content=pages.AnnouncementsAdmin(featured_events),
                 title='announcements: happening now',
                 nav_menus=[]
             ).render()

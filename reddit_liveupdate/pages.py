@@ -566,6 +566,9 @@ class LiveUpdateCreate(Templated):
     pass
 
 
+class LiveAnnouncementsCreate(Templated):
+    pass
+
 class EmbedlyCard(Templated):
     def __init__(self, url):
         self.url = url
@@ -601,7 +604,7 @@ class AnnouncementsAdmin(Templated):
         if featured_events:
             target, event = featured_events.items()[0]
             super(AnnouncementsAdmin, self).__init__(
-                featured_event=LiveUpdateHappeningNowBar(event, enable_logo=False),
+                featured_event=LiveUpdateAnnouncementsBar(event, enable_logo=False),
                 target=target,
             )
         else:
@@ -618,7 +621,7 @@ class HappeningNowAdmin(Templated):
         if featured_events:
             target, event = featured_events.items()[0]
             super(HappeningNowAdmin, self).__init__(
-                featured_event=LiveUpdateAnnouncementsBar(event, enable_logo=False),
+                featured_event=LiveUpdateHappeningNowBar(event, enable_logo=False),
                 target=target,
             )
         else:
