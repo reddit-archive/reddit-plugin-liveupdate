@@ -170,6 +170,12 @@ class LiveUpdate(Plugin):
             conditions={"function": not_in_sr},
         )
 
+        mc(
+            "/announcements/create",
+            controller="liveannouncements",
+            action="create",
+            conditions={"function": not_in_sr},
+        )
 
         mc(
             "/api/announcements/:action",

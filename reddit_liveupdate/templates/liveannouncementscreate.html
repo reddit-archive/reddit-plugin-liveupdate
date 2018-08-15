@@ -1,0 +1,8 @@
+<%namespace name="utils" file="utils.html"/>
+<%namespace file="liveannouncementsutils.html" name="liveannouncements_utils" />
+
+<h1>${_("create a new announcement")}</h1>
+
+<%liveannouncements_utils:configuration_form button_name="${_('create')}" endpoint="announcements/create">
+  <p>${_("don't worry, you'll be able to change these later")}</p>
+</%liveannouncements_utils:configuration_form>

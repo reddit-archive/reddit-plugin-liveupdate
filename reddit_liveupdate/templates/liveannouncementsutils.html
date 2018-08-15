@@ -1,0 +1,55 @@
+<%!
+   from r2.lib.pages import UserText
+%>
+<%namespace name="utils" file="utils.html"/>
+
+<%def name="nextprev(listing)">
+% if listing.nextprev and (listing.prev or listing.next):
+<nav class="nextprev">
+  ${_("view more:")}&#32;
+  %if listing.prev:
+    <a href="${listing.prev}" rel="nofollow prev">&lsaquo; ${_("prev")}</a>
+  %endif
+  %if listing.prev and listing.next:
+    <span class="separator"></span>
+  %endif
+  %if listing.next:
+    <a href="${listing.next}" rel="nofollow next">${_("next")} &rsaquo;</a>
+  %endif
+</nav>
+% endif
+</%def>
+
+<%def name="configuration_form(endpoint, button_name, thing=None)">
+<div id="liveupdate-form" class="pretty-form">
+  <%utils:line_field title="${_('title')}">
+    <input type="text" name="title" id="title" class="text" value="${getattr(thing, 'title', '')}">
+    ${utils.error_field("NO_TEXT", "title")}
+    ${utils.error_field("TOO_LONG", "title")}
+  </%utils:line_field>
+
+  <%utils:line_field title="${_('description')}" description="${_('one or two sentences (120 characters) saying what this thread is about')}">
+    ${UserText(None, text=getattr(thing, 'description', ''), editable=True, creating=True, name="description", have_form=False)}
+  </%utils:line_field>
+
+  <%utils:line_field title="${_('announcement URL')}">
+    <input type="text" name="announcement_url" id="announcement_url" class="text" value="${getattr(thing, 'announcement_url', '')}">
+  </%utils:line_field>
+
+  <%utils:line_field title="${_('button CTA')}">
+    <input type="text" name="button_cta" id="button_cta" class="text" value="${getattr(thing, 'button_cta', '')}">
+  </%utils:line_field>
+  
+  ${caller.body()}
+
+  <div class="save-button">
+    <button class="btn" type="button" onclick="return post_pseudo_form('#liveupdate-form', '${endpoint}')">
+      ${button_name}
+    </button>
+    &#32;
+    <span class="status error"></span>
+    ${utils.error_field("RATELIMIT", "ratelimit")}
+    ${utils.error_field("CANT_CREATE_SR", "")}
+  </div>
+</div>
+</%def>

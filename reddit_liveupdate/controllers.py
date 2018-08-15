@@ -1130,15 +1130,23 @@ class LiveAnnouncementsController(RedditController):
             content=pages.LiveUpdateHome(),
             page_classes=["liveupdate-home"],
         ).render()
-    
+
+    @validate(
+        VAdmin(),
+    )
+    def GET_create(self):
+        return pages.LiveUpdateMetaPage(
+            title=_("create live thread"),
+            content=pages.LiveAnnouncementsCreate(),
+        ).render()
+
     @require_oauth2_scope("read")
     def GET_happening_now(self):
         """ Get some basic information about the currently featured live thread.
-
             Returns an empty 204 response for api requests if no thread is currently featured.
-
             See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
         """
+        import pdb; pdb.set_trace()
         if not is_api():
             self.abort404()
 
@@ -1158,10 +1166,6 @@ class LiveAnnouncementsController(RedditController):
         VModhash(),
         VRatelimit(rate_user=True, prefix="liveupdate_create_"),
         **EVENT_CONFIGURATION_VALIDATORS
-    )
-    @api_doc(
-        section=api_section.live,
-        uri="/api/announcements/create",
     )
     def POST_create(self, form, jquery, title, description, resources, nsfw, announcement_url='', button_cta='', start_date=None, end_date=None):
         """Create a new live thread.
@@ -1211,6 +1215,7 @@ class LiveAnnouncementsController(RedditController):
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
 
+        return event._id
 
 @add_controller
 class LiveUpdateEventsController(RedditController):
