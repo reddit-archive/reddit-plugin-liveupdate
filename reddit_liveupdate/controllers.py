@@ -1521,8 +1521,6 @@ class LiveUpdateAdminController(RedditController):
                 abort(400)
 
             sr_ids_blacklist = []
-            import pdb
-            pdb.set_trace()
             if sr_blacklist:
                 sr_names = sr_blacklist.split(",")
                 for sr_name in sr_names:
@@ -1609,7 +1607,7 @@ def get_featured_announcement():
     if not announcement:
         return None
 
-    event_id = announcement.get("event_id")
+    event_id = announcement.get("event_id", "")
 
     if not event_id:
         return None
