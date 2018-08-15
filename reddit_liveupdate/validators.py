@@ -9,6 +9,7 @@ from r2.lib.validator import (
     VBoolean,
     VLength,
     VMarkdownLength,
+    VOneOf,
     VPermissions,
 )
 from r2.lib.db import tdb_cassandra
@@ -119,6 +120,7 @@ EVENT_CONFIGURATION_VALIDATORS = {
     "nsfw": VBoolean("nsfw"),
     "announcement_url": VLength("announcement_url", max_length=2083),
     "button_cta": VLength("button_cta", max_length=100),
+    "icon": VOneOf("icon", options=('moderation', 'announcement', 'ama', 'snoo', 'document')),
 }
 
 

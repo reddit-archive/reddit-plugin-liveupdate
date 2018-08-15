@@ -65,11 +65,20 @@
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.happening-now .icon img {
+    height: 15px;
+    margin-right: 5px;
+}
 </style>
 
 <div class="happening-now-wrap">
   <div class="happening-now">
-    <p class="title">${thing.event.title}</p><br>
+    <% icon_src = thing.event.icon + '.png' %>
+    <div>
+        <p class="icon"><img src="${static(icon_src)}" /></p>
+        <p class="title">${thing.event.title}</p><br>
+    </div>
     <p class="description">${thing.event.description}</p><br>
     <a class="button" href="${thing.event.announcement_url}">${thing.event.button_cta}</a>
   </div>

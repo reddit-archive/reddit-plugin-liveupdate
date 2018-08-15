@@ -1,5 +1,6 @@
 <%!
    from r2.lib.pages import UserText
+   from reddit_liveupdate.models import AnnouncementIcon
 %>
 <%namespace name="utils" file="utils.html"/>
 
@@ -40,6 +41,18 @@
     <input type="text" name="button_cta" id="button_cta" class="text" value="${getattr(thing, 'button_cta', '')}">
   </%utils:line_field>
   
+  <%utils:line_field title="${_('icon')}">
+    <select name="icon" id="icon">
+      <% icons = AnnouncementIcon() %>
+      %for icon in icons.visible_options():
+      <option ${'selected="selected"' if icon == getattr(thing, 'icon', '') else ""} value="${icon}">
+        ${icon}
+      </option>
+      %endfor
+    </select>
+  </%utils:line_field>
+
+
   ${caller.body()}
 
   <div class="save-button">

@@ -1166,7 +1166,7 @@ class LiveAnnouncementsController(RedditController):
         VRatelimit(rate_user=True, prefix="liveupdate_create_"),
         **EVENT_CONFIGURATION_VALIDATORS
     )
-    def POST_create(self, form, jquery, title, description, resources, nsfw, announcement_url='', button_cta='', start_date=None, end_date=None):
+    def POST_create(self, form, jquery, title, description, resources, nsfw, announcement_url='', button_cta='', icon='', start_date=None, end_date=None):
         """Create a new live thread.
 
         Once created, the initial settings can be modified with
@@ -1201,6 +1201,7 @@ class LiveAnnouncementsController(RedditController):
             is_announcement=True,
             announcement_url=announcement_url,
             button_cta=button_cta,
+            icon=icon,
         )
         event.add_contributor(c.user, ContributorPermissionSet.SUPERUSER)
         queries.create_event(event)
@@ -1214,7 +1215,6 @@ class LiveAnnouncementsController(RedditController):
         form._send_data(id=event._id)
         liveupdate_events.create_event(event, context=c, request=request)
 
-        return event._id
 
 
 @add_controller

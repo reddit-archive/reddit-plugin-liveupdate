@@ -237,6 +237,7 @@ class LiveUpdateEventJsonTemplate(ThingJsonTemplate):
         is_announcement="is_announcement",
         announcement_url="announcement_url",
         button_cta="button_cta",
+        icon="icon",
     )
 
     def thing_attr(self, thing, attr):
@@ -281,7 +282,8 @@ class LiveAnnouncementsJsonTemplate(LiveUpdateEventJsonTemplate):
     _data_attrs_ = LiveUpdateEventJsonTemplate.data_attrs(
         is_announcement="is_announcement",
         announcement_url="announcement_url",
-        button_cta="button_cta"
+        button_cta="button_cta",
+        icon="icon",
     )
 
     def thing_attr(self, thing, attr):
@@ -291,6 +293,8 @@ class LiveAnnouncementsJsonTemplate(LiveUpdateEventJsonTemplate):
             return str(thing.announcement_url)
         elif attr == "button_cta":
             return str(thing.button_cta)
+        elif attr == "icon":
+            return str(thing.icon)
         return LiveUpdateEventJsonTemplate.thing_attr(self, thing, attr)
 
 

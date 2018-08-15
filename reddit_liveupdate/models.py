@@ -42,6 +42,7 @@ class LiveUpdateEvent(tdb_cassandra.Thing):
         "resources": "",
         # one of "live", "complete"
         "state": "live",
+        "icon": "",
         "active_visitors": 0,
         "active_visitors_fuzzed": True,
         "banned": False,
@@ -353,3 +354,13 @@ class LiveUpdateReportsByEvent(tdb_cassandra.View):
 
 class LiveUpdateQueryCache(query_cache._BaseQueryCache):
     _use_db = True
+
+
+class AnnouncementIcon(object):
+    _options = ('moderation', 'announcement', 'ama', 'snoo', 'document')
+    def __init__(self, *args, **kwargs):
+        super(AnnouncementIcon, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def visible_options(cls):
+        return set(cls._options)
