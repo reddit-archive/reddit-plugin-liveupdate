@@ -6,6 +6,8 @@
 <style>
 label {
   font-weight: 700;
+  display: inline-block;
+  padding: 7px 0 7px 10px;
 }
 
 .happening-now-form > p, .happening-now {
@@ -16,6 +18,14 @@ label {
   text-align: left;
   font-weight: normal;
   padding-right: 2em;
+}
+
+.submit-btn {
+  padding: 5px 10px;
+  background-color: rgb(0, 121, 211);
+  color: #fff;
+  border-radius: 4px;
+  margin-left: 10px;
 }
 </style>
 
@@ -58,19 +68,31 @@ limit the banner to.</p>
     <tr>
       <th scope="row"><label for="logged_in">Logged In</label></th>
       <td>
-        <input type="radio" id="logged_in" name="logged_in" />
+        <input type="checkbox" id="logged_in" name="logged_in" />
       </td>
     </tr>
     <tr>
       <th scope="row"><label for="logged_out">Logged Out</label></th>
       <td>
-        <input type="radio" id="logged_out" name="logged_out" />
+        <input type="checkbox" id="logged_out" name="logged_out" />
       </td>
     </tr>
     <tr>
       <th scope="row"><label for="mod_only">Mod Only</label></th>
       <td>
-        <input type="radio" id="mod_only" name="mod_only" />
+        <input type="checkbox" id="mod_only" name="mod_only" />
+      </td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="gold_only">Gold Only</label></th>
+      <td>
+        <input type="checkbox" id="gold_only" name="gold_only" />
+      </td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="redesign_opt_in">Redesign Opt In</label></th>
+      <td>
+        <input type="checkbox" id="redesign_opt_in" name="redesign_opt_in" />
       </td>
     </tr>
     <tr>
@@ -80,8 +102,20 @@ limit the banner to.</p>
       </td>
     </tr>
     <tr>
+      <th scope="row"><label for="sr_whitelist">Whitelisted Subredits</label></th>
+      <td>
+        <input id="sr_whitelist" name="sr_whitelist" />
+      </td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="user_whitelist">Whitelisted User Names</label></th>
+      <td>
+        <input id="user_whitelist" name="user_whitelist" />
+      </td>
+    </tr>
+    <tr>
       <td colspan="2">
-        <input type="submit" value="feature thread">
+        <input class="submit-btn" type="submit" value="feature thread">
       </td>
     </tr>
   </table>

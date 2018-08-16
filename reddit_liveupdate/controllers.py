@@ -1514,28 +1514,46 @@ class LiveUpdateAdminController(RedditController):
         logged_in=VBoolean("logged_in"),
         logged_out=VBoolean("logged_out"),
         mod_only=VBoolean("mod_only"),
+        gold_only=VBoolean("gold_only"),
+        redesign_opt_in=VBoolean("redesign_opt_in"),
         sr_blacklist=nop("sr_blacklist"),
+        sr_whitelist=nop("sr_whitelist"),
+        user_whitelist=nop("user_whitelist"),
     )
     def POST_announcements(self, featured_thread, target, logged_in=False,
-                           logged_out=False, mod_only=False, sr_blacklist=""):
+                           logged_out=False, mod_only=False, gold_only=False,
+                           redesign_opt_in=False, sr_blacklist="",
+                           sr_whitelist="", user_whitelist=""):
         if featured_thread:
             if not target:
                 abort(400)
 
-            sr_ids_blacklist = []
-            if sr_blacklist:
-                sr_names = sr_blacklist.split(",")
-                for sr_name in sr_names:
-                    sr = Subreddit._by_name(sr_name)
-                    if sr:
-                        sr_ids_blacklist.append(sr._id)
+            def get_sr_ids_from_names(sr_names_list):
+                res = []
+                if sr_names_list:
+                    sr_names = sr_names_list.split(",")
+                    for sr_name in sr_names:
+                        sr = Subreddit._by_name(sr_name)
+                        if sr:
+                            res.append(sr._id)
+                return res
+
+            sr_ids_blacklist = get_sr_ids_from_names(sr_blacklist)
+            sr_ids_whitelist = get_sr_ids_from_names(sr_whitelist)
+            user_name_whitelist = (user_whitelist.split(",") if user_whitelist
+                                   else [])
+
             entry = {
                 target: {
                     "event_id": featured_thread._fullname,
                     "logged_in": logged_in,
                     "logged_out": logged_out,
                     "mod_only": mod_only,
+                    "gold_only": gold_only,
+                    "redesign_opt_in": redesign_opt_in,
                     "sr_blacklist": sr_ids_blacklist,
+                    "sr_whitelist": sr_ids_whitelist,
+                    "user_whitelist": user_name_whitelist,
                 }
             }
             NamedGlobals.set(ANNOUNCEMENTS_KEY, entry)
@@ -1618,13 +1636,25 @@ def get_featured_announcement():
             announcement.get("logged_out") and not c.user_is_loggedin):
         return None
 
+    user_whitelist = announcement.get("user_whitelist")
+    if (user_whitelist and
+       (c.user_is_loggedin and c.user.name not in user_whitelist)):
+        return None
+
     sr_blacklist = announcement.get("sr_blacklist")
-    if sr_blacklist and c.user_is_loggedin:
+    sr_whitelist = announcement.get("sr_whitelist")
+    if c.user_is_loggedin and (sr_blacklist or sr_whitelist):
         subscribed_srs = SubscribedSubredditsByAccount.get_all_sr_ids(c.user)
-        if subscribed_srs:
+
+        if sr_blacklist and subscribed_srs:
             for sr_id in sr_blacklist:
                 if sr_id in subscribed_srs:
                     return None
+
+        if sr_whitelist and subscribed_srs:
+            for sr_id in sr_whitelist:
+                if sr_id in subscribed_srs:
+                    break
 
     if announcement.get("mod_only"):
         if not c.user_is_loggedin:
@@ -1632,6 +1662,14 @@ def get_featured_announcement():
 
         if not c.user.is_moderator_somewhere:
             return None
+
+    if (announcement.get("redesign_opt_in") and
+       (c.user_is_loggedin) and not c.user.in_redesign_beta):
+        return None
+
+    if (announcement.get("gold_only") and
+       (c.user_is_loggedin and not c.user.has_gold_subscription)):
+        return None
 
     try:
         return LiveUpdateEvent._by_fullname(event_id)
