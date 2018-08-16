@@ -1143,10 +1143,10 @@ class LiveAnnouncementsController(RedditController):
     @require_oauth2_scope("read")
     def GET_happening_now(self):
         """ Get some basic information about the currently featured live thread.
-            Returns an empty 204 response for api requests if no thread is currently featured.
+            Returns an empty 204 response for api requests if no thread is
+            currently featured.
             See also: [/api/live/*thread*/about](#GET_api_live_{thread}_about).
         """
-        import pdb; pdb.set_trace()
         if not is_api():
             self.abort404()
 
@@ -1158,7 +1158,6 @@ class LiveAnnouncementsController(RedditController):
         c.liveupdate_event = featured_announcement
         content = Wrapped(featured_announcement)
         return pages.LiveUpdateEventPage(content).render()
-
 
     @require_oauth2_scope("submit")
     @validatedForm(
@@ -1217,6 +1216,7 @@ class LiveAnnouncementsController(RedditController):
 
         return event._id
 
+
 @add_controller
 class LiveUpdateEventsController(RedditController):
     def GET_home(self):
@@ -1244,8 +1244,10 @@ class LiveUpdateEventsController(RedditController):
 
         featured_event = get_featured_event()
         if not featured_event:
-            response.status_code = 204
-            return
+            featured_event = get_featured_announcement()
+            if not featured_event:
+                response.status_code = 204
+                return
 
         c.liveupdate_event = featured_event
         content = Wrapped(featured_event)
@@ -1584,11 +1586,7 @@ def get_featured_event():
     event_id = featured_events.get(location) or featured_events.get("ANY")
 
     if not event_id:
-        featured_announcement = get_featured_announcement()
-        if featured_announcement:
-            return featured_announcement
-        else:
-            return None
+        return None
 
     try:
         return LiveUpdateEvent._by_fullname(event_id)
