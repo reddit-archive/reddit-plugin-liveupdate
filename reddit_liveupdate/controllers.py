@@ -1637,9 +1637,12 @@ def get_featured_announcement():
         return None
 
     user_whitelist = announcement.get("user_whitelist")
-    if (user_whitelist and
-       (c.user_is_loggedin and c.user.name not in user_whitelist)):
-        return None
+    if user_whitelist:
+        if not c.user_is_loggedin:
+            return None
+
+        if c.user.name not in user_whitelist:
+            return None
 
     sr_blacklist = announcement.get("sr_blacklist")
     sr_whitelist = announcement.get("sr_whitelist")
@@ -1652,9 +1655,9 @@ def get_featured_announcement():
                     return None
 
         if sr_whitelist and subscribed_srs:
-            for sr_id in sr_whitelist:
-                if sr_id in subscribed_srs:
-                    break
+            common_srs = set(subscribed_srs).intersection(sr_whitelist)
+            if not common_srs:
+                return None
 
     if announcement.get("mod_only"):
         if not c.user_is_loggedin:
@@ -1663,13 +1666,19 @@ def get_featured_announcement():
         if not c.user.is_moderator_somewhere:
             return None
 
-    if (announcement.get("redesign_opt_in") and
-       (c.user_is_loggedin) and not c.user.in_redesign_beta):
-        return None
+    if announcement.get("redesign_opt_in"):
+        if not c.user_is_loggedin:
+            return None
 
-    if (announcement.get("gold_only") and
-       (c.user_is_loggedin and not c.user.has_gold_subscription)):
-        return None
+        if not c.user.in_redesign_beta:
+            return None
+
+    if announcement.get("gold_only"):
+        if not c.user_is_loggedin:
+            return None
+
+        if not c.user.has_gold_subscription:
+            return None
 
     try:
         return LiveUpdateEvent._by_fullname(event_id)
