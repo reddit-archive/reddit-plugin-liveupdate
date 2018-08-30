@@ -42,9 +42,6 @@ def get_discussions(event, limit, show_hidden=False):
         if not link.subreddit_slow.discoverable:
             return False
 
-        if not getattr(link, "allow_liveupdate", True):
-            return False
-
         if link._score < g.liveupdate_min_score_for_discussions:
             return False
 
